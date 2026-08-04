@@ -1,0 +1,15 @@
+{
+  "name": "honest-boost-desktop",
+  "version": "1.0.0",
+  "description": "Honest Boost — Otimizador de Windows para Performance (Mouse, Monitor, FPS)",
+  "main": "main.js",
+  "author": "Honest Boost",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
+

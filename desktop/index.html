@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honest Boost — Otimizador de Windows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--background); }
+        .topbar { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 1.2rem; border-bottom: 1px solid var(--divider); background: var(--surface-1); }
+        .topbar .brand { font-size: 1.1rem; font-weight: 800; }
+        .topbar .brand span { color: var(--primary); }
+        .topbar .os-info { margin-left: auto; color: var(--on-surface-variant); font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+        .main-content { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .tab { display: inline-flex; align-items: center; gap: 8px; padding: 0.6rem 1.2rem; border-radius: 999px; border: 1px solid var(--outline-variant); background: transparent; color: var(--on-surface-variant); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; }
+        .tab.active { background: var(--primary-container); color: var(--on-primary-container); border-color: transparent; }
+        .tab .material-symbols-rounded { font-size: 20px; }
+        .opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+        .opt-card { background: var(--surface-1); border: 1px solid var(--divider); border-radius: 18px; padding: 1.4rem; display: flex; flex-direction: column; gap: 0.8rem; box-shadow: var(--elevation-1); transition: all 0.2s ease; }
+        .opt-card:hover { box-shadow: var(--elevation-2); transform: translateY(-2px); }
+        .opt-header { display: flex; align-items: center; gap: 0.8rem; }
+        .opt-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--primary-container); color: var(--on-primary-container); display: grid; place-items: center; flex-shrink: 0; }
+        .opt-icon .material-symbols-rounded { font-size: 24px; }
+        .opt-title { font-weight: 700; color: var(--on-surface); font-size: 1.05rem; }
+        .opt-desc { color: var(--on-surface-variant); font-size: 0.88rem; line-height: 1.5; }
+        .opt-action { margin-top: auto; }
+        .opt-result { font-size: 0.85rem; min-height: 1.2em; display: flex; align-items: center; gap: 6px; }
+        .opt-result.ok { color: var(--success); }
+        .opt-result.err { color: var(--error); }
+        .btn { justify-content: center; }
+        .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--surface-2); color: var(--on-surface-variant); border: 1px solid var(--outline-variant); }
+        .apply-all { position: sticky; bottom: 0; background: var(--surface-1); border-top: 1px solid var(--divider); padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .apply-all .btn { padding: 0.85rem 2rem; font-size: 1rem; }
+        .section-label { color: var(--on-surface-variant); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.8px; font-weight: 700; }
+        .empty-state { text-align: center; padding: 3rem; color: var(--on-surface-variant); }
+        .empty-state .material-symbols-rounded { font-size: 3rem; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <div class="brand"><span class="material-symbols-rounded" style="vertical-align:-4px;color:var(--primary);">rocket_launch</span> Honest<span>Boost</span></div>
+        <div class="os-info" id="os-info">Carregando sistema...</div>
+        <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+            <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+            <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+        </button>
+    </div>
+
+    <div class="main-content">
+        <!-- Tabs -->
+        <div class="tabs" id="tabs">
+            <button class="tab active" data-tab="fps"><span class="material-symbols-rounded">speed</span> FPS & Sistema</button>
+            <button class="tab" data-tab="mouse"><span class="material-symbols-rounded">mouse</span> Mouse</button>
+            <button class="tab" data-tab="monitor"><span class="material-symbols-rounded">desktop_windows</span> Monitor</button>
+            <button class="tab" data-tab="rede"><span class="material-symbols-rounded">wifi</span> Rede</button>
+        </div>
+
+        <!-- FPS & Sistema -->
+        <div class="tab-panel" id="panel-fps">
+            <div class="section-label">Otimização de Sistema</div>
+            <div class="opt-grid">
+                <div class="opt-card" data-opt="high-perf-power">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">battery_charging_full</span></div>
+                        <div class="opt-title">Plano de Energia Máximo</div>
+                    </div>
+                    <div class="opt-desc">Ativa o plano de energia "Alto Desempenho" para máxima performance de CPU.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="high-perf-power"><span class="material-symbols-rounded">bolt</span> Aplicar</button></div>
+                </div>
+
+                <div class="opt-card" data-opt="disable-gamedvr">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">videocam_off</span></div>
+                        <div class="opt-title">Desativar Game DVR</div>
+                    </div>
+                    <div class="opt-desc">Desativa gravação em segundo plano do Xbox Game Bar, reduzindo input lag.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="disable-gamedvr"><span class="material-symbols-rounded">videocam_off</span> Aplicar</button></div>
+                </div>
+
+                <div class="opt-card" data-opt="visual-effects">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">animation</span></div>
+                        <div class="opt-title">Efeitos Visuais Leves</div>
+                    </div>
+                    <div class="opt-desc">Ajusta o Windows para melhor desempenho, desativando animações pesadas.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="visual-effects"><span class="material-symbols-rounded">animation</span> Aplicar</button></div>
+                </div>
+
+                <div class="opt-card" data-opt="clean-ram">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">memory</span></div>
+                        <div class="opt-title">Limpar RAM Standby</div>
+                    </div>
+                    <div class="opt-desc">Libera memória em cache standby para evitar stuttering e travamentos.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="clean-ram"><span class="material-symbols-rounded">memory</span> Limpar</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mouse -->
+        <div class="tab-panel" id="panel-mouse" style="display:none;">
+            <div class="section-label">Otimização de Mouse</div>
+            <div class="opt-grid">
+                <div class="opt-card" data-opt="disable-mouse-accel">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">pan_tool_alt</span></div>
+                        <div class="opt-title">Desativar Aceleração do Mouse</div>
+                    </div>
+                    <div class="opt-desc">Desliga o "Aprimorar precisão do ponteiro" do Windows. Movimento 1:1 para mira perfeita.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="disable-mouse-accel"><span class="material-symbols-rounded">pan_tool_alt</span> Desativar</button></div>
+                </div>
+
+                <div class="opt-card" data-opt="polling-rate">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">sensors</span></div>
+                        <div class="opt-title">Polling Rate 1000Hz</div>
+                    </div>
+                    <div class="opt-desc">Configura o mouse para reportar na frequência máxima (1000Hz) para resposta instantânea.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="polling-rate"><span class="material-symbols-rounded">sensors</span> Aplicar</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitor -->
+        <div class="tab-panel" id="panel-monitor" style="display:none;">
+            <div class="section-label">Otimização de Monitor</div>
+            <div class="opt-grid">
+                <div class="opt-card" data-opt="monitor-refresh">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">refresh</span></div>
+                        <div class="opt-title">Refresh Rate Máximo</div>
+                    </div>
+                    <div class="opt-desc">Detecta e aplica a maior taxa de atualização suportada pelo monitor (60/120/144/165/240Hz).</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="monitor-refresh"><span class="material-symbols-rounded">refresh</span> Aplicar</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rede -->
+        <div class="tab-panel" id="panel-rede" style="display:none;">
+            <div class="section-label">Otimização de Rede</div>
+            <div class="opt-grid">
+                <div class="opt-card" data-opt="network">
+                    <div class="opt-header">
+                        <div class="opt-icon"><span class="material-symbols-rounded">wifi</span></div>
+                        <div class="opt-title">Rede Otimizada para Jogos</div>
+                    </div>
+                    <div class="opt-desc">Ajusta TCP auto-tuning, timestamps e conexões máximas para menor latência online.</div>
+                    <div class="opt-result"></div>
+                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="network"><span class="material-symbols-rounded">wifi</span> Aplicar</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicar tudo -->
+    <div class="apply-all">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--on-surface-variant);">
+            <span class="material-symbols-rounded">auto_fix_high</span>
+            <span style="font-size:0.9rem;">Aplicar todas as otimizações recomendadas de uma vez</span>
+        </div>
+        <button id="apply-all-btn" class="btn btn-filled">
+            <span class="material-symbols-rounded">auto_fix_high</span> Aplicar Tudo
+        </button>
+    </div>
+
+    <script>
+        const OPTION_LABELS = {
+            'high-perf-power': 'Plano de energia',
+            'disable-gamedvr': 'Game DVR',
+            'visual-effects': 'Efeitos visuais',
+            'clean-ram': 'RAM standby',
+            'disable-mouse-accel': 'Aceleração do mouse',
+            'polling-rate': 'Polling rate',
+            'monitor-refresh': 'Refresh rate',
+            'network': 'Rede'
+        };
+
+        // Theme
+        function applyTheme(t, save) {
+            document.documentElement.setAttribute('data-theme', t);
+            var btn = document.getElementById('theme-toggle');
+            btn.setAttribute('data-state', t);
+            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
+            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
+            if (save) localStorage.setItem('hb-theme', t);
+        }
+        (function () {
+            var t;
+            try { t = localStorage.getItem('hb-theme'); } catch (e) {}
+            if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            applyTheme(t, false);
+        })();
+        document.getElementById('theme-toggle').addEventListener('click', function () {
+            var c = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            applyTheme(c === 'dark' ? 'light' : 'dark', true);
+        });
+
+        // Info
+        if (window.hbDesktop) {
+            window.hbDesktop.getInfo().then(function (info) {
+                document.getElementById('os-info').innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">computer</span> ' + info.os + ' (' + info.arch + ')';
+            }).catch(function () {});
+        }
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+                document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+                this.classList.add('active');
+                document.getElementById('panel-' + this.dataset.tab).style.display = '';
+            });
+        });
+
+        // Run single opt
+        async function runOpt(opt, btn) {
+            if (!window.hbDesktop) return;
+            var handlers = {
+                'high-perf-power': 'highPerfPower',
+                'disable-gamedvr': 'disableGameDVR',
+                'visual-effects': 'visualEffects',
+                'clean-ram': 'cleanRAM',
+                'disable-mouse-accel': 'disableMouseAccel',
+                'polling-rate': 'pollingRate',
+                'monitor-refresh': 'monitorRefresh',
+                'network': 'optimizeNetwork'
+            };
+            var card = btn.closest('.opt-card');
+            var resultEl = card.querySelector('.opt-result');
+            resultEl.className = 'opt-result';
+            resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">progress_activity</span> Aplicando...';
+            try {
+                var res = await window.hbDesktop[handlers[opt]]();
+                if (res && res.ok) {
+                    resultEl.className = 'opt-result ok';
+                    resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> ' + res.message;
+                } else {
+                    resultEl.className = 'opt-result err';
+                    resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + (res ? res.message : 'Erro');
+                }
+            } catch (e) {
+                resultEl.className = 'opt-result err';
+                resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + String(e.message || e);
+            }
+        }
+
+        document.querySelectorAll('.run-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () { runOpt(this.dataset.opt, this); });
+        });
+
+        // Apply all
+        document.getElementById('apply-all-btn').addEventListener('click', async function () {
+            if (!window.hbDesktop) return;
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Aplicando...';
+            try {
+                var results = await window.hbDesktop.applyAll();
+                results.forEach(function (r) {
+                    var card = document.querySelector('.opt-card[data-opt="' + r.name + '"]');
+                    if (!card) return;
+                    var resultEl = card.querySelector('.opt-result');
+                    if (r.ok) {
+                        resultEl.className = 'opt-result ok';
+                        resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Aplicado';
+                    } else {
+                        resultEl.className = 'opt-result err';
+                        resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + (r.message || 'Erro');
+                    }
+                });
+            } catch (e) { console.error(e); }
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-rounded">auto_fix_high</span> Aplicar Tudo';
+        });
+    </script>
+</body>
+</html>
+

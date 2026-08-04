@@ -1,0 +1,99 @@
+/* ============================================================
+   Honest Boost Desktop — Material Design 3 (Google Flat)
+   ============================================================ */
+
+/* ---------- Design Tokens (Dark) ---------- */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --primary: #4f8bff;
+  --on-primary: #ffffff;
+  --primary-container: #1b3a6b;
+  --on-primary-container: #d6e3ff;
+  --secondary: #a0c4ff;
+  --on-secondary: #00305a;
+  --secondary-container: #2a4a7a;
+  --on-secondary-container: #d6e3ff;
+  --surface: #0f1524;
+  --surface-1: #161d2e;
+  --surface-2: #1c2438;
+  --surface-3: #222b42;
+  --on-surface: #e6e9f0;
+  --on-surface-variant: #aab3c5;
+  --background: #0a0f1a;
+  --on-background: #e6e9f0;
+  --outline: #3a4356;
+  --outline-variant: #2a3242;
+  --divider: rgba(255, 255, 255, 0.08);
+  --error: #ffb4ab;
+  --success: #86efac;
+  --warning: #fcd34d;
+  --elevation-1: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+  --elevation-2: 0 2px 6px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4);
+  --elevation-3: 0 8px 20px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.4);
+  --gradient-brand: linear-gradient(135deg, #4f8bff 0%, #2563eb 100%);
+}
+
+/* ---------- Design Tokens (Light) ---------- */
+[data-theme="light"] {
+  color-scheme: light;
+  --primary: #1a5cd6;
+  --on-primary: #ffffff;
+  --primary-container: #d6e3ff;
+  --on-primary-container: #0a3050;
+  --secondary: #3a5a8a;
+  --on-secondary: #ffffff;
+  --secondary-container: #d6e3ff;
+  --on-secondary-container: #0a3050;
+  --surface: #f8fafd;
+  --surface-1: #ffffff;
+  --surface-2: #f0f4fa;
+  --surface-3: #e8eef7;
+  --on-surface: #141a24;
+  --on-surface-variant: #5a6478;
+  --background: #eef2f8;
+  --on-background: #141a24;
+  --outline: #8a94a8;
+  --outline-variant: #d3dbe7;
+  --divider: rgba(0,0,0,0.08);
+  --error: #ba1a1a;
+  --success: #15803d;
+  --warning: #a16207;
+  --elevation-1: 0 1px 3px rgba(10,20,40,0.08), 0 1px 2px rgba(10,20,40,0.06);
+  --elevation-2: 0 3px 8px rgba(10,20,40,0.10), 0 2px 4px rgba(10,20,40,0.06);
+  --elevation-3: 0 10px 24px rgba(10,20,40,0.12), 0 4px 8px rgba(10,20,40,0.08);
+  --gradient-brand: linear-gradient(135deg, #2563eb 0%, #1a5cd6 100%);
+}
+
+/* ---------- Base ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+html, body { height: 100%; }
+body { background: var(--background); color: var(--on-background); line-height: 1.6; transition: background 0.25s ease, color 0.25s ease; }
+a { color: var(--primary); text-decoration: none; }
+.material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 24px; line-height: 1; vertical-align: middle; user-select: none; }
+
+/* ---------- Buttons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0.7rem 1.5rem; border-radius: 999px; font-weight: 600; font-size: 0.95rem; cursor: pointer; border: none; transition: box-shadow 0.2s ease, transform 0.15s ease, background 0.2s ease, color 0.2s ease; text-decoration: none; line-height: 1.2; }
+.btn:active { transform: scale(0.97); }
+.btn .material-symbols-rounded { font-size: 20px; }
+.btn-filled { background: var(--gradient-brand); color: #fff; box-shadow: var(--elevation-2); }
+.btn-filled:hover { box-shadow: var(--elevation-3); transform: translateY(-1px); }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---------- Icon button ---------- */
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--outline-variant); background: transparent; color: var(--on-surface-variant); cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
+.icon-btn:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); color: var(--primary); }
+.icon-btn .material-symbols-rounded { font-size: 22px; }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--outline); }
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+

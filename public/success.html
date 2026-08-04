@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra Concluída — Honest Boost</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body>
+
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="index.html" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+            <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container">
+            <div class="success-card card">
+                <div class="success-icon"><span class="material-symbols-rounded">check_circle</span></div>
+                <h1>Compra Concluída!</h1>
+                <p style="color:var(--on-surface-variant);">Sua licença foi ativada com sucesso. Verifique os detalhes abaixo:</p>
+
+                <div class="details-box">
+                    <div class="detail-row">
+                        <span class="detail-label"><strong><span class="material-symbols-rounded" style="font-size:18px;vertical-align:-4px;">receipt_long</span> Número do Pedido:</strong></span>
+                        <span class="detail-value" id="order">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label"><strong><span class="material-symbols-rounded" style="font-size:18px;vertical-align:-4px;">key</span> Chave de Licença:</strong></span>
+                        <span class="detail-value" id="license" style="max-width:220px;">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label"><strong><span class="material-symbols-rounded" style="font-size:18px;vertical-align:-4px;">mail</span> Email de Confirmação:</strong></span>
+                        <span class="detail-value" id="email">Enviado para seu email</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="downloadInstallerBtn" class="btn btn-filled">
+                        <span class="material-symbols-rounded">download</span> Baixar Instalador
+                    </button>
+                    <a href="/recursos.html" class="btn btn-tonal">
+                        <span class="material-symbols-rounded">book</span> Ver Recursos
+                    </a>
+                </div>
+
+                <div class="warning-box">
+                    <strong><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">lock</span> Importante:</strong> Guarde sua chave de licença em um local seguro. Você precisará dela para ativar o software.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            var btn = document.getElementById('theme-toggle');
+            var t = document.documentElement.getAttribute('data-theme');
+            btn.setAttribute('data-state', t);
+            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
+            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
+            btn.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                btn.setAttribute('data-state', next);
+                localStorage.setItem('hb-theme', next);
+                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
+                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
+            });
+        })();
+
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var order = params.get('order') || 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            var license = params.get('license') || 'XXX-XXX-XXX-XXX';
+            document.getElementById('order').textContent = order;
+            document.getElementById('license').textContent = license;
+        })();
+
+        // Download installer (requires login; redirects to /login.html on 401)
+        document.getElementById('downloadInstallerBtn').addEventListener('click', async function () {
+            try {
+                var r = await fetch('/api/download');
+                if (r.status === 401) {
+                    var info = await r.json().catch(function () { return {}; });
+                    window.location = info.loginUrl || '/login.html';
+                    return;
+                }
+                var info = await r.json();
+                var a = document.createElement('a');
+                a.href = info.url;
+                a.download = info.filename || '';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) { console.error(err); alert('Erro ao iniciar download'); }
+        });
+    </script>
+</body>
+</html>
+

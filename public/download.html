@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baixar — Honest Boost</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body>
+
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="index.html" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+            <nav>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="index.html"><span class="material-symbols-rounded">home</span> Início</a></li>
+                    <li><a href="recursos.html"><span class="material-symbols-rounded">widgets</span> Recursos</a></li>
+                    <li><a href="download.html"><span class="material-symbols-rounded">download</span> Baixar</a></li>
+                    <li><a href="help.html"><span class="material-symbols-rounded">support</span> Ajuda</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+                <a href="/login.html" class="btn btn-outlined" style="padding:0.5rem 1.1rem;"><span class="material-symbols-rounded">login</span> Entrar</a>
+                <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="material-symbols-rounded">menu</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container" style="max-width:1000px;text-align:center;">
+            <h1 style="margin-bottom:0.6rem;display:flex;align-items:center;justify-content:center;gap:12px;">
+                <span class="material-symbols-rounded" style="color:var(--primary);font-size:2rem;">download</span> Baixar Honest Boost
+            </h1>
+            <p class="subtitle" style="color:var(--on-surface-variant);margin-bottom:2.5rem;">Escolha a versão ideal para otimizar seu Windows agora mesmo.</p>
+
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;text-align:left;">
+                <div class="card card-hover">
+                    <h3 style="color:var(--primary);margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;"><span class="material-symbols-rounded">flask</span> Versão Trial</h3>
+                    <p style="margin-bottom:1.5rem;">Teste todas as funcionalidades por 30 dias sem limitações.</p>
+                    <button id="trialDownloadBtn" class="btn btn-filled btn-block">
+                        <span class="material-symbols-rounded">download</span> Baixar Trial
+                    </button>
+                </div>
+
+                <div class="card card-hover">
+                    <h3 style="color:var(--primary);margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;"><span class="material-symbols-rounded">star</span> Versão Pro</h3>
+                    <p style="margin-bottom:1.5rem;">Acesso completo com suporte prioritário e atualizações vitalícias.</p>
+                    <a href="/checkout.html" class="btn btn-filled btn-block">
+                        <span class="material-symbols-rounded">shopping_cart</span> Adquirir Pro
+                    </a>
+                </div>
+
+                <div class="card card-hover">
+                    <h3 style="color:var(--primary);margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;"><span class="material-symbols-rounded">workspace_premium</span> Versão Premium</h3>
+                    <p style="margin-bottom:1.5rem;">Suporte 24/7, perfis personalizados e acesso beta a novas features.</p>
+                    <a href="/checkout.html" class="btn btn-filled btn-block">
+                        <span class="material-symbols-rounded">shopping_cart</span> Adquirir Premium
+                    </a>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:2.5rem;border-left:4px solid var(--primary);text-align:left;">
+                <strong style="color:var(--primary);display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded">lock</span> Segurança Garantida</strong><br>
+                <p style="font-size:0.92rem;">Todos os instaladores são digitalmente assinados e verificados. Nenhuma modificação não autorizada.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-bottom" style="border:none;padding:0;">
+                <div class="copyright">&copy; 2026 Honest Boost. Todos os direitos reservados.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var btn = document.getElementById('theme-toggle');
+            var t = document.documentElement.getAttribute('data-theme');
+            btn.setAttribute('data-state', t);
+            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
+            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
+            btn.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                btn.setAttribute('data-state', next);
+                localStorage.setItem('hb-theme', next);
+                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
+                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
+            });
+        })();
+
+        document.getElementById('nav-toggle').addEventListener('click', function () {
+            var nav = document.getElementById('nav-links');
+            var expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', String(!expanded));
+            nav.classList.toggle('show');
+        });
+
+        // Trial download (requires login; redirects to /login.html on 401)
+        document.getElementById('trialDownloadBtn').addEventListener('click', async function () {
+            try {
+                var r = await fetch('/api/download');
+                if (r.status === 401) {
+                    var info = await r.json().catch(function () { return {}; });
+                    window.location = info.loginUrl || '/login.html';
+                    return;
+                }
+                var info = await r.json();
+                var a = document.createElement('a');
+                a.href = info.url;
+                a.download = info.filename || '';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) { console.error(err); alert('Erro ao iniciar download'); }
+        });
+    </script>
+</body>
+</html>
+

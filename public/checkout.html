@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra — Honest Boost</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body>
+
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="index.html" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+            <div style="display:flex;align-items:center;gap:0.6rem;color:var(--success);font-size:0.88rem;font-weight:600;">
+                <span class="material-symbols-rounded" style="font-size:20px;">lock</span> Ambiente 100% Seguro
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container">
+            <div class="checkout-grid">
+                <!-- Form -->
+                <div class="card">
+                    <h2 style="margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">
+                        <span class="material-symbols-rounded" style="color:var(--primary);">person</span> Dados de Acesso
+                    </h2>
+                    <div class="form-group">
+                        <label for="email">E-mail para receber a licença</label>
+                        <input type="email" id="email" class="input-field" placeholder="seu@email.com" required>
+                    </div>
+
+                    <h2 style="margin-bottom:1.2rem;display:flex;align-items:center;gap:10px;">
+                        <span class="material-symbols-rounded" style="color:var(--primary);">credit_card</span> Pagamento
+                    </h2>
+                    <div class="payment-methods">
+                        <div class="method-card active" onclick="selectMethod(this, 'pix')">
+                            <span class="material-symbols-rounded">qr_code_2</span> PIX (Imediato)
+                        </div>
+                        <div class="method-card" onclick="selectMethod(this, 'card')">
+                            <span class="material-symbols-rounded">credit_card</span> Cartão
+                        </div>
+                    </div>
+
+                    <div id="msg" style="margin:1rem 0;min-height:20px;font-size:0.9rem;"></div>
+                    <button id="payBtn" class="btn btn-filled btn-block" style="padding:1rem;">
+                        <span class="material-symbols-rounded">lock</span> Finalizar Compra Segura
+                    </button>
+
+                    <div style="display:flex;justify-content:center;gap:1.5rem;margin-top:1.4rem;font-size:0.85rem;color:var(--on-surface-variant);flex-wrap:wrap;">
+                        <span><span class="material-symbols-rounded" style="font-size:16px;color:var(--success);vertical-align:-3px;">check_circle</span> 7 Dias de Garantia</span>
+                        <span><span class="material-symbols-rounded" style="font-size:16px;color:var(--success);vertical-align:-3px;">shield</span> SSL Seguro</span>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="card order-summary" style="position:sticky;top:90px;">
+                    <h3 style="margin-bottom:1rem;color:var(--on-surface-variant);text-transform:uppercase;font-size:0.9rem;letter-spacing:0.8px;">Resumo do Pedido</h3>
+                    <div class="summary-item">
+                        <span id="product-name">Carregando...</span>
+                        <span id="product-price">...</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Desconto Especial</span>
+                        <span style="color:var(--success);">- R$ 0,00</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>Total</span>
+                        <span id="total-price">...</span>
+                    </div>
+                    <div class="divider"><span>Feedback Recente</span></div>
+                    <div style="display:grid;gap:0.8rem;" id="reviews">
+                        <div class="test-card" style="padding:0.9rem;">
+                            <div class="stars"><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span></div>
+                            <p style="font-size:0.85rem;font-style:italic;margin-bottom:0.4rem;">"FPS no Valorant subiu de 140 para 220. Incrível."</p>
+                            <div class="test-author" style="font-size:0.8rem;">— Ricardo M.</div>
+                        </div>
+                        <div class="test-card" style="padding:0.9rem;">
+                            <div class="stars"><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span></div>
+                            <p style="font-size:0.85rem;font-style:italic;margin-bottom:0.4rem;">"Chave enviada em 2 minutos. Recomendo!"</p>
+                            <div class="test-author" style="font-size:0.8rem;">— Ana Paula S.</div>
+                        </div>
+                        <div class="test-card" style="padding:0.9rem;">
+                            <div class="stars"><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span></div>
+                            <p style="font-size:0.85rem;font-style:italic;margin-bottom:0.4rem;">"Warzone sem lag agora. Valeu muito a pena."</p>
+                            <div class="test-author" style="font-size:0.8rem;">— Lucas G.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-bottom" style="border:none;padding:0;">
+                <div class="copyright">&copy; 2026 Honest Boost. Todos os direitos reservados.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var btn = document.getElementById('theme-toggle');
+            var t = document.documentElement.getAttribute('data-theme');
+            btn.setAttribute('data-state', t);
+            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
+            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
+            btn.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                btn.setAttribute('data-state', next);
+                localStorage.setItem('hb-theme', next);
+                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
+                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
+            });
+        })();
+
+        var params = new URLSearchParams(location.search);
+        var product = params.get('product') || 'pro';
+        var productName = (product === 'starter') ? 'Honest Boost Starter' : 'Honest Boost Pro Gamer';
+        var price = (product === 'starter') ? 'R$ 47,00' : 'R$ 97,00';
+
+        document.getElementById('product-name').innerText = productName;
+        document.getElementById('product-price').innerText = price;
+        document.getElementById('total-price').innerText = price;
+
+        window.selectMethod = function (el) {
+            document.querySelectorAll('.method-card').forEach(function (c) { c.classList.remove('active'); });
+            el.classList.add('active');
+        };
+
+        document.getElementById('payBtn').addEventListener('click', async function () {
+            var email = document.getElementById('email').value;
+            var btn = document.getElementById('payBtn');
+            var msg = document.getElementById('msg');
+            if (!email || email.indexOf('@') === -1) {
+                msg.innerText = 'Por favor, insira um e-mail válido.';
+                msg.className = 'error';
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Processando...';
+            msg.innerText = '';
+            msg.className = '';
+
+            try {
+                var res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product: product, email: email })
+                });
+                var data = await res.json();
+                if (res.ok && data.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                    return;
+                }
+                msg.innerText = 'Erro ao iniciar o checkout. Tente novamente.';
+                msg.className = 'error';
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-rounded">lock</span> Finalizar Compra Segura';
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-rounded">lock</span> Finalizar Compra Segura';
+                msg.innerText = 'Erro ao processar. Tente novamente.';
+                msg.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html>
+

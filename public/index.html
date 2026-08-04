@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honest Boost — Otimize seu Windows para Performance Extrema</title>
+    <meta name="description" content="Aumente seu FPS, reduza a latência e otimize mouse e monitor com o Honest Boost. Otimização profunda para Windows 10/11.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        /* Early theme application to avoid flash */
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="index.html" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+
+            <nav>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="#top"><span class="material-symbols-rounded">home</span> Início</a></li>
+                    <li><a href="#recursos"><span class="material-symbols-rounded">widgets</span> Recursos</a></li>
+                    <li><a href="#perifericos"><span class="material-symbols-rounded">mouse</span> Periféricos</a></li>
+                    <li><a href="#resultados"><span class="material-symbols-rounded">monitoring</span> Resultados</a></li>
+                    <li><a href="#precos"><span class="material-symbols-rounded">sell</span> Preços</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+                <a href="/login.html" class="btn btn-outlined" style="padding:0.5rem 1.1rem;">
+                    <span class="material-symbols-rounded">login</span> Entrar
+                </a>
+                <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+                    <span class="material-symbols-rounded">menu</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="top">
+        <div class="container hero-inner">
+            <div class="hero-content">
+                <span class="badge animate-up">
+                    <span class="material-symbols-rounded" style="font-size:18px;">upgrade</span>
+                    Atualizações disponíveis
+                </span>
+                <h1 class="animate-up delay-1">Domine o Jogo com<br><span class="gradient-text">Performance Extrema</span></h1>
+                <p class="hero-subtitle animate-up delay-2">O software de otimização Windows mais avançado — desempenho estável, menos latência e atualizações regulares.</p>
+                <p class="animate-up delay-2" style="margin-bottom:1rem;">Reduza o input lag, aumente o FPS e elimine stuttering. Compatível com Windows 10/11.</p>
+
+                <div class="hero-features animate-up delay-3">
+                    <span class="chip"><span class="material-symbols-rounded">sports_esports</span> Game Mode 2.0</span>
+                    <span class="chip"><span class="material-symbols-rounded">speed</span> Latência Otimizada</span>
+                    <span class="chip"><span class="material-symbols-rounded">mouse</span> Precision Mouse</span>
+                    <span class="chip"><span class="material-symbols-rounded">desktop_windows</span> Refresh Rate Boost</span>
+                </div>
+
+                <div class="cta-group animate-up delay-3">
+                    <button id="download-btn" class="btn btn-filled btn-large">
+                        <span class="material-symbols-rounded">download</span> Baixar Otimizador
+                    </button>
+                    <a href="#recursos" class="btn btn-tonal">
+                        <span class="material-symbols-rounded">explore</span> Ver Recursos
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual animate-up delay-2">
+                <div class="visual-top">
+                    <div class="dots"><span></span><span></span><span></span></div>
+                    <span class="visual-title">Honest Boost — Performance Dashboard</span>
+                </div>
+                <div class="fps-meters">
+                    <div>
+                        <div class="meter-label"><span>FPS Mínimos (1% Low)</span><strong>+55%</strong></div>
+                        <div class="meter-bar"><div class="meter-fill"></div></div>
+                    </div>
+                    <div>
+                        <div class="meter-label"><span>Estabilidade de Frame</span><strong>-90% stuttering</strong></div>
+                        <div class="meter-bar"><div class="meter-fill after"></div></div>
+                    </div>
+                    <div>
+                        <div class="meter-label"><span>Input Lag do Mouse</span><strong>-60%</strong></div>
+                        <div class="meter-bar"><div class="meter-fill after" style="width:85%;"></div></div>
+                    </div>
+                    <div>
+                        <div class="meter-label"><span>Latência do Monitor</span><strong>-45%</strong></div>
+                        <div class="meter-bar"><div class="meter-fill" style="width:70%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="container">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number">+40%</span>
+                <span class="stat-label">FPS Médio</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">-25ms</span>
+                <span class="stat-label">Input Lag</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">1000Hz</span>
+                <span class="stat-label">Polling Rate</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">240Hz</span>
+                <span class="stat-label">Refresh Boost</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <section id="recursos" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tecnologia de Ponta</h2>
+                <p>Algoritmos desenvolvidos para extrair cada gota de performance do seu hardware.</p>
+            </div>
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem;">
+                <div class="feature-card stagger">
+                    <div class="fc-icon"><span class="material-symbols-rounded">sports_esports</span></div>
+                    <h3>Game Mode Ultra</h3>
+                    <p>Desativa processos em segundo plano, serviços desnecessários e telemetria do Windows para liberar 100% da CPU e GPU.</p>
+                </div>
+                <div class="feature-card stagger">
+                    <div class="fc-icon"><span class="material-symbols-rounded">bolt</span></div>
+                    <h3>Latência Zero</h3>
+                    <p>Otimização de rede e ajustes de registro para garantir o menor input lag possível. Essencial para FPS competitivos.</p>
+                </div>
+                <div class="feature-card stagger">
+                    <div class="fc-icon"><span class="material-symbols-rounded">memory</span></div>
+                    <h3>Smart RAM Cleaner</h3>
+                    <p>Limpeza inteligente de memória cache e standby lists para evitar travamentos e stuttering em mundos abertos.</p>
+                </div>
+                <div class="feature-card stagger">
+                    <div class="fc-icon"><span class="material-symbols-rounded">shield</span></div>
+                    <h3>Restore Point Auto</h3>
+                    <p>Segurança total. Cria um ponto de restauração automático antes de aplicar qualquer otimização. Reversível em 1 clique.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Peripherals (Mouse + Monitor) -->
+    <section id="perifericos" class="section peripheral-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Otimização de Periféricos</h2>
+                <p>Afine seu mouse e monitor para máxima precisão competitiva.</p>
+            </div>
+            <div class="peripheral-grid">
+                <!-- Mouse -->
+                <div class="peripheral-card">
+                    <div class="peripheral-header">
+                        <div class="pc-icon"><span class="material-symbols-rounded">mouse</span></div>
+                        <div>
+                            <h3>Mouse Pro</h3>
+                            <p class="text-muted" style="font-size:0.85rem;">Precisão milimétrica para mira</p>
+                        </div>
+                    </div>
+                    <ul class="peripheral-list">
+                        <li>
+                            <span class="material-symbols-rounded mat">tune</span>
+                            <div><div class="tt">Precision Mouse Config</div><div class="dd">Ajuste fino de DPI, sensibilidade e curvas de aceleração do cursor.</div></div>
+                        </li>
+                        <li>
+                            <span class="material-symbols-rounded mat">sensors</span>
+                            <div><div class="tt">Polling Rate 1000Hz</div><div class="dd">Força o mouse a reportar na frequência máxima (125/500/1000Hz) para resposta instantânea.</div></div>
+                        </li>
+                        <li>
+                            <span class="material-symbols-rounded mat">pan_tool_alt</span>
+                            <div><div class="tt">Mouse Acceleration Off</div><div class="dd">Desativa a aceleração do Windows — movimento 1:1 perfeito para headshots consistentes.</div></div>
+                        </li>
+                        <li>
+                            <span class="material-symbols-rounded mat">settings_overscan</span>
+                            <div><div class="tt">Raw Input Optimization</div><div class="dd">Bypass de pós-processamento do Windows para captura direta do hardware.</div></div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Monitor -->
+                <div class="peripheral-card">
+                    <div class="peripheral-header">
+                        <div class="pc-icon"><span class="material-symbols-rounded">desktop_windows</span></div>
+                        <div>
+                            <h3>Monitor Tuning</h3>
+                            <p class="text-muted" style="font-size:0.85rem;">Extraia cada Hz do seu display</p>
+                        </div>
+                    </div>
+                    <ul class="peripheral-list">
+                        <li>
+                            <span class="material-symbols-rounded mat">refresh</span>
+                            <div><div class="tt">Refresh Rate Boost</div><div class="dd">Força o monitor a operar na taxa máxima suportada (60/120/144/165/240Hz).</div></div>
+                        </li>
+                        <li>
+                            <span class="material-symbols-rounded mat">graphic_eq</span>
+                            <div><div class="tt">G-Sync / FreeSync Tuning</div><div class="dd">Otimiza a taxa de atualização variável (VRR) e evita screen tearing.</div></div>
+                        </li>
+                        <li>
+                            <span class="material-symbols-rounded mat">palette</span>
+                            <div><div class="tt">Color Profile Calibration</div><div class="dd">Calibração de cores (RGB, contraste, HDR) para imagem cristalina.</div></div>
+                        </li>
+                        <li>
+                            <span class="material-symbols-rounded mat">timer</span>
+                            <div><div class="tt">Reduce Input Lag</div><div class="dd">Reduz o atraso de exibição (display lag) para resposta mais rápida do seu display.</div></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>O que jogadores dizem</h2>
+                <p>Depoimentos reais de usuários que notaram melhorias imediatas.</p>
+            </div>
+            <div class="test-grid">
+                <div class="test-card">
+                    <div class="stars"><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span></div>
+                    <p>"Ganhei 40 FPS estáveis em Warzone após aplicar o Honest Boost. Instalação simples e reversível."</p>
+                    <div class="test-author">— Lucas M., 27</div>
+                </div>
+                <div class="test-card">
+                    <div class="stars"><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span></div>
+                    <p>"Menos stutter e input lag quase zerado. Perfeito para partidas competitivas."</p>
+                    <div class="test-author">— Ana P., 22</div>
+                </div>
+                <div class="test-card">
+                    <div class="stars"><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:16px;color:#ffb700;">star</span></div>
+                    <p>"O modo de monitor deixou meu 144Hz realmente funcionando. Mouse ficou muito mais preciso."</p>
+                    <div class="test-author">— Rodrigo S., 31</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison / Benchmarks -->
+    <section id="resultados" class="section comparison">
+        <div class="container comparison-container">
+            <div>
+                <h2>Benchmarks Reais</h2>
+                <p style="color:var(--on-surface-variant);margin-bottom:1.6rem;">Testes realizados em hardware médio (i5 + GTX 1660). Veja o ganho brutal de estabilidade.</p>
+                <div class="fps-meter">
+                    <div class="meter-label"><span>FPS Mínimos (1% Low)</span><strong>+55% Melhora</strong></div>
+                    <div class="meter-bar"><div class="meter-fill" style="width:40%;"></div></div>
+                    <div class="meter-label" style="margin-top:1.1rem;"><span>Estabilidade de Frame</span><strong>-90% Stuttering</strong></div>
+                    <div class="meter-bar"><div class="meter-fill after" style="width:95%;"></div></div>
+                </div>
+            </div>
+            <div class="comp-visual">
+                <h3 style="margin-bottom:0.8rem;">Warzone 2.0 (1080p Low)</h3>
+                <div class="bench-row"><span class="lbl">Padrão Windows</span><span class="val">65 FPS</span></div>
+                <div class="bench-row"><span class="lbl">Com Honest Boost</span><span class="val highlight">110 FPS</span></div>
+                <div class="bench-row"><span class="lbl">Mouse 1000Hz</span><span class="val highlight">Ativo</span></div>
+                <div class="bench-row"><span class="lbl">Monitor 144Hz</span><span class="val highlight">Forçado</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="precos" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Licenças Vitalícias</h2>
+                <p>Pague uma vez, use para sempre. Sem mensalidades.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Plano Básico (starter) -->
+                <div class="price-card stagger">
+                    <h3>Plano Básico</h3>
+                    <div class="price">R$ 47<span>/único</span></div>
+                    <p class="text-muted" style="font-size:0.9rem;">1 PC • Melhor custo-benefício</p>
+                    <ul class="features-list">
+                        <li><span class="material-symbols-rounded">check_circle</span> Otimização completa (CPU/RAM)</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Game Mode (boost automático)</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Mouse Acceleration Off</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte por email</li>
+                    </ul>
+                    <button class="btn btn-tonal btn-block purchase" data-product="starter">Comprar Básico</button>
+                </div>
+
+                <!-- Starter -->
+                <div class="price-card stagger">
+                    <h3>Starter</h3>
+                    <div class="price">R$ 67<span>/único</span></div>
+                    <p class="text-muted" style="font-size:0.9rem;">2 PCs • Para quem joga todo dia</p>
+                    <ul class="features-list">
+                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Plano Básico</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Polling Rate 1000Hz</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Refresh Rate Boost</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Perfis mais rápidos por jogo</li>
+                    </ul>
+                    <button class="btn btn-tonal btn-block purchase" data-product="starter">Comprar Starter</button>
+                </div>
+
+                <!-- Pro (featured) -->
+                <div class="price-card featured stagger">
+                    <div class="popular-tag">RECOMENDADO</div>
+                    <h3>Pro</h3>
+                    <div class="price">R$ 97<span>/único</span></div>
+                    <p class="text-muted" style="font-size:0.9rem;">Até 3 PCs • Performance competitiva</p>
+                    <ul class="features-list">
+                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Starter</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> G-Sync / FreeSync Tuning</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Color Profile Calibration</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte Discord VIP</li>
+                    </ul>
+                    <button class="btn btn-filled btn-block purchase" data-product="pro">Comprar Pro</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="index.html" class="brand" style="margin-bottom:1rem;font-size:1.1rem;">
+                        <span class="brand-icon" style="width:34px;height:34px;border-radius:10px;"><span class="material-symbols-rounded" style="font-size:19px;">rocket_launch</span></span>
+                        Honest<span>Boost</span>
+                    </a>
+                    <p style="font-size:0.88rem;">Software líder em otimização de sistemas Windows para alta performance competitiva.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Produto</h4>
+                    <ul>
+                        <li><a href="recursos.html">Recursos</a></li>
+                        <li><a href="changelog.html">Changelog</a></li>
+                        <li><a href="download.html">Baixar Trial</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Suporte</h4>
+                    <ul>
+                        <li><a href="help.html">Central de Ajuda</a></li>
+                        <li><a href="https://discord.gg/placeholder" target="_blank" rel="noopener">Discord Community</a></li>
+                        <li><a href="contact.html">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="terms.html">Termos de Uso</a></li>
+                        <li><a href="privacy.html">Política de Privacidade</a></li>
+                        <li><a href="refund.html">Reembolso</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="copyright">&copy; 2026 Honest Boost. Todos os direitos reservados. Não afiliado à Microsoft.</div>
+                <div class="socials">
+                    <a href="#" aria-label="Discord"><span class="material-symbols-rounded">forum</span></a>
+                    <a href="#" aria-label="Twitter"><span class="material-symbols-rounded">alternate_email</span></a>
+                    <a href="#" aria-label="YouTube"><span class="material-symbols-rounded">play_circle</span></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating CTA -->
+    <a href="#precos" class="floating-cta">
+        <span class="material-symbols-rounded">shopping_cart</span> Comprar
+    </a>
+
+    <script>
+        // Theme toggle binding
+        document.getElementById('theme-toggle').addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            this.setAttribute('data-state', next);
+            localStorage.setItem('hb-theme', next);
+            var sun = this.querySelector('.sun'), moon = this.querySelector('.moon');
+            if (next === 'dark') { sun.style.display = 'none'; moon.style.display = 'inline-block'; }
+            else { sun.style.display = 'inline-block'; moon.style.display = 'none'; }
+        });
+        // Set initial icon state
+        (function () {
+            var t = document.documentElement.getAttribute('data-theme');
+            var btn = document.getElementById('theme-toggle');
+            btn.setAttribute('data-state', t);
+            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
+            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
+        })();
+
+        // Header scroll shadow
+        var header = document.getElementById('app-header');
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 10) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
+
+        // Mobile nav toggle
+        document.getElementById('nav-toggle').addEventListener('click', function () {
+            var nav = document.getElementById('nav-links');
+            var expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', String(!expanded));
+            nav.classList.toggle('show');
+        });
+        document.querySelectorAll('#nav-links a').forEach(function (a) {
+            a.addEventListener('click', function () {
+                document.getElementById('nav-links').classList.remove('show');
+                document.getElementById('nav-toggle').setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        // Purchase buttons -> redirect to checkout page (with product param)
+        document.querySelectorAll('.purchase').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var product = this.dataset.product || 'pro';
+                window.location = '/checkout.html?product=' + encodeURIComponent(product);
+            });
+        });
+
+        // Download button
+        var downloadBtn = document.getElementById('download-btn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', async function (e) {
+                e.preventDefault();
+                try {
+                    var r = await fetch('/api/download');
+                    if (r.status === 401) {
+                        var info = await r.json().catch(function () { return {}; });
+                        window.location = info.loginUrl || '/login.html';
+                        return;
+                    }
+                    var info = await r.json();
+                    var a = document.createElement('a');
+                    a.href = info.url;
+                    a.download = info.filename || '';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } catch (err) { console.error(err); alert('Erro ao iniciar download'); }
+            });
+        }
+    </script>
+</body>
+</html>
+

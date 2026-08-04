@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60" role="img" aria-label="Honest Boost logo">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#00f2ff"/>
+      <stop offset="1" stop-color="#0066ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="60" rx="8" fill="none"/>
+  <g transform="translate(8,6)">
+    <rect width="48" height="48" rx="8" fill="#061225" stroke="url(#g)" stroke-width="2"/>
+    <g transform="translate(8,8)" fill="url(#g)">
+      <path d="M6 0 L10 0 L10 4 L14 4 L14 8 L10 8 L10 12 L6 12 L6 8 L2 8 L2 4 L6 4 Z" opacity="0.95"/>
+    </g>
+    <text x="70" y="32" font-family="Outfit, Arial, sans-serif" font-size="20" font-weight="800" fill="#ffffff">Honest<span fill="url(#g)" style="font-weight:700">Boost</span></text>
+  </g>
+</svg>

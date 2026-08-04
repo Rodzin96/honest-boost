@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Honest Boost</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Top bar with theme toggle -->
+    <header class="app-header" id="app-header" style="position:fixed;top:0;left:0;right:0;">
+        <div class="container header-inner">
+            <a href="index.html" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+            <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-page">
+        <div class="auth-wrapper">
+            <div class="auth-logo">
+                <h1><span class="material-symbols-rounded" style="color:var(--primary);font-size:2.4rem;">rocket_launch</span> Honest Boost</h1>
+                <p>Otimize seu Windows para máximo desempenho</p>
+            </div>
+
+            <div class="auth-card">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Usuário ou Email</label>
+                        <input id="username" name="username" type="text" placeholder="Digite seu usuário" class="input-field" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input id="password" name="password" type="password" placeholder="Digite sua senha" class="input-field" required>
+                    </div>
+
+                    <button class="btn btn-filled btn-block" type="submit" id="loginBtn">
+                        <span class="material-symbols-rounded">login</span> Entrar
+                    </button>
+                </form>
+
+                <div class="divider"><span>OU</span></div>
+
+                <div class="social-login">
+                    <a href="/auth/google" class="social-btn">
+                        <span class="material-symbols-rounded">g_mobiledata</span> Entrar com Google
+                    </a>
+                </div>
+
+                <div class="footer-links">
+                    <a href="/reset-request.html"><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">key</span> Esqueci minha senha</a>
+                    <a href="/register.html"><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">person_add</span> Criar conta</a>
+                </div>
+
+                <div id="msg"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Theme toggle
+        (function () {
+            var btn = document.getElementById('theme-toggle');
+            var t = document.documentElement.getAttribute('data-theme');
+            btn.setAttribute('data-state', t);
+            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
+            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
+            btn.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                btn.setAttribute('data-state', next);
+                localStorage.setItem('hb-theme', next);
+                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
+                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
+            });
+        })();
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var btn = document.getElementById('loginBtn');
+            var msgDiv = document.getElementById('msg');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Entrando...';
+            msgDiv.textContent = '';
+            msgDiv.className = '';
+
+            try {
+                var f = new FormData(e.target);
+                var res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: f.get('username'), password: f.get('password') })
+                });
+                var data = await res.json();
+                if (res.ok) {
+                    msgDiv.textContent = 'Login bem-sucedido! Redirecionando...';
+                    msgDiv.className = 'success';
+                    setTimeout(function () { window.location = '/admin'; }, 800);
+                } else {
+                    msgDiv.textContent = data.error || 'Erro ao fazer login';
+                    msgDiv.className = 'error';
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-rounded">login</span> Entrar';
+                }
+            } catch (err) {
+                msgDiv.textContent = 'Erro de conexão. Tente novamente.';
+                msgDiv.className = 'error';
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-rounded">login</span> Entrar';
+            }
+        });
+    </script>
+</body>
+</html>
+
