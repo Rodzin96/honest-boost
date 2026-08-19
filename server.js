@@ -21,8 +21,12 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-/* Initialize schema on boot */
-initSchema().catch(err => console.error('Schema init error:', err.message));
+/* Boot */
+let server;
+async function start() {
+  await initSchema();
+  server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+}
 
 /* Middleware */
 app.use(express.json({ limit: '1mb' }));
