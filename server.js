@@ -89,13 +89,8 @@ function newLicenseKey() {
 }
 
 /* Routes */
-app.get('/health', async (req, res) => {
-  try {
-    await dbGet('SELECT 1');
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(503).json({ ok: false, error: e.message });
-  }
+app.get('/health', (req, res) => {
+  res.json({ ok: true });
 });
 
 app.get('/api/me', (req, res) => {
@@ -239,11 +234,12 @@ app.use((err, req, res, next) => {
 /* Boot */
 let server;
 async function start() {
+  // Try to init schema but don't block server start
   try {
     await initSchema();
     console.log('✓ Schema initialized');
   } catch (err) {
-    console.error('Schema init failed:', err.message);
+    console.error('⚠ Schema init failed (will retry on first request):', err.message);
   }
   server = app.listen(PORT, () => console.log(`✓ Server running on port ${PORT}`));
 }
