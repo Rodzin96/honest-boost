@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Honest Boost</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body class="dashboard-body">
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="mobile-header-inner">
+            <button class="icon-btn" id="mobile-menu-toggle" aria-label="Menu">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+            <a href="index.html" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+            <button class="icon-btn" id="theme-toggle" aria-label="Alternar tema">
+                <span class="material-symbols-rounded" id="theme-icon">dark_mode</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
+                <div class="brand-text">Honest<span>Boost</span></div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">Geral</div>
+                <button class="nav-item active" data-panel="overview">
+                    <span class="material-symbols-rounded">dashboard</span> Dashboard
+                </button>
+                <button class="nav-item" data-panel="keys">
+                    <span class="material-symbols-rounded">key</span> Minhas Keys
+                </button>
+                
+                <div class="nav-section">Conta</div>
+                <button class="nav-item" data-panel="account">
+                    <span class="material-symbols-rounded">person</span> Minha Conta
+                </button>
+                <button class="nav-item" data-panel="usage">
+                    <span class="material-symbols-rounded">analytics</span> Uso
+                </button>
+                <button class="nav-item" data-panel="activity">
+                    <span class="material-symbols-rounded">history</span> Atividade
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-card" id="user-card">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">Carregando...</div>
+                        <div class="user-status"><span class="dot"></span> Online</div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-block" id="logout-btn" style="margin-top:0.8rem;">
+                    <span class="material-symbols-rounded">logout</span> Sair
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-area">
+                
+                <!-- Overview Panel -->
+                <div class="panel active" id="panel-overview">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Dashboard</h2>
+                            <p class="section-subtitle">Visão geral da sua conta</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card animate-in">
+                            <div class="stat-icon"><span class="material-symbols-rounded">key</span></div>
+                            <div class="stat-value" id="stat-active-keys">0</div>
+                            <div class="stat-label">Keys Ativas</div>
+                        </div>
+                        <div class="stat-card animate-in" style="animation-delay:0.1s">
+                            <div class="stat-icon"><span class="material-symbols-rounded">auto_fix_high</span></div>
+                            <div class="stat-value" id="stat-optimizations">0</div>
+                            <div class="stat-label">Otimizações Aplicadas</div>
+                        </div>
+                        <div class="stat-card animate-in" style="animation-delay:0.2s">
+                            <div class="stat-icon"><span class="material-symbols-rounded">schedule</span></div>
+                            <div class="stat-value" id="stat-member-since">—</div>
+                            <div class="stat-label">Membro Desde</div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">Ações Rápidas</h3>
+                        <div class="actions-grid">
+                            <button class="action-card" onclick="navigateTo('keys')">
+                                <span class="material-symbols-rounded">add_key</span>
+                                <span>Gerar Nova Key</span>
+                            </button>
+                            <button class="action-card" onclick="navigateTo('usage')">
+                                <span class="material-symbols-rounded">bar_chart</span>
+                                <span>Ver Estatísticas</span>
+                            </button>
+                            <button class="action-card" onclick="navigateTo('activity')">
+                                <span class="material-symbols-rounded">history</span>
+                                <span>Ver Atividade</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Keys Panel -->
+                <div class="panel" id="panel-keys">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Minhas Keys</h2>
+                            <p class="section-subtitle">Gere chaves para usar no aplicativo (validade: 4 horas)</p>
+                        </div>
+                        <button class="btn btn-filled" id="generate-key-btn">
+                            <span class="material-symbols-rounded">add</span> Gerar Nova Key
+                        </button>
+                    </div>
+                    
+                    <div class="keys-container">
+                        <div class="keys-limit">
+                            <span id="keys-count">0/3</span> keys ativas
+                        </div>
+                        <div id="keys-list" class="keys-list">
+                            <div class="empty-state">
+                                <span class="material-symbols-rounded">key_off</span>
+                                <p>Nenhuma key ativa</p>
+                                <p style="font-size:0.85rem;">Clique em "Gerar Nova Key" para começar</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Panel -->
+                <div class="panel" id="panel-account">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Minha Conta</h2>
+                            <p class="section-subtitle">Informações da conta</p>
+                        </div>
+                    </div>
+                    <div class="account-card">
+                        <div class="account-header">
+                            <div class="account-avatar" id="account-avatar">U</div>
+                            <div class="account-info">
+                                <div class="account-name" id="account-name">Carregando...</div>
+                                <div class="account-email" id="account-email">—</div>
+                            </div>
+                        </div>
+                        <div class="account-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Usuário</span>
+                                <span class="detail-value" id="detail-username">—</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Email</span>
+                                <span class="detail-value" id="detail-email">—</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Plano</span>
+                                <span class="detail-value" id="detail-role">—</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Membro desde</span>
+                                <span class="detail-value" id="detail-created">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Usage Panel -->
+                <div class="panel" id="panel-usage">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Estatísticas de Uso</h2>
+                            <p class="section-subtitle">Detalhes do uso da sua conta</p>
+                        </div>
+                    </div>
+                    <div class="usage-grid">
+                        <div class="usage-card">
+                            <h4>Otimizações</h4>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-opts-total">0</span>
+                                <span class="usage-label">Total aplicadas</span>
+                            </div>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-opts-unique">0</span>
+                                <span class="usage-label">Tipos diferentes</span>
+                            </div>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-opts-last">—</span>
+                                <span class="usage-label">Última aplicação</span>
+                            </div>
+                        </div>
+                        <div class="usage-card">
+                            <h4>Keys</h4>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-keys-total">0</span>
+                                <span class="usage-label">Total geradas</span>
+                            </div>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-keys-active">0</span>
+                                <span class="usage-label">Ativas</span>
+                            </div>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-keys-expired">0</span>
+                                <span class="usage-label">Expiradas</span>
+                            </div>
+                            <div class="usage-stat">
+                                <span class="usage-number" id="usage-keys-revoked">0</span>
+                                <span class="usage-label">Revogadas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activity Panel -->
+                <div class="panel" id="panel-activity">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Atividade Recente</h2>
+                            <p class="section-subtitle">Histórico de ações da sua conta</p>
+                        </div>
+                    </div>
+                    <div id="activity-list" class="activity-list">
+                        <div class="empty-state">
+                            <span class="material-symbols-rounded">history</span>
+                            <p>Nenhuma atividade recente</p>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Key Generated Modal -->
+    <div class="modal-overlay" id="key-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><span class="material-symbols-rounded">key</span> Key Gerada!</h3>
+                <button class="icon-btn" id="close-modal">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-warning">
+                    <span class="material-symbols-rounded">warning</span>
+                    Esta key só será mostrada uma vez. Copie-a agora!
+                </p>
+                <div class="key-display">
+                    <code id="generated-key">hb_xxxxxxxxxxxxxxxx</code>
+                    <button class="btn btn-ghost" id="copy-key-btn">
+                        <span class="material-symbols-rounded">content_copy</span> Copiar
+                    </button>
+                </div>
+                <p class="modal-info">
+                    <span class="material-symbols-rounded">schedule</span>
+                    Expira em: <strong id="key-expires">4 horas</strong>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-filled" id="close-modal-btn">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

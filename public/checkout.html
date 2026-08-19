@@ -9,9 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <meta name="theme-color" content="#0a0f1a">
     <script>
         (function () {
             try {
@@ -21,34 +19,379 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
         })();
     </script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --bg-primary: #030512;
+            --bg-secondary: #071426;
+            --bg-surface: #07101b;
+            --bg-card: rgba(14, 165, 255, 0.08);
+            --border-color: rgba(14, 165, 255, 0.15);
+            --text-primary: #eef6ff;
+            --text-secondary: #94a3b8;
+            --text-muted: #5a6888;
+            --accent-primary: #0ea5ff;
+            --accent-secondary: #00e5d4;
+            --accent-highlight: #ffd166;
+            --success: #57f2b3;
+            --shadow-sm: 0 4px 12px rgba(2, 8, 20, 0.3);
+            --shadow-md: 0 10px 30px rgba(2, 8, 20, 0.5);
+            --shadow-lg: 0 18px 50px rgba(2, 8, 20, 0.6);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --transition: 220ms cubic-bezier(0.2, 0.95, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-primary) 80%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 12px 5%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            font-weight: 900;
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            color: #02121a;
+            border-radius: 999px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(14, 165, 255, 0.3);
+            transition: all var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        main {
+            padding-top: 90px;
+        }
+
+        .checkout-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .checkout-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkout-header p {
+            color: var(--text-muted);
+        }
+
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all var(--transition);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(14, 165, 255, 0.15);
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .method-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-weight: 500;
+        }
+
+        .method-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .method-card.active {
+            border-color: var(--accent-primary);
+            background: rgba(14, 165, 255, 0.1);
+        }
+
+        .btn-filled {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            color: #02121a;
+            border: none;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .btn-filled:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .order-summary {
+            position: sticky;
+            top: 90px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-item.total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider span {
+            background: var(--bg-card);
+            padding: 0 1rem;
+            position: relative;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .stars {
+            color: #ffb700;
+            margin-bottom: 0.5rem;
+        }
+
+        .msg {
+            margin: 1rem 0;
+            padding: 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .msg.error {
+            display: block;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-
-    <header class="app-header" id="app-header">
-        <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
-            <div style="display:flex;align-items:center;gap:0.6rem;color:var(--success);font-size:0.88rem;font-weight:600;">
-                <span class="material-symbols-rounded" style="font-size:20px;">lock</span> Ambiente 100% Seguro
-            </div>
-            <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
-                </button>
-            </div>
+    <!-- Header -->
+    <header class="site-header">
+        <a href="/index.html" class="brand">
+            <span>◆</span> Honest BOOST
+        </a>
+        <nav class="nav-links">
+            <a href="/index.html#features">Funcionalidades</a>
+            <a href="/index.html#results">Resultados</a>
+            <a href="/checkout.html">Planos</a>
+            <a href="/faq-honest.html">FAQ</a>
+        </nav>
+        <div class="header-actions">
+            <a href="/login.html" class="btn-secondary">Entrar</a>
+            <a href="/download-honest.html" class="btn-primary">Download</a>
         </div>
     </header>
 
-    <main class="section">
-        <div class="container">
+    <main>
+        <div class="checkout-container">
+            <div class="checkout-header">
+                <h1>Finalizar Compra</h1>
+                <p>Escolha seu plano e comece a otimizar seu PC</p>
+            </div>
+
             <div class="checkout-grid">
                 <!-- Form -->
                 <div class="card">
                     <h2 style="margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">
-                        <span class="material-symbols-rounded" style="color:var(--primary);">person</span> Dados de Acesso
+                        <span class="material-symbols-rounded" style="color:var(--accent-primary);">person</span> Dados de Acesso
                     </h2>
                     <div class="form-group">
                         <label for="email">E-mail para receber a licença</label>
@@ -56,7 +399,7 @@
                     </div>
 
                     <h2 style="margin-bottom:1.2rem;display:flex;align-items:center;gap:10px;">
-                        <span class="material-symbols-rounded" style="color:var(--primary);">credit_card</span> Pagamento
+                        <span class="material-symbols-rounded" style="color:var(--accent-primary);">credit_card</span> Pagamento
                     </h2>
                     <div class="payment-methods">
                         <div class="method-card active" onclick="selectMethod(this, 'pix')">
@@ -67,20 +410,20 @@
                         </div>
                     </div>
 
-                    <div id="msg" style="margin:1rem 0;min-height:20px;font-size:0.9rem;"></div>
-                    <button id="payBtn" class="btn btn-filled btn-block" style="padding:1rem;">
+                    <div id="msg" class="msg"></div>
+                    <button id="payBtn" class="btn-filled btn-block" style="padding:1rem;">
                         <span class="material-symbols-rounded">lock</span> Finalizar Compra Segura
                     </button>
 
-                    <div style="display:flex;justify-content:center;gap:1.5rem;margin-top:1.4rem;font-size:0.85rem;color:var(--on-surface-variant);flex-wrap:wrap;">
+                    <div style="display:flex;justify-content:center;gap:1.5rem;margin-top:1.4rem;font-size:0.85rem;color:var(--text-muted);flex-wrap:wrap;">
                         <span><span class="material-symbols-rounded" style="font-size:16px;color:var(--success);vertical-align:-3px;">check_circle</span> 7 Dias de Garantia</span>
                         <span><span class="material-symbols-rounded" style="font-size:16px;color:var(--success);vertical-align:-3px;">shield</span> SSL Seguro</span>
                     </div>
                 </div>
 
                 <!-- Summary -->
-                <div class="card order-summary" style="position:sticky;top:90px;">
-                    <h3 style="margin-bottom:1rem;color:var(--on-surface-variant);text-transform:uppercase;font-size:0.9rem;letter-spacing:0.8px;">Resumo do Pedido</h3>
+                <div class="card order-summary">
+                    <h3 style="margin-bottom:1rem;color:var(--text-muted);text-transform:uppercase;font-size:0.9rem;letter-spacing:0.8px;">Resumo do Pedido</h3>
                     <div class="summary-item">
                         <span id="product-name">Carregando...</span>
                         <span id="product-price">...</span>
@@ -94,21 +437,16 @@
                         <span id="total-price">...</span>
                     </div>
                     <div class="divider"><span>Feedback Recente</span></div>
-                    <div style="display:grid;gap:0.8rem;" id="reviews">
-                        <div class="test-card" style="padding:0.9rem;">
+                    <div style="display:grid;gap:0.8rem;">
+                        <div class="test-card">
                             <div class="stars"><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span></div>
                             <p style="font-size:0.85rem;font-style:italic;margin-bottom:0.4rem;">"FPS no Valorant subiu de 140 para 220. Incrível."</p>
-                            <div class="test-author" style="font-size:0.8rem;">— Ricardo M.</div>
+                            <div style="font-size:0.8rem;color:var(--text-muted);">— Ricardo M.</div>
                         </div>
-                        <div class="test-card" style="padding:0.9rem;">
+                        <div class="test-card">
                             <div class="stars"><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span></div>
                             <p style="font-size:0.85rem;font-style:italic;margin-bottom:0.4rem;">"Chave enviada em 2 minutos. Recomendo!"</p>
-                            <div class="test-author" style="font-size:0.8rem;">— Ana Paula S.</div>
-                        </div>
-                        <div class="test-card" style="padding:0.9rem;">
-                            <div class="stars"><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span><span class="material-symbols-rounded" style="font-size:14px;color:#ffb700;">star</span></div>
-                            <p style="font-size:0.85rem;font-style:italic;margin-bottom:0.4rem;">"Warzone sem lag agora. Valeu muito a pena."</p>
-                            <div class="test-author" style="font-size:0.8rem;">— Lucas G.</div>
+                            <div style="font-size:0.8rem;color:var(--text-muted);">— Ana Paula S.</div>
                         </div>
                     </div>
                 </div>
@@ -116,32 +454,7 @@
         </div>
     </main>
 
-    <footer class="app-footer">
-        <div class="container">
-            <div class="footer-bottom" style="border:none;padding:0;">
-                <div class="copyright">&copy; 2026 Honest Boost. Todos os direitos reservados.</div>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
-            });
-        })();
-
         var params = new URLSearchParams(location.search);
         var product = params.get('product') || 'pro';
         var productName = (product === 'starter') ? 'Honest Boost Starter' : 'Honest Boost Pro Gamer';
@@ -196,4 +509,3 @@
     </script>
 </body>
 </html>
-

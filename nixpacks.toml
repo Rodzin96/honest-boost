@@ -1,0 +1,8 @@
+[phases.build]
+cmds = ["npm install"]
+
+[phases.deploy]
+cmds = ["node -e \"require('./src/db').initSchema().then(()=>console.log('Schema OK'))\""]
+
+[start]
+cmd = "node server.js"

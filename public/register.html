@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar — Honest Boost</title>
+    <title>Criar Conta — Honest Boost</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <meta name="theme-color" content="#0a0f1a">
     <script>
         (function () {
             try {
@@ -20,35 +18,401 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
         })();
     </script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --bg-primary: #030512;
+            --bg-secondary: #071426;
+            --bg-surface: #07101b;
+            --bg-card: rgba(14, 165, 255, 0.08);
+            --border-color: rgba(14, 165, 255, 0.15);
+            --text-primary: #eef6ff;
+            --text-secondary: #94a3b8;
+            --text-muted: #5a6888;
+            --accent-primary: #0ea5ff;
+            --accent-secondary: #00e5d4;
+            --accent-highlight: #ffd166;
+            --success: #57f2b3;
+            --shadow-sm: 0 4px 12px rgba(2, 8, 20, 0.3);
+            --shadow-md: 0 10px 30px rgba(2, 8, 20, 0.5);
+            --shadow-lg: 0 18px 50px rgba(2, 8, 20, 0.6);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --transition: 220ms cubic-bezier(0.2, 0.95, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-primary) 80%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 12px 5%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            font-weight: 900;
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            color: #02121a;
+            border-radius: 999px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(14, 165, 255, 0.3);
+            transition: all var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 5%;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .auth-logo p {
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all var(--transition);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(14, 165, 255, 0.15);
+        }
+
+        .btn-filled {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            color: #02121a;
+            border: none;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .btn-filled:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider span {
+            background: var(--bg-card);
+            padding: 0 1rem;
+            position: relative;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .social-login {
+            margin-bottom: 1.5rem;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition);
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        .msg {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .msg.success {
+            display: block;
+            background: rgba(87, 242, 179, 0.1);
+            border: 1px solid rgba(87, 242, 179, 0.3);
+            color: var(--success);
+        }
+
+        .msg.error {
+            display: block;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
+        .password-strength {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: all 0.3s;
+        }
+
+        .password-strength-bar.weak { width: 33%; background: #ff6b6b; }
+        .password-strength-bar.medium { width: 66%; background: var(--accent-highlight); }
+        .password-strength-bar.strong { width: 100%; background: var(--success); }
+
+        .strength-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background: var(--bg-surface);
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem;
+            }
+
+            .nav-links.show {
+                display: flex;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-
-    <header class="app-header" id="app-header" style="position:fixed;top:0;left:0;right:0;">
-        <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
-            <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
-                </button>
-            </div>
+    <!-- Header -->
+    <header class="site-header">
+        <a href="/index.html" class="brand">
+            <span>◆</span> Honest BOOST
+        </a>
+        <nav class="nav-links">
+            <a href="/index.html#features">Funcionalidades</a>
+            <a href="/index.html#results">Resultados</a>
+            <a href="/checkout.html">Planos</a>
+            <a href="/faq-honest.html">FAQ</a>
+        </nav>
+        <div class="header-actions">
+            <a href="/login.html" class="btn-secondary">Entrar</a>
+            <a href="/download-honest.html" class="btn-primary">Download</a>
         </div>
     </header>
 
     <main class="auth-page">
         <div class="auth-wrapper">
             <div class="auth-logo">
-                <h1><span class="material-symbols-rounded" style="color:var(--primary);font-size:2.4rem;">rocket_launch</span> Honest Boost</h1>
+                <h1><span class="material-symbols-rounded" style="color:var(--accent-primary);font-size:2.4rem;">rocket_launch</span> Honest Boost</h1>
                 <p>Crie sua conta e otimize seu Windows</p>
             </div>
 
             <div class="auth-card">
                 <form id="regForm">
                     <div class="form-group">
-                        <label for="username">Usuário ou Email</label>
+                        <label for="username">Email</label>
                         <input id="username" name="username" type="email" placeholder="seu@email.com" class="input-field" required>
                     </div>
 
@@ -60,11 +424,11 @@
                     </div>
 
                     <div class="form-group" style="display:flex;align-items:center;gap:8px;">
-                        <input type="checkbox" id="terms" required style="width:18px;height:18px;accent-color:var(--primary);">
-                        <label for="terms" style="margin:0;font-size:0.9rem;">Concordo com os <a href="/terms.html">termos de uso</a></label>
+                        <input type="checkbox" id="terms" required style="width:18px;height:18px;accent-color:var(--accent-primary);">
+                        <label for="terms" style="margin:0;font-size:0.9rem;">Concordo com os <a href="/terms-honest.html">termos de uso</a></label>
                     </div>
 
-                    <button class="btn btn-filled btn-block" type="submit" id="regBtn">
+                    <button class="btn-filled btn-block" type="submit" id="regBtn">
                         <span class="material-symbols-rounded">person_add</span> Criar Conta
                     </button>
                 </form>
@@ -77,35 +441,17 @@
                     </a>
                 </div>
 
-                <div class="footer-links center">
-                    <span style="color:var(--on-surface-variant);">Já tem uma conta?</span>
+                <div class="footer-links">
+                    <span style="color:var(--text-secondary);">Já tem uma conta?</span>
                     <a href="/login.html"><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">login</span> Faça login</a>
                 </div>
 
-                <div id="msg"></div>
+                <div id="msg" class="msg"></div>
             </div>
         </div>
     </main>
 
     <script>
-        // Theme toggle
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
-            });
-        })();
-
         // Password strength
         var passwordInput = document.getElementById('password');
         var strengthBar = document.querySelector('.password-strength-bar');
@@ -131,7 +477,7 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Criando conta...';
             msgDiv.textContent = '';
-            msgDiv.className = '';
+            msgDiv.className = 'msg';
 
             try {
                 var f = new FormData(e.target);
@@ -141,19 +487,19 @@
                     body: JSON.stringify({ username: f.get('username'), password: f.get('password') })
                 });
                 var data = await res.json();
-                if (res.ok) {
+                if (res.ok && data.ok) {
                     msgDiv.textContent = 'Conta criada com sucesso! Redirecionando...';
-                    msgDiv.className = 'success';
+                    msgDiv.className = 'msg success';
                     setTimeout(function () { window.location = '/login.html'; }, 1500);
                 } else {
                     msgDiv.textContent = data.error || 'Erro ao criar conta';
-                    msgDiv.className = 'error';
+                    msgDiv.className = 'msg error';
                     btn.disabled = false;
                     btn.innerHTML = '<span class="material-symbols-rounded">person_add</span> Criar Conta';
                 }
             } catch (err) {
                 msgDiv.textContent = 'Erro de conexão. Tente novamente.';
-                msgDiv.className = 'error';
+                msgDiv.className = 'msg error';
                 btn.disabled = false;
                 btn.innerHTML = '<span class="material-symbols-rounded">person_add</span> Criar Conta';
             }
@@ -161,4 +507,3 @@
     </script>
 </body>
 </html>
-

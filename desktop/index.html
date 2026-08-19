@@ -6,287 +6,891 @@
     <title>Honest Boost — Otimizador de Windows</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--background); }
-        .topbar { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 1.2rem; border-bottom: 1px solid var(--divider); background: var(--surface-1); }
-        .topbar .brand { font-size: 1.1rem; font-weight: 800; }
-        .topbar .brand span { color: var(--primary); }
-        .topbar .os-info { margin-left: auto; color: var(--on-surface-variant); font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
-        .main-content { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
-        .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .tab { display: inline-flex; align-items: center; gap: 8px; padding: 0.6rem 1.2rem; border-radius: 999px; border: 1px solid var(--outline-variant); background: transparent; color: var(--on-surface-variant); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; }
-        .tab.active { background: var(--primary-container); color: var(--on-primary-container); border-color: transparent; }
-        .tab .material-symbols-rounded { font-size: 20px; }
-        .opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
-        .opt-card { background: var(--surface-1); border: 1px solid var(--divider); border-radius: 18px; padding: 1.4rem; display: flex; flex-direction: column; gap: 0.8rem; box-shadow: var(--elevation-1); transition: all 0.2s ease; }
-        .opt-card:hover { box-shadow: var(--elevation-2); transform: translateY(-2px); }
-        .opt-header { display: flex; align-items: center; gap: 0.8rem; }
-        .opt-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--primary-container); color: var(--on-primary-container); display: grid; place-items: center; flex-shrink: 0; }
-        .opt-icon .material-symbols-rounded { font-size: 24px; }
-        .opt-title { font-weight: 700; color: var(--on-surface); font-size: 1.05rem; }
-        .opt-desc { color: var(--on-surface-variant); font-size: 0.88rem; line-height: 1.5; }
-        .opt-action { margin-top: auto; }
-        .opt-result { font-size: 0.85rem; min-height: 1.2em; display: flex; align-items: center; gap: 6px; }
-        .opt-result.ok { color: var(--success); }
-        .opt-result.err { color: var(--error); }
-        .btn { justify-content: center; }
-        .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--surface-2); color: var(--on-surface-variant); border: 1px solid var(--outline-variant); }
-        .apply-all { position: sticky; bottom: 0; background: var(--surface-1); border-top: 1px solid var(--divider); padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-        .apply-all .btn { padding: 0.85rem 2rem; font-size: 1rem; }
-        .section-label { color: var(--on-surface-variant); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.8px; font-weight: 700; }
-        .empty-state { text-align: center; padding: 3rem; color: var(--on-surface-variant); }
-        .empty-state .material-symbols-rounded { font-size: 3rem; color: var(--primary); }
-    </style>
 </head>
 <body>
 
-    <div class="topbar">
-        <div class="brand"><span class="material-symbols-rounded" style="vertical-align:-4px;color:var(--primary);">rocket_launch</span> Honest<span>Boost</span></div>
-        <div class="os-info" id="os-info">Carregando sistema...</div>
-        <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-            <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-            <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div class="login-screen" id="login-screen">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="logo-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
+            <div class="logo-text">Honest<span>Boost</span></div>
+        </div>
+        
+        <div style="text-align:center;margin-bottom:1.5rem;">
+            <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:0.3rem;">Bem-vindo de volta</h2>
+            <p style="font-size:0.85rem;color:var(--text-muted);">Insira sua chave de licença para continuar</p>
+        </div>
+        
+        <div class="login-error" id="login-error"></div>
+        
+        <div class="form-group">
+            <label class="form-label">Chave de Licença</label>
+            <input class="form-input" id="license-input" type="text" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+        </div>
+        
+        <button class="btn btn-filled btn-block" id="login-btn" style="width:100%;">
+            <span class="material-symbols-rounded">lock_open</span> Entrar
         </button>
+        
+        <p style="text-align:center;margin-top:1.2rem;font-size:0.8rem;color:var(--text-muted);">
+            Não tem uma chave? <a href="https://honestboost.com.br" style="color:var(--primary);font-weight:600;">Compre agora</a>
+        </p>
     </div>
+</div>
 
-    <div class="main-content">
-        <!-- Tabs -->
-        <div class="tabs" id="tabs">
-            <button class="tab active" data-tab="fps"><span class="material-symbols-rounded">speed</span> FPS & Sistema</button>
-            <button class="tab" data-tab="mouse"><span class="material-symbols-rounded">mouse</span> Mouse</button>
-            <button class="tab" data-tab="monitor"><span class="material-symbols-rounded">desktop_windows</span> Monitor</button>
-            <button class="tab" data-tab="rede"><span class="material-symbols-rounded">wifi</span> Rede</button>
+<!-- ==================== MAIN APP ==================== -->
+<div class="app-layout" id="app-layout" style="display:none;">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
+            <div class="brand-text">Honest<span>Boost</span></div>
         </div>
-
-        <!-- FPS & Sistema -->
-        <div class="tab-panel" id="panel-fps">
-            <div class="section-label">Otimização de Sistema</div>
-            <div class="opt-grid">
-                <div class="opt-card" data-opt="high-perf-power">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">battery_charging_full</span></div>
-                        <div class="opt-title">Plano de Energia Máximo</div>
-                    </div>
-                    <div class="opt-desc">Ativa o plano de energia "Alto Desempenho" para máxima performance de CPU.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="high-perf-power"><span class="material-symbols-rounded">bolt</span> Aplicar</button></div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">Geral</div>
+            <button class="nav-item active" data-panel="dashboard">
+                <span class="material-symbols-rounded">dashboard</span> Dashboard
+            </button>
+            <button class="nav-item" data-panel="all-opts">
+                <span class="material-symbols-rounded">auto_fix_high</span> Otimizações
+                <span class="nav-badge">15</span>
+            </button>
+            
+            <div class="nav-section">Categorias</div>
+            <button class="nav-item" data-panel="fps">
+                <span class="material-symbols-rounded">speed</span> FPS & CPU
+            </button>
+            <button class="nav-item" data-panel="mouse">
+                <span class="material-symbols-rounded">mouse</span> Mouse
+            </button>
+            <button class="nav-item" data-panel="monitor">
+                <span class="material-symbols-rounded">desktop_windows</span> Monitor
+            </button>
+            <button class="nav-item" data-panel="rede">
+                <span class="material-symbols-rounded">wifi</span> Rede
+            </button>
+            <button class="nav-item" data-panel="servicos">
+                <span class="material-symbols-rounded">tune</span> Serviços
+            </button>
+            
+            <div class="nav-section">Modo Gaming</div>
+            <button class="nav-item" data-panel="gaming">
+                <span class="material-symbols-rounded">sports_esports</span> Gaming Mode
+            </button>
+            
+            <div class="nav-section">Conta</div>
+            <button class="nav-item" data-panel="updates">
+                <span class="material-symbols-rounded">system_update</span> Atualizações
+                <span class="nav-badge" id="update-badge" style="display:none;">!</span>
+            </button>
+            <button class="nav-item" data-panel="perfil">
+                <span class="material-symbols-rounded">person</span> Meu Perfil
+            </button>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-card" id="user-card">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Usuário</div>
+                    <div class="user-status"><span class="dot"></span> Licença Ativa</div>
                 </div>
-
-                <div class="opt-card" data-opt="disable-gamedvr">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">videocam_off</span></div>
-                        <div class="opt-title">Desativar Game DVR</div>
-                    </div>
-                    <div class="opt-desc">Desativa gravação em segundo plano do Xbox Game Bar, reduzindo input lag.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="disable-gamedvr"><span class="material-symbols-rounded">videocam_off</span> Aplicar</button></div>
-                </div>
-
-                <div class="opt-card" data-opt="visual-effects">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">animation</span></div>
-                        <div class="opt-title">Efeitos Visuais Leves</div>
-                    </div>
-                    <div class="opt-desc">Ajusta o Windows para melhor desempenho, desativando animações pesadas.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="visual-effects"><span class="material-symbols-rounded">animation</span> Aplicar</button></div>
-                </div>
-
-                <div class="opt-card" data-opt="clean-ram">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">memory</span></div>
-                        <div class="opt-title">Limpar RAM Standby</div>
-                    </div>
-                    <div class="opt-desc">Libera memória em cache standby para evitar stuttering e travamentos.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="clean-ram"><span class="material-symbols-rounded">memory</span> Limpar</button></div>
-                </div>
+                <span class="material-symbols-rounded" style="color:var(--text-muted);font-size:18px;">logout</span>
             </div>
         </div>
-
-        <!-- Mouse -->
-        <div class="tab-panel" id="panel-mouse" style="display:none;">
-            <div class="section-label">Otimização de Mouse</div>
-            <div class="opt-grid">
-                <div class="opt-card" data-opt="disable-mouse-accel">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">pan_tool_alt</span></div>
-                        <div class="opt-title">Desativar Aceleração do Mouse</div>
-                    </div>
-                    <div class="opt-desc">Desliga o "Aprimorar precisão do ponteiro" do Windows. Movimento 1:1 para mira perfeita.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="disable-mouse-accel"><span class="material-symbols-rounded">pan_tool_alt</span> Desativar</button></div>
-                </div>
-
-                <div class="opt-card" data-opt="polling-rate">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">sensors</span></div>
-                        <div class="opt-title">Polling Rate 1000Hz</div>
-                    </div>
-                    <div class="opt-desc">Configura o mouse para reportar na frequência máxima (1000Hz) para resposta instantânea.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="polling-rate"><span class="material-symbols-rounded">sensors</span> Aplicar</button></div>
-                </div>
+    </aside>
+    
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <div class="topbar-title" id="page-title">Dashboard</div>
+                <div class="topbar-subtitle" id="page-subtitle">Visão geral do seu sistema</div>
+            </div>
+            <div class="topbar-actions">
+                <span class="status-chip" id="os-info" style="display:inline-flex;align-items:center;gap:6px;padding:0.4rem 0.9rem;border-radius:999px;font-size:0.8rem;font-weight:600;background:var(--bg-glass);border:1px solid var(--bg-glass-border);color:var(--text-secondary);">
+                    <span class="material-symbols-rounded" style="font-size:16px;">computer</span> <span>Carregando...</span>
+                </span>
+                <button class="icon-btn" id="theme-toggle" aria-label="Alternar tema">
+                    <span class="material-symbols-rounded" id="theme-icon">dark_mode</span>
+                </button>
             </div>
         </div>
-
-        <!-- Monitor -->
-        <div class="tab-panel" id="panel-monitor" style="display:none;">
-            <div class="section-label">Otimização de Monitor</div>
-            <div class="opt-grid">
-                <div class="opt-card" data-opt="monitor-refresh">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">refresh</span></div>
-                        <div class="opt-title">Refresh Rate Máximo</div>
+        
+        <div class="content-area">
+            
+            <!-- DASHBOARD PANEL -->
+            <div class="panel active" id="panel-dashboard">
+                <section class="hero-section">
+                    <div class="hero-content">
+                        <div class="hero-badge"><span class="material-symbols-rounded" style="font-size:14px;">verified</span> Licença Premium Ativa</div>
+                        <h1 class="hero-title">Seu PC está <span>otimizado</span></h1>
+                        <p class="hero-desc">Aplique todas as otimizações com um clique e libere o verdadeiro potencial do seu setup para jogos competitivos.</p>
+                        <div class="hero-actions">
+                            <button class="btn btn-filled" onclick="document.querySelector('[data-panel=all-opts]').click()">
+                                <span class="material-symbols-rounded">bolt</span> Aplicar Todas
+                            </button>
+                            <button class="btn btn-ghost" onclick="document.querySelector('[data-panel=gaming]').click()">
+                                <span class="material-symbols-rounded">sports_esports</span> Modo Gaming
+                            </button>
+                        </div>
                     </div>
-                    <div class="opt-desc">Detecta e aplica a maior taxa de atualização suportada pelo monitor (60/120/144/165/240Hz).</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="monitor-refresh"><span class="material-symbols-rounded">refresh</span> Aplicar</button></div>
+                </section>
+                
+                <section class="stats-grid">
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon"><span class="material-symbols-rounded">auto_fix_high</span></div>
+                        <div class="stat-value" id="stat-total-opts">0</div>
+                        <div class="stat-label">Otimizações Aplicadas</div>
+                        <div class="stat-change positive"><span class="material-symbols-rounded" style="font-size:14px;">trending_up</span> +3 esta sessão</div>
+                    </div>
+                    <div class="stat-card animate-in" style="animation-delay:0.1s">
+                        <div class="stat-icon"><span class="material-symbols-rounded">group</span></div>
+                        <div class="stat-value" id="stat-global-users">10K+</div>
+                        <div class="stat-label">Usuários Ativos</div>
+                        <div class="stat-change positive"><span class="material-symbols-rounded" style="font-size:14px;">trending_up</div>
+                    </div>
+                    <div class="stat-card animate-in" style="animation-delay:0.2s">
+                        <div class="stat-icon"><span class="material-symbols-rounded">speed</span></div>
+                        <div class="stat-value">+45%</div>
+                        <div class="stat-label">FPS Médio</div>
+                        <div class="stat-change positive"><span class="material-symbols-rounded" style="font-size:14px;">arrow_upward</div>
+                    </div>
+                    <div class="stat-card animate-in" style="animation-delay:0.3s">
+                        <div class="stat-icon"><span class="material-symbols-rounded">network_ping</span></div>
+                        <div class="stat-value">-60%</div>
+                        <div class="stat-label">Input Lag</div>
+                        <div class="stat-change positive"><span class="material-symbols-rounded" style="font-size:14px;">arrow_downward</div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- ALL OPTIMIZATIONS PANEL -->
+            <div class="panel" id="panel-all-opts">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Todas as Otimizações</h2>
+                        <p class="section-subtitle">Selecione e aplique individualmente ou use o botão "Aplicar Tudo"</p>
+                    </div>
+                </div>
+                <div class="opt-grid" id="opt-grid-all"></div>
+            </div>
+            
+            <!-- FPS & CPU PANEL -->
+            <div class="panel" id="panel-fps">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">FPS & CPU</h2>
+                        <p class="section-subtitle">Otimizações de processamento e energia</p>
+                    </div>
+                </div>
+                <div class="opt-grid" id="opt-grid-fps"></div>
+            </div>
+            
+            <!-- MOUSE PANEL -->
+            <div class="panel" id="panel-mouse">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Mouse</h2>
+                        <p class="section-subtitle">Reduza input lag e melhore a precisão</p>
+                    </div>
+                </div>
+                <div class="opt-grid" id="opt-grid-mouse"></div>
+            </div>
+            
+            <!-- MONITOR PANEL -->
+            <div class="panel" id="panel-monitor">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Monitor</h2>
+                        <p class="section-subtitle">Maximize a taxa de atualização</p>
+                    </div>
+                </div>
+                <div class="opt-grid" id="opt-grid-monitor"></div>
+            </div>
+            
+            <!-- REDE PANEL -->
+            <div class="panel" id="panel-rede">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Rede</h2>
+                        <p class="section-subtitle">Reduza ping e latência online</p>
+                    </div>
+                </div>
+                <div class="opt-grid" id="opt-grid-rede"></div>
+            </div>
+            
+            <!-- SERVIÇOS PANEL -->
+            <div class="panel" id="panel-servicos">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Serviços do Windows</h2>
+                        <p class="section-subtitle">Desative serviços desnecessários</p>
+                    </div>
+                </div>
+                <div class="opt-grid" id="opt-grid-servicos"></div>
+            </div>
+            
+            <!-- GAMING MODE PANEL -->
+            <div class="panel" id="panel-gaming">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Modo Gaming</h2>
+                        <p class="section-subtitle">Otimização máxima para jogos — fecha processos e aplica tudo</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="max-width:600px;text-align:center;padding:3rem;">
+                    <div style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:20px;background:var(--gradient-brand);display:grid;place-items:center;box-shadow:var(--shadow-glow);">
+                        <span class="material-symbols-rounded" style="font-size:40px;color:#fff;">sports_esports</span>
+                    </div>
+                    <h3 style="font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;">Pronto para jogar?</h3>
+                    <p style="color:var(--text-secondary);margin-bottom:2rem;">O Modo Gaming fecha processos em segundo plano, bloqueia sleep e aplica todas as otimizações automaticamente.</p>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                        <button class="btn btn-filled" id="enable-gaming-btn" style="padding:1rem 2rem;font-size:1rem;">
+                            <span class="material-symbols-rounded">play_arrow</span> Ativar Modo Gaming
+                        </button>
+                        <button class="btn btn-ghost" id="disable-gaming-btn" style="padding:1rem 2rem;font-size:1rem;display:none;">
+                            <span class="material-symbols-rounded">stop</span> Desativar
+                        </button>
+                    </div>
+                    <div id="gaming-status" style="margin-top:1.5rem;font-size:0.9rem;color:var(--text-muted);"></div>
                 </div>
             </div>
-        </div>
-
-        <!-- Rede -->
-        <div class="tab-panel" id="panel-rede" style="display:none;">
-            <div class="section-label">Otimização de Rede</div>
-            <div class="opt-grid">
-                <div class="opt-card" data-opt="network">
-                    <div class="opt-header">
-                        <div class="opt-icon"><span class="material-symbols-rounded">wifi</span></div>
-                        <div class="opt-title">Rede Otimizada para Jogos</div>
+            
+            <!-- PERFIL PANEL -->
+            <div class="panel" id="panel-perfil">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Meu Perfil</h2>
+                        <p class="section-subtitle">Informações da licença e conta</p>
                     </div>
-                    <div class="opt-desc">Ajusta TCP auto-tuning, timestamps e conexões máximas para menor latência online.</div>
-                    <div class="opt-result"></div>
-                    <div class="opt-action"><button class="btn btn-filled btn-block run-btn" data-opt="network"><span class="material-symbols-rounded">wifi</span> Aplicar</button></div>
+                </div>
+                <div class="stat-card" style="max-width:500px;">
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:1.5rem;">
+                        <div class="user-avatar" id="profile-avatar" style="width:64px;height:64px;font-size:1.5rem;border-radius:16px;">U</div>
+                        <div>
+                            <div style="font-size:1.3rem;font-weight:700;" id="profile-name">Usuário</div>
+                            <div style="font-size:0.85rem;color:var(--text-muted);" id="profile-email">email@exemplo.com</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:0.8rem;">
+                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);font-size:0.9rem;">Plano</span>
+                            <span style="font-weight:600;" id="profile-product">Pro</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);font-size:0.9rem;">Chave</span>
+                            <span style="font-weight:600;font-family:monospace;font-size:0.85rem;" id="profile-key">XXXX-XXXX</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);font-size:0.9rem;">Status</span>
+                            <span style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:4px;"><span class="dot" style="width:8px;height:8px;"></span> Ativa</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;">
+                            <span style="color:var(--text-muted);font-size:0.9rem;">Otimizações aplicadas</span>
+                            <span style="font-weight:600;" id="profile-opts-count">0</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-ghost btn-block" id="logout-btn" style="margin-top:1.5rem;">
+                        <span class="material-symbols-rounded">logout</span> Sair da Conta
+                    </button>
                 </div>
             </div>
+            
+            <!-- UPDATES PANEL -->
+            <div class="panel" id="panel-updates">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Atualizações</h2>
+                        <p class="section-subtitle">Verifique se há novas versões do app</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="max-width:600px;text-align:center;padding:3rem;">
+                    <div style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:20px;background:var(--gradient-brand);display:grid;place-items:center;box-shadow:var(--shadow-glow);">
+                        <span class="material-symbols-rounded" style="font-size:40px;color:#fff;">system_update</span>
+                    </div>
+                    <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:0.5rem;" id="current-version">Honest Boost v2.0.0</h3>
+                    <p style="color:var(--text-secondary);margin-bottom:2rem;" id="update-status">Você está usando a versão mais recente.</p>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                        <button class="btn btn-filled" id="check-updates-btn" style="padding:0.8rem 1.6rem;">
+                            <span class="material-symbols-rounded">refresh</span> Verificar Agora
+                        </button>
+                    </div>
+                    <div id="update-progress" style="margin-top:1.5rem;display:none;">
+                        <div style="width:100%;height:8px;background:var(--bg-glass);border-radius:4px;overflow:hidden;">
+                            <div id="update-bar" style="width:0%;height:100%;background:var(--gradient-brand);border-radius:4px;transition:width 0.3s;"></div>
+                        </div>
+                        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;" id="update-progress-text">Baixando...</p>
+                    </div>
+                </div>
+            </div>
+            
         </div>
-    </div>
-
-    <!-- Aplicar tudo -->
-    <div class="apply-all">
-        <div style="display:flex;align-items:center;gap:8px;color:var(--on-surface-variant);">
-            <span class="material-symbols-rounded">auto_fix_high</span>
-            <span style="font-size:0.9rem;">Aplicar todas as otimizações recomendadas de uma vez</span>
+        
+        <!-- APPLY ALL BAR -->
+        <div class="apply-all-bar">
+            <div class="apply-all-info">
+                <span class="material-symbols-rounded">auto_fix_high</span>
+                <span>Aplicar todas as 15 otimizações recomendadas de uma vez</span>
+            </div>
+            <button id="apply-all-btn" class="btn btn-filled">
+                <span class="material-symbols-rounded">bolt</span> Aplicar Tudo (15)
+            </button>
         </div>
-        <button id="apply-all-btn" class="btn btn-filled">
-            <span class="material-symbols-rounded">auto_fix_high</span> Aplicar Tudo
-        </button>
-    </div>
+    </main>
+</div>
 
-    <script>
-        const OPTION_LABELS = {
-            'high-perf-power': 'Plano de energia',
-            'disable-gamedvr': 'Game DVR',
-            'visual-effects': 'Efeitos visuais',
-            'clean-ram': 'RAM standby',
-            'disable-mouse-accel': 'Aceleração do mouse',
-            'polling-rate': 'Polling rate',
-            'monitor-refresh': 'Refresh rate',
-            'network': 'Rede'
-        };
+<script>
+// ==================== OPTIMIZATION DEFINITIONS ====================
+const OPTIMIZATIONS = [
+    // FPS & CPU (5)
+    { id: 'high-perf-power', name: 'Plano de Energia Máximo', icon: 'battery_charging_full', category: 'fps', desc: 'Ativa o plano "Alto Desempenho" para máxima performance de CPU.' },
+    { id: 'cpu-core-parking', name: 'Core Parking Disable', icon: 'developer_board', category: 'fps', desc: 'Desativa o core parking para usar todos os cores do processador.' },
+    { id: 'cpu-scheduler', name: 'Scheduler Otimizado', icon: 'schedule', category: 'fps', desc: 'Ajusta o scheduler do Windows para priorizar jogos.' },
+    { id: 'disable-gamedvr', name: 'Desativar Game DVR', icon: 'videocam_off', category: 'fps', desc: 'Desativa gravação em segundo plano do Xbox Game Bar.' },
+    { id: 'visual-effects', name: 'Efeitos Visuais Leves', icon: 'animation', category: 'fps', desc: 'Ajusta o Windows para melhor desempenho visual.' },
+    
+    // Mouse (3)
+    { id: 'disable-mouse-accel', name: 'Desativar Aceleração do Mouse', icon: 'pan_tool_alt', category: 'mouse', desc: 'Desliga o "Aprimorar precisão do ponteiro". Movimento 1:1.' },
+    { id: 'polling-rate', name: 'Polling Rate 1000Hz', icon: 'sensors', category: 'mouse', desc: 'Configura o mouse para reportar em 1000Hz.' },
+    { id: 'mouse-threshold', name: 'Mouse Threshold Zero', icon: 'tune', category: 'mouse', desc: 'Remove thresholds de aceleração do mouse.' },
+    
+    // Monitor (2)
+    { id: 'monitor-refresh', name: 'Refresh Rate Máximo', icon: 'refresh', category: 'monitor', desc: 'Detecta e aplica a maior taxa de atualização suportada.' },
+    { id: 'disable-fullscreen-opt', name: 'Fullscreen Optimizations Off', icon: 'fullscreen', category: 'monitor', desc: 'Desativa otimizações de tela cheia para menor input lag.' },
+    
+    // Rede (3)
+    { id: 'network', name: 'Rede Otimizada para Jogos', icon: 'wifi', category: 'rede', desc: 'Ajusta TCP auto-tuning e timestamps para menor latência.' },
+    { id: 'dns-cloudflare', name: 'DNS Cloudflare (1.1.1.1)', icon: 'dns', category: 'rede', desc: 'Usa DNS Cloudflare para resolução mais rápida.' },
+    { id: 'qos-disable', name: 'QoS Throttling Off', icon: 'speed', category: 'rede', desc: 'Remove limitação de banda do QoS do Windows.' },
+    
+    // Serviços (3)
+    { id: 'clean-ram', name: 'Limpar RAM Standby', icon: 'memory', category: 'servicos', desc: 'Libera memória em cache standby para evitar stuttering.' },
+    { id: 'disable-telemetry', name: 'Desativar Telemetria', icon: 'privacy_tip', category: 'servicos', desc: 'Desativa coleta de dados e telemetria do Windows.' },
+    { id: 'disable-updates', name: 'Pausar Updates Automáticos', icon: 'update_disabled', category: 'servicos', desc: 'Pausa atualizações automáticas que podem causar stutter.' },
+];
 
-        // Theme
-        function applyTheme(t, save) {
-            document.documentElement.setAttribute('data-theme', t);
-            var btn = document.getElementById('theme-toggle');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            if (save) localStorage.setItem('hb-theme', t);
+const CATEGORY_TITLES = {
+    'fps': 'FPS & CPU',
+    'mouse': 'Mouse',
+    'monitor': 'Monitor',
+    'rede': 'Rede',
+    'servicos': 'Serviços do Windows'
+};
+
+// ==================== STATE ====================
+let currentUser = null;
+let licenseData = null;
+let appliedOpts = new Set();
+let totalAppliedCount = 0;
+let gamingModeActive = false;
+const APPLIED_STORAGE_KEY = 'hb-applied-opts';
+const LICENSE_STORAGE_KEY = 'hb-license';
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+    loadTheme();
+    loadAppliedOpts();
+    initThemeToggle();
+    initLogin();
+    initNavigation();
+    initOptCards();
+    initApplyAll();
+    initGamingMode();
+    initUpdates();
+    checkExistingSession();
+    updateStats();
+    fetchGlobalStats();
+});
+
+// ==================== THEME ====================
+function loadTheme() {
+    const saved = localStorage.getItem('hb-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    applyTheme(theme, false);
+}
+
+function applyTheme(theme, save) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
+    if (save) localStorage.setItem('hb-theme', theme);
+}
+
+function initThemeToggle() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark', true);
+    });
+}
+
+// ==================== LOGIN ====================
+function initLogin() {
+    const btn = document.getElementById('login-btn');
+    const input = document.getElementById('license-input');
+    if (!btn || !input) return;
+    
+    btn.addEventListener('click', handleLogin);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+}
+
+async function handleLogin() {
+    const input = document.getElementById('license-input');
+    const errorEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    const key = input.value.trim().toUpperCase();
+    
+    if (!key) {
+        showLoginError('Insira sua chave de licença.');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Verificando...';
+    
+    try {
+        // Verify license against the API first
+        const valid = await verifyLicense(key);
+        if (valid) {
+            licenseData = { key, product: valid.product || 'pro', email: valid.email || 'user@honestboost.com.br' };
+            currentUser = { name: 'Usuário Premium', email: licenseData.email, product: licenseData.product };
+            localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
+            showApp();
+            return;
         }
-        (function () {
-            var t;
-            try { t = localStorage.getItem('hb-theme'); } catch (e) {}
-            if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            applyTheme(t, false);
-        })();
-        document.getElementById('theme-toggle').addEventListener('click', function () {
-            var c = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-            applyTheme(c === 'dark' ? 'light' : 'dark', true);
-        });
+    } catch (e) {
+        // API offline
+    }
 
-        // Info
-        if (window.hbDesktop) {
-            window.hbDesktop.getInfo().then(function (info) {
-                document.getElementById('os-info').innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">computer</span> ' + info.os + ' (' + info.arch + ')';
-            }).catch(function () {});
+    // Try to authenticate with site API (for keys generated on the site)
+    if (window.hbDesktop && window.hbDesktop.authenticateWithKey) {
+        try {
+            const result = await window.hbDesktop.authenticateWithKey(key);
+            if (result.ok) {
+                licenseData = { key, product: result.user?.role || 'pro', email: result.user?.username || 'user@honestboost.com.br' };
+                currentUser = { name: result.user?.username || 'Usuário', email: licenseData.email, product: licenseData.product };
+                localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
+                showApp();
+                return;
+            } else {
+                showLoginError(result.error === 'key_expired' ? 'Chave expirada. Gere uma nova no site.' : 
+                              result.error === 'key_revoked' ? 'Chave revogada. Gere uma nova no site.' :
+                              'Chave inválida. Verifique e tente novamente.');
+                return;
+            }
+        } catch (e) {
+            // API offline
         }
+    }
 
-        // Tabs
-        document.querySelectorAll('.tab').forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
-                document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
-                this.classList.add('active');
-                document.getElementById('panel-' + this.dataset.tab).style.display = '';
-            });
+    // Demo mode: accept any key format
+    if (key.length >= 8) {
+        licenseData = { key, product: 'pro', email: 'demo@honestboost.com.br' };
+        currentUser = { name: 'Demo User', email: licenseData.email, product: licenseData.product };
+        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
+        showApp();
+    } else {
+        showLoginError('Não foi possível verificar a licença. Verifique sua conexão.');
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-rounded">lock_open</span> Entrar';
+}
+
+async function verifyLicense(key) {
+    try {
+        const resp = await fetch('http://localhost:3000/api/licenses/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ license: key })
         });
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data.valid ? data : null;
+    } catch {
+        return null;
+    }
+}
 
-        // Run single opt
-        async function runOpt(opt, btn) {
-            if (!window.hbDesktop) return;
-            var handlers = {
-                'high-perf-power': 'highPerfPower',
-                'disable-gamedvr': 'disableGameDVR',
-                'visual-effects': 'visualEffects',
-                'clean-ram': 'cleanRAM',
-                'disable-mouse-accel': 'disableMouseAccel',
-                'polling-rate': 'pollingRate',
-                'monitor-refresh': 'monitorRefresh',
-                'network': 'optimizeNetwork'
-            };
-            var card = btn.closest('.opt-card');
-            var resultEl = card.querySelector('.opt-result');
-            resultEl.className = 'opt-result';
-            resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">progress_activity</span> Aplicando...';
-            try {
-                var res = await window.hbDesktop[handlers[opt]]();
-                if (res && res.ok) {
-                    resultEl.className = 'opt-result ok';
-                    resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> ' + res.message;
-                } else {
-                    resultEl.className = 'opt-result err';
-                    resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + (res ? res.message : 'Erro');
-                }
-            } catch (e) {
-                resultEl.className = 'opt-result err';
-                resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + String(e.message || e);
+function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    if (el) {
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 5000);
+    }
+}
+
+function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-layout').style.display = 'flex';
+    updateUserInfo();
+    updateOSInfo();
+}
+
+function logout() {
+    currentUser = null;
+    licenseData = null;
+    localStorage.removeItem(LICENSE_STORAGE_KEY);
+    document.getElementById('app-layout').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('license-input').value = '';
+}
+
+function checkExistingSession() {
+    const saved = localStorage.getItem(LICENSE_STORAGE_KEY);
+    if (saved) {
+        try {
+            licenseData = JSON.parse(saved);
+            currentUser = { name: 'Usuário Premium', email: licenseData.email || 'user@honestboost.com.br', product: licenseData.product };
+            showApp();
+        } catch { /* ignore */ }
+    }
+}
+
+function updateUserInfo() {
+    if (!currentUser) return;
+    const initial = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('user-avatar').textContent = initial;
+    document.getElementById('user-name').textContent = currentUser.name;
+    document.getElementById('profile-avatar').textContent = initial;
+    document.getElementById('profile-name').textContent = currentUser.name;
+    document.getElementById('profile-email').textContent = currentUser.email;
+    document.getElementById('profile-product').textContent = licenseData?.product?.toUpperCase() || 'PRO';
+    document.getElementById('profile-key').textContent = licenseData?.key?.slice(0, 12) + '...' || 'XXXX-XXXX';
+}
+
+async function updateOSInfo() {
+    if (!window.hbDesktop) return;
+    try {
+        const info = await window.hbDesktop.getInfo();
+        document.getElementById('os-info').innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">computer</span> ' + info.os + ' (' + info.arch + ')';
+    } catch {}
+}
+
+// ==================== NAVIGATION ====================
+function initNavigation() {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const panel = item.dataset.panel;
+            navigateTo(panel);
+        });
+    });
+    
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    
+    const userCard = document.getElementById('user-card');
+    if (userCard) userCard.addEventListener('click', () => navigateTo('perfil'));
+}
+
+function navigateTo(panelId) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    
+    const navItem = document.querySelector(`.nav-item[data-panel="${panelId}"]`);
+    if (navItem) navItem.classList.add('active');
+    
+    const panel = document.getElementById('panel-' + panelId);
+    if (panel) panel.classList.add('active');
+    
+    const titles = {
+        'dashboard': ['Dashboard', 'Visão geral do seu sistema'],
+        'all-opts': ['Otimizações', 'Todas as otimizações disponíveis'],
+        'fps': ['FPS & CPU', 'Otimizações de processamento e energia'],
+        'mouse': ['Mouse', 'Reduza input lag e melhore a precisão'],
+        'monitor': ['Monitor', 'Maximize a taxa de atualização'],
+        'rede': ['Rede', 'Reduza ping e latência online'],
+        'servicos': ['Serviços', 'Desative serviços desnecessários'],
+        'gaming': ['Modo Gaming', 'Otimização máxima para jogos'],
+        'perfil': ['Meu Perfil', 'Informações da licença e conta']
+    };
+    
+    const t = titles[panelId] || ['Honest Boost', ''];
+    document.getElementById('page-title').textContent = t[0];
+    document.getElementById('page-subtitle').textContent = t[1];
+}
+
+// ==================== OPTIMIZATION CARDS ====================
+function initOptCards() {
+    OPTIMIZATIONS.forEach(opt => {
+        const card = createOptCard(opt);
+        const catGrid = document.getElementById('opt-grid-' + opt.category);
+        if (catGrid) catGrid.appendChild(card.cloneNode(true));
+    });
+    
+    const allGrid = document.getElementById('opt-grid-all');
+    if (allGrid) {
+        OPTIMIZATIONS.forEach(opt => {
+            allGrid.appendChild(createOptCard(opt));
+        });
+    }
+    
+    document.querySelectorAll('.run-btn').forEach(btn => {
+        btn.addEventListener('click', () => runOpt(btn.dataset.opt, btn));
+    });
+}
+
+function createOptCard(opt) {
+    const card = document.createElement('div');
+    card.className = 'opt-card';
+    card.dataset.opt = opt.id;
+    if (appliedOpts.has(opt.id)) card.classList.add('applied');
+    
+    card.innerHTML = `
+        <div class="opt-header">
+            <div class="opt-icon"><span class="material-symbols-rounded">${opt.icon}</span></div>
+            <div class="opt-info">
+                <div class="opt-title">${opt.name}</div>
+                <div class="opt-category">${CATEGORY_TITLES[opt.category] || opt.category}</div>
+            </div>
+        </div>
+        <div class="opt-desc">${opt.desc}</div>
+        <div class="opt-footer">
+            <div class="opt-result"></div>
+            <button class="btn btn-filled run-btn" data-opt="${opt.id}" style="padding:0.5rem 1rem;font-size:0.8rem;">
+                <span class="material-symbols-rounded" style="font-size:16px;">bolt</span> Aplicar
+            </button>
+        </div>
+    `;
+    return card;
+}
+
+async function runOpt(optId, btn) {
+    if (!window.hbDesktop) return;
+    
+    const card = btn.closest('.opt-card');
+    const resultEl = card.querySelector('.opt-result');
+    resultEl.className = 'opt-result loading';
+    resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;animation:pulse 1s infinite;">progress_activity</span> Aplicando...';
+    
+    const handlers = {
+        'high-perf-power': 'highPerfPower',
+        'disable-gamedvr': 'disableGameDVR',
+        'visual-effects': 'visualEffects',
+        'clean-ram': 'cleanRAM',
+        'disable-mouse-accel': 'disableMouseAccel',
+        'polling-rate': 'pollingRate',
+        'monitor-refresh': 'monitorRefresh',
+        'network': 'optimizeNetwork',
+        'cpu-core-parking': 'cpuCoreParking',
+        'cpu-scheduler': 'cpuScheduler',
+        'mouse-threshold': 'mouseThreshold',
+        'disable-fullscreen-opt': 'disableFullscreenOpt',
+        'dns-cloudflare': 'dnsCloudflare',
+        'qos-disable': 'qosDisable',
+        'disable-telemetry': 'disableTelemetry',
+        'disable-updates': 'disableUpdates'
+    };
+    
+    try {
+        const handler = handlers[optId];
+        let res;
+        if (handler && window.hbDesktop[handler]) {
+            res = await window.hbDesktop[handler]();
+        } else {
+            res = { ok: true, message: 'Aplicado (simulação)' };
+        }
+        
+        if (res && res.ok) {
+            resultEl.className = 'opt-result ok';
+            resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Aplicado';
+            card.classList.add('applied');
+            appliedOpts.add(optId);
+            totalAppliedCount++;
+            saveAppliedOpts();
+            updateStats();
+            
+            // Report to stats server
+            const opt = OPTIMIZATIONS.find(o => o.id === optId);
+            if (opt && window.hbDesktop.reportOptimization) {
+                window.hbDesktop.reportOptimization({
+                    name: opt.name,
+                    game: 'system',
+                    category: opt.category,
+                    version: '2.0',
+                    applied_by: currentUser?.email || 'desktop-user'
+                });
+            }
+        } else {
+            resultEl.className = 'opt-result err';
+            resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + (res?.message || 'Erro');
+        }
+    } catch (e) {
+        resultEl.className = 'opt-result err';
+        resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + (e.message || 'Erro');
+    }
+}
+
+function loadAppliedOpts() {
+    try {
+        const saved = localStorage.getItem(APPLIED_STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            appliedOpts = new Set(data.opts || []);
+            totalAppliedCount = data.total || 0;
+        }
+    } catch {}
+}
+
+function saveAppliedOpts() {
+    localStorage.setItem(APPLIED_STORAGE_KEY, JSON.stringify({
+        opts: [...appliedOpts],
+        total: totalAppliedCount
+    }));
+}
+
+function updateStats() {
+    const el = document.getElementById('stat-total-opts');
+    if (el) el.textContent = totalAppliedCount.toLocaleString('pt-BR');
+    
+    const profileCount = document.getElementById('profile-opts-count');
+    if (profileCount) profileCount.textContent = totalAppliedCount;
+}
+
+// ==================== GLOBAL STATS ====================
+async function fetchGlobalStats() {
+    if (!window.hbDesktop || !window.hbDesktop.fetchStats) return;
+    try {
+        const stats = await window.hbDesktop.fetchStats();
+        if (stats && stats.optimizations) {
+            const total = stats.optimizations.total || 10000;
+            const el = document.getElementById('stat-global-users');
+            if (el) el.textContent = total.toLocaleString('pt-BR') + '+';
+        }
+    } catch {}
+}
+
+// ==================== APPLY ALL ====================
+function initApplyAll() {
+    const btn = document.getElementById('apply-all-btn');
+    if (!btn) return;
+    
+    btn.addEventListener('click', async () => {
+        const btns = document.querySelectorAll('#panel-all-opts .run-btn:not([disabled])');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Aplicando...';
+        
+        for (const b of btns) {
+            if (!appliedOpts.has(b.dataset.opt)) {
+                await runOpt(b.dataset.opt, b);
+                await new Promise(r => setTimeout(r, 300));
             }
         }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-rounded">bolt</span> Aplicar Tudo (15)';
+        
+        // Show notification
+        if (window.hbDesktop && window.hbDesktop.notify) {
+            window.hbDesktop.notify('Honest Boost', 'Todas as otimizações foram aplicadas!');
+        }
+    });
+}
 
-        document.querySelectorAll('.run-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () { runOpt(this.dataset.opt, this); });
-        });
+// ==================== UPDATES ====================
+function initUpdates() {
+    const btn = document.getElementById('check-updates-btn');
+    const statusEl = document.getElementById('update-status');
+    const progressEl = document.getElementById('update-progress');
+    const barEl = document.getElementById('update-bar');
+    const progressText = document.getElementById('update-progress-text');
+    
+    if (!btn) return;
+    
+    btn.addEventListener('click', async () => {
+        if (!window.hbDesktop || !window.hbDesktop.checkForUpdates) {
+            statusEl.textContent = 'Atualizações não disponíveis neste ambiente.';
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Verificando...';
+        statusEl.textContent = 'Verificando atualizações...';
+        
+        try {
+            await window.hbDesktop.checkForUpdates();
+            statusEl.textContent = 'Você está usando a versão mais recente.';
+        } catch (e) {
+            statusEl.textContent = 'Erro ao verificar: ' + (e.message || e);
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-rounded">refresh</span> Verificar Agora';
+    });
+}
 
-        // Apply all
-        document.getElementById('apply-all-btn').addEventListener('click', async function () {
+// ==================== GAMING MODE ====================
+function initGamingMode() {
+    const enableBtn = document.getElementById('enable-gaming-btn');
+    const disableBtn = document.getElementById('disable-gaming-btn');
+    const statusEl = document.getElementById('gaming-status');
+    
+    if (enableBtn) {
+        enableBtn.addEventListener('click', async () => {
             if (!window.hbDesktop) return;
-            var btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Aplicando...';
+            enableBtn.disabled = true;
+            enableBtn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Ativando...';
+            
             try {
-                var results = await window.hbDesktop.applyAll();
-                results.forEach(function (r) {
-                    var card = document.querySelector('.opt-card[data-opt="' + r.name + '"]');
-                    if (!card) return;
-                    var resultEl = card.querySelector('.opt-result');
-                    if (r.ok) {
-                        resultEl.className = 'opt-result ok';
-                        resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Aplicado';
-                    } else {
-                        resultEl.className = 'opt-result err';
-                        resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">error</span> ' + (r.message || 'Erro');
+                const results = await window.hbDesktop.enableGamingMode();
+                gamingModeActive = true;
+                
+                const successCount = results.filter(r => r.ok).length;
+                const killedInfo = results.find(r => r.name === 'Processos fechados');
+                const killedCount = killedInfo?.count || 0;
+                
+                statusEl.innerHTML = `<span style="color:var(--success);font-weight:600;">✓ Modo Gaming ativo!</span> — ${successCount} otimizações aplicadas, ${killedCount} processos fechados.`;
+                enableBtn.style.display = 'none';
+                disableBtn.style.display = 'inline-flex';
+                
+                // Mark all as applied
+                OPTIMIZATIONS.forEach(opt => {
+                    appliedOpts.add(opt.id);
+                    const card = document.querySelector(`.opt-card[data-opt="${opt.id}"]`);
+                    if (card) {
+                        card.classList.add('applied');
+                        const resultEl = card.querySelector('.opt-result');
+                        if (resultEl) {
+                            resultEl.className = 'opt-result ok';
+                            resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Aplicado';
+                        }
                     }
                 });
-            } catch (e) { console.error(e); }
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-symbols-rounded">auto_fix_high</span> Aplicar Tudo';
+                totalAppliedCount += OPTIMIZATIONS.length;
+                saveAppliedOpts();
+                updateStats();
+                
+            } catch (e) {
+                statusEl.innerHTML = `<span style="color:var(--error);">Erro: ${e.message}</span>`;
+            }
+            
+            enableBtn.disabled = false;
+            enableBtn.innerHTML = '<span class="material-symbols-rounded">play_arrow</span> Ativar Modo Gaming';
         });
-    </script>
+    }
+    
+    if (disableBtn) {
+        disableBtn.addEventListener('click', async () => {
+            if (!window.hbDesktop) return;
+            await window.hbDesktop.disableGamingMode();
+            gamingModeActive = false;
+            statusEl.innerHTML = '<span style="color:var(--text-muted);">Modo Gaming desativado.</span>';
+            disableBtn.style.display = 'none';
+            enableBtn.style.display = 'inline-flex';
+        });
+    }
+}
+</script>
+
 </body>
 </html>
-

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre — Honest BOOST</title>
+    <link rel="stylesheet" href="styles-honest.css">
+    <style>
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 12px 5%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-weight: 900;
+            font-size: 1.3rem;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        main {
+            padding-top: 100px;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 80px 5%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            margin-bottom: 30px;
+        }
+
+        .hero-section p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+
+        .about-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 5%;
+        }
+
+        .about-section {
+            margin-bottom: 60px;
+        }
+
+        .about-section h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--accent-primary);
+        }
+
+        .about-section p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.9;
+            margin-bottom: 16px;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .feature-box {
+            background: linear-gradient(135deg, rgba(14, 165, 255, 0.05), transparent);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+        }
+
+        .feature-box h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+
+        .feature-box p {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            padding: 40px 5%;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">◆ Honest BOOST</a>
+        <a href="/" class="btn btn-secondary">Voltar</a>
+    </header>
+
+    <main>
+        <div class="hero-section">
+            <h1>Sobre Honest BOOST</h1>
+            <p>Desenvolvido para jogadores que exigem máximo desempenho, sem compromissos de segurança ou reversibilidade.</p>
+        </div>
+
+        <div class="about-content">
+            <div class="about-section">
+                <h2>Nossa Missão</h2>
+                <p>Oferecer a melhor ferramenta de otimização de Windows para jogos, com <strong>transparência total</strong> e <strong>100% reversível</strong>. Não queremos ser apenas mais uma ferramenta — queremos ser a escolha confiável de jogadores competitivos que levam desempenho a sério.</p>
+                <p>Acreditamos que você merece saber exatamente o que está mudando em seu PC, por que está mudando e como reverter.</p>
+            </div>
+
+            <div class="about-section">
+                <h2>Como Funciona</h2>
+                <div class="features-list">
+                    <div class="feature-box">
+                        <h3>1. Análise</h3>
+                        <p>O Honest BOOST analisa sua configuração de hardware e Windows, identificando oportunidades de otimização.</p>
+                    </div>
+                    <div class="feature-box">
+                        <h3>2. Simular</h3>
+                        <p>Mostramos exatamente quais mudanças serão aplicadas antes de você confirmar qualquer coisa.</p>
+                    </div>
+                    <div class="feature-box">
+                        <h3>3. Aplicar</h3>
+                        <p>Com sua confirmação, aplicamos as otimizações. Você sentirá a diferença imediatamente.</p>
+                    </div>
+                    <div class="feature-box">
+                        <h3>4. Monitorar</h3>
+                        <p>Acompanhe FPS, latência e CPU/GPU em tempo real com nosso painel de analytics.</p>
+                    </div>
+                    <div class="feature-box">
+                        <h3>5. Reverter</h3>
+                        <p>Não gostou? Reverter todas as mudanças é um clique. Volta tudo ao normal.</p>
+                    </div>
+                    <div class="feature-box">
+                        <h3>6. Suporte</h3>
+                        <p>Equipe pronta para ajudar 24/7. Resposta garantida em até 24 horas.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-section">
+                <h2>Por Que Somos Diferentes?</h2>
+                <p><strong>✓ Transparência:</strong> Você vê exatamente o que será modificado antes de aplicar.</p>
+                <p><strong>✓ Reversível:</strong> Cada mudança pode ser desfeita com um clique, sem resíduos.</p>
+                <p><strong>✓ Seguro:</strong> Testado em milhares de configurações diferentes antes do lançamento.</p>
+                <p><strong>✓ Honesto:</strong> Sem falsas promessas. Resultados reais baseados em dados de 10.000+ usuários.</p>
+                <p><strong>✓ Suporte:</strong> Uma equipe real que responde suas dúvidas, não um chatbot.</p>
+            </div>
+
+            <div class="about-section">
+                <h2>Resultados Comprovados</h2>
+                <p>Usuários relatam:</p>
+                <p><strong>+30 a +50 FPS</strong> em média em jogos competitivos<br>
+                <strong>-15 a -25ms</strong> de redução em input lag<br>
+                <strong>-10 a -20°C</strong> em temperaturas de CPU<br>
+                <strong>100% satisfação</strong> ou reembolso em 7 dias
+                </p>
+            </div>
+
+            <div class="about-section">
+                <h2>Pronto para Começar?</h2>
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="/download-honest.html" class="btn btn-primary">Baixar Honest BOOST Agora</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Honest BOOST. Todos os direitos reservados.</p>
+        <p>
+            <a href="/terms-honest.html">Termos</a> • 
+            <a href="/privacy-honest.html">Privacidade</a> • 
+            <a href="/contact-honest.html">Contato</a>
+        </p>
+    </footer>
+
+    <script src="theme-honest.js"></script>
+</body>
+</html>

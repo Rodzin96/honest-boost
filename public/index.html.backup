@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honest Boost — Otimização de Windows Premium | Mais FPS em Um Clique</title>
+    <meta name="description" content="Honestamente otimizado. Aumente FPS, reduza input lag e domine jogos competitivos com Honest Boost — testado e validado por 10.000+ jogadores.">
+    <meta name="theme-color" content="#030512">
+    <meta name="color-scheme" content="dark">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Honest Boost">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:title" content="Honest Boost — Otimização Premium | Mais FPS em Um Clique">
+    <meta property="og:description" content="Aumenta FPS, reduz input lag, estabiliza frames. Seguro, reversível, 100% transparente.">
+    <link rel="canonical" href="https://honestboost.com.br/">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="brand">
+                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                Honest<span>Boost</span>
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Funcionalidades</a>
+                <a href="#results">Resultados</a>
+                <a href="#testimonials">Depoimentos</a>
+                <a href="#comparison">Comparativo</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+            <div class="header-actions" id="nav-actions">
+                <a href="/about-honest.html" class="btn-secondary">Saiba Mais</a>
+                <a href="/download-honest.html" class="btn-primary">Download</a>
+                <a href="/login.html" class="btn-secondary" id="nav-login" style="display:none;">Entrar</a>
+                <div class="nav-user" id="nav-user" style="display:none;">
+                    <a href="/dashboard" style="display:flex;align-items:center;gap:8px;">
+                        <div class="user-avatar" id="nav-avatar">U</div>
+                        <span id="nav-username">Dashboard</span>
+                    </a>
+                </div>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="hero-content">
+                    <div class="badge">
+                        <span class="badge-dot"></span>
+                        Versão 2.0 Disponível
+                    </div>
+                    <h1>Honestamente <span>Otimizado</span></h1>
+                    <p>Aumente o FPS, reduza input lag e domine jogos competitivos sem complicações. Seguro, transparente e testado por <strong>10.000+</strong> jogadores.</p>
+                    <div class="hero-cta">
+                        <a href="/download-honest.html" class="btn-primary">Baixar Agora</a>
+                        <a href="#features" class="btn-secondary">Como Funciona →</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="stat-number" id="stat-optimizations">10K+</span>
+                            <span class="stat-label">Otimizações</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="stat-number">+45%</span>
+                            <span class="stat-label">FPS Médio</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="stat-number">-60%</span>
+                            <span class="stat-label">Input Lag</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-mockup">
+                        <div class="mockup-screen">
+                            <div class="mockup-header">
+                                <span class="material-symbols-rounded">speed</span>
+                                <span>Honest Boost Desktop</span>
+                            </div>
+                            <div class="mockup-stats">
+                                <div class="mockup-stat">
+                                    <span class="material-symbols-rounded">auto_fix_high</span>
+                                    <span>15 Otimizações</span>
+                                </div>
+                                <div class="mockup-stat">
+                                    <span class="material-symbols-rounded">check_circle</span>
+                                    <span>Aplicadas com sucesso</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Funcionalidades</h2>
+                    <p>Tudo que você precisa para máxima performance</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="material-symbols-rounded">speed</span></div>
+                        <h3>Boost de FPS</h3>
+                        <p>Otimizações de CPU, RAM e GPU para maximizar quadros por segundo.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="material-symbols-rounded">mouse</span></div>
+                        <h3>Mouse Otimizado</h3>
+                        <p>Desativa aceleração, configura polling rate e remove input lag.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="material-symbols-rounded">wifi</span></div>
+                        <h3>Rede Otimizada</h3>
+                        <p>Ajustes de TCP, DNS e QoS para menor ping e latência.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="material-symbols-rounded">desktop_windows</span></div>
+                        <h3>Monitor</h3>
+                        <p>Detecta e aplica automaticamente o refresh rate máximo.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="material-symbols-rounded">security</span></div>
+                        <h3>100% Seguro</h3>
+                        <p>Otimizações reversíveis. Sem scripts arriscados, sem CMD.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="material-symbols-rounded">sports_esports</span></div>
+                        <h3>Modo Gaming</h3>
+                        <p>Fecha processos em segundo plano e otimiza tudo com um clique.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section id="results" class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Resultados Reais</h2>
+                    <p>Números obtidos com o Honest Boost configurado em modo padrão</p>
+                </div>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-game">CS2</div>
+                        <div class="result-before">503 FPS</div>
+                        <div class="result-arrow"><span class="material-symbols-rounded">arrow_downward</span></div>
+                        <div class="result-after">622 FPS</div>
+                        <div class="result-gain">+23,6%</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-game">Valorant</div>
+                        <div class="result-before">364 FPS</div>
+                        <div class="result-arrow"><span class="material-symbols-rounded">arrow_downward</span></div>
+                        <div class="result-after">511 FPS</div>
+                        <div class="result-gain">+40%</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-game">Fortnite</div>
+                        <div class="result-before">405 FPS</div>
+                        <div class="result-arrow"><span class="material-symbols-rounded">arrow_downward</span></div>
+                        <div class="result-after">510 FPS</div>
+                        <div class="result-gain">+26%</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-game">Roblox</div>
+                        <div class="result-before">130 FPS</div>
+                        <div class="result-arrow"><span class="material-symbols-rounded">arrow_downward</span></div>
+                        <div class="result-after">206 FPS</div>
+                        <div class="result-gain">+58%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section id="testimonials" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Depoimentos</h2>
+                    <p>Veja o que nossos usuários estão dizendo</p>
+                </div>
+                <div class="testimonials-grid">
+                    <div class="testimonial">
+                        <div class="testimonial-stars">★★★★★</div>
+                        <p>"Antes, eu jogava com o FPS limitado a 250. Depois do Boost, passei a pegar entre 390 e 400 FPS."</p>
+                        <div class="testimonial-author">
+                            <strong>André Souza</strong>
+                            <span>Ryzen 7 5800X3D + RTX 4060</span>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-stars">★★★★★</div>
+                        <p>"Tenho um Ryzen 7 5700X3D e uma 4060 8GB, tá batendo mais de 500 fps facinho agora."</p>
+                        <div class="testimonial-author">
+                            <strong>Pedro Casagrande</strong>
+                            <span>Ryzen 7 5700X3D + RTX 4060</span>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-stars">★★★★★</div>
+                        <p>"Parece que deu um overclock no meu pc: rodava o jogo a 80-100 fps, agora roda a 190."</p>
+                        <div class="testimonial-author">
+                            <strong>Leonardo Monge</strong>
+                            <span>Setup Gamer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison -->
+        <section id="comparison" class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Comparativo</h2>
+                    <p>Honest Boost vs outros serviços</p>
+                </div>
+                <div class="comparison-table-wrapper">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Recurso</th>
+                                <th>Outros Serviços</th>
+                                <th class="highlight">Honest Boost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sem necessidade de agendamento</td>
+                                <td><span class="material-symbols-rounded cross">close</span></td>
+                                <td class="highlight"><span class="material-symbols-rounded check">check</span></td>
+                            </tr>
+                            <tr>
+                                <td>Você mesmo faz a otimização</td>
+                                <td><span class="material-symbols-rounded cross">close</span></td>
+                                <td class="highlight"><span class="material-symbols-rounded check">check</span></td>
+                            </tr>
+                            <tr>
+                                <td>Disponível 24h</td>
+                                <td><span class="material-symbols-rounded cross">close</span></td>
+                                <td class="highlight"><span class="material-symbols-rounded check">check</span></td>
+                            </tr>
+                            <tr>
+                                <td>Sem scripts ou CMD arriscados</td>
+                                <td><span class="material-symbols-rounded cross">close</span></td>
+                                <td class="highlight"><span class="material-symbols-rounded check">check</span></td>
+                            </tr>
+                            <tr>
+                                <td>Você decide o que otimizar</td>
+                                <td><span class="material-symbols-rounded cross">close</span></td>
+                                <td class="highlight"><span class="material-symbols-rounded check">check</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Perguntas Frequentes</h2>
+                    <p>Tire suas dúvidas</p>
+                </div>
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>O Honest Boost é seguro?</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sim! Todas as otimizações são reversíveis e não utilizamos scripts arriscados ou comandos CMD prejudiciais. O sistema permanece estável e protegido.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Quanto tempo leva para otimizar?</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Com um único clique, todas as 15 otimizações são aplicadas em menos de 30 segundos.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Funciona em qualquer PC?</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>O Honest Boost é compatível com Windows 10 e 11. Funciona em qualquer hardware, de PCs mais simples a setups gamers de alto desempenho.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Posso reverter as otimizações?</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sim! Todas as alterações podem ser revertidas a qualquer momento. Seu PC volta ao estado original sem complicações.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <a href="/" class="brand">
+                        <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
+                        Honest<span>Boost</span>
+                    </a>
+                    <p>Otimização de Windows para jogos competitivos.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Produto</h4>
+                    <a href="#features">Funcionalidades</a>
+                    <a href="#results">Resultados</a>
+                    <a href="/download-honest.html">Download</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Suporte</h4>
+                    <a href="/faq-honest.html">FAQ</a>
+                    <a href="/contact-honest.html">Contato</a>
+                    <a href="/help.html">Ajuda</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <a href="/terms-honest.html">Termos de Uso</a>
+                    <a href="/privacy-honest.html">Privacidade</a>
+                    <a href="/refund.html">Reembolso</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 Honest Boost. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
+    <script src="/config.js" defer></script>
+    <script src="/theme-honest.js" defer></script>
+    <script src="/init.js" defer></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('nav-toggle').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('show');
+        });
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var item = this.parentElement;
+                item.classList.toggle('active');
+            });
+        });
+
+        // Check auth state and update nav
+        (async function() {
+            try {
+                const resp = await fetch('/api/me', { credentials: 'same-origin' });
+                const data = await resp.json();
+                var navLogin = document.getElementById('nav-login');
+                var navUser = document.getElementById('nav-user');
+                var navAvatar = document.getElementById('nav-avatar');
+                var navUsername = document.getElementById('nav-username');
+                
+                if (data.authenticated) {
+                    if (navLogin) navLogin.style.display = 'none';
+                    if (navUser) navUser.style.display = 'flex';
+                    if (navAvatar) navAvatar.textContent = data.user.username.charAt(0).toUpperCase();
+                    if (navUsername) navUsername.textContent = data.user.username.split('@')[0];
+                } else {
+                    if (navLogin) navLogin.style.display = 'inline-flex';
+                    if (navUser) navUser.style.display = 'none';
+                }
+            } catch (e) { /* ignore */ }
+        })();
+
+        // Load stats
+        async function loadStats() {
+            try {
+                var res = await fetch('/api/stats');
+                if (!res.ok) throw new Error('API error');
+                var data = await res.json();
+                var el = document.getElementById('stat-optimizations');
+                if (el && data.optimizations) {
+                    el.textContent = data.optimizations.total.toLocaleString('pt-BR') + '+';
+                }
+            } catch (e) { /* ignore */ }
+        }
+        loadStats();
+    </script>
+</body>
+</html>

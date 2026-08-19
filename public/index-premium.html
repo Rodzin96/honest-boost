@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honest BOOST — Otimização de Windows Premium | Máximo Desempenho</title>
+    <meta name="description" content="Honestamente otimizado. Aumente FPS, reduza input lag e domine jogos competitivos com Honest BOOST — testado e validado por 10.000+ jogadores.">
+    <meta name="theme-color" content="#030512">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Honest BOOST">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:title" content="Honest BOOST — Otimização Premium | Mais FPS em Um Clique">
+    <meta property="og:description" content="Aumenta FPS, reduz input lag, estabiliza frames. Seguro, reversível, 100% transparente.">
+    <link rel="canonical" href="https://honestboost.com.br/">
+    
+    <style>
+        :root {
+            --bg-primary: #030512;
+            --bg-secondary: #071426;
+            --bg-surface: #07101b;
+            --bg-card: rgba(14, 165, 255, 0.08);
+            --border-color: rgba(14, 165, 255, 0.15);
+            --text-primary: #eef6ff;
+            --text-secondary: #94a3b8;
+            --text-muted: #5a6888;
+            --accent-primary: #0ea5ff;
+            --accent-secondary: #00e5d4;
+            --accent-highlight: #ffd166;
+            --success: #57f2b3;
+            --shadow-sm: 0 4px 12px rgba(2, 8, 20, 0.3);
+            --shadow-md: 0 10px 30px rgba(2, 8, 20, 0.5);
+            --shadow-lg: 0 18px 50px rgba(2, 8, 20, 0.6);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --transition: 220ms cubic-bezier(0.2, 0.95, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-primary) 80%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Header Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 12px 5%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            height: 40px;
+            font-weight: 900;
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 300ms ease;
+        }
+
+        .logo:hover { transform: scale(1.02); }
+
+        nav {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition);
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            color: #02121a;
+            border-radius: 999px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(14, 165, 255, 0.3);
+            transition: all var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        main {
+            padding-top: 70px;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            padding: 80px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 50%, rgba(14, 165, 255, 0.1), transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            z-index: 2;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(14, 165, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-highlight);
+            margin-bottom: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-highlight);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            line-height: 1.1;
+            font-weight: 900;
+            margin: 20px 0 30px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        .stats-inline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, rgba(14, 165, 255, 0.1), transparent);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent-primary);
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .hero-visual {
+            position: relative;
+            z-index: 2;
+        }
+
+        .mockup-container {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: linear-gradient(180deg, rgba(14, 165, 255, 0.1), transparent);
+            box-shadow: var(--shadow-lg);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .mockup-placeholder {
+            width: 100%;
+            padding-bottom: 100%;
+            position: relative;
+            background: linear-gradient(90deg, rgba(8, 12, 24, 0.8), rgba(10, 18, 34, 0.6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sections */
+        section {
+            padding: 80px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(14, 165, 255, 0.05), transparent);
+            border: 1px solid var(--border-color);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, rgba(14, 165, 255, 0.1), transparent);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #02121a;
+            font-weight: 700;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 16px 0 12px 0;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .result-game {
+            font-size: 0.85rem;
+            color: var(--accent-highlight);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .result-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .testimonial {
+            background: linear-gradient(135deg, rgba(14, 165, 255, 0.05), transparent);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--accent-highlight);
+        }
+
+        .testimonial p {
+            color: var(--text-secondary);
+            margin: 0 0 16px 0;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .testimonial-meta {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .comparison-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .comparison-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .comparison-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+        }
+
+        .comparison-stat {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .comparison-before {
+            color: #ff6b6b;
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .comparison-after {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 2.2rem;
+        }
+
+        .comparison-gain {
+            color: var(--accent-highlight);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 5%;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.01), transparent);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        footer a:hover {
+            color: var(--accent-secondary);
+        }
+
+        /* Animations */
+        @media (prefers-reduced-motion: no-preference) {
+            .animate-in {
+                animation: slideUp 0.6s ease both;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: auto;
+                padding: 60px 5%;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .comparison-section {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            nav {
+                display: none;
+            }
+
+            section {
+                padding: 60px 5%;
+            }
+
+            section h2 {
+                font-size: 1.8rem;
+                margin-bottom: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">
+            <span>◆</span> Honest BOOST
+        </a>
+        <nav>
+            <a href="#features">Funcionalidades</a>
+            <a href="#results">Resultados</a>
+            <a href="#testimonials">Depoimentos</a>
+            <a href="#comparison">Comparativo</a>
+        </nav>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-secondary">Saiba Mais</button>
+            <button class="btn-primary">Download</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    Versão 1.0 Disponível
+                </div>
+                <h1>Honestamente <span>Otimizado</span></h1>
+                <p>Aumente o FPS, reduza input lag e domine jogos competitivos sem complicações. Seguro, transparente e testado por 10.000+ jogadores.</p>
+                <div class="hero-cta">
+                    <button class="btn-primary">Baixar Agora</button>
+                    <button class="btn-secondary">Como Funciona →</button>
+                </div>
+                <div class="stats-inline">
+                    <div class="stat-item">
+                        <div class="stat-value">10K+</div>
+                        <div class="stat-label">Usuários</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">+40%</div>
+                        <div class="stat-label">FPS Média</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">-25ms</div>
+                        <div class="stat-label">Input Lag</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="mockup-container">
+                    <div class="mockup-placeholder">
+                        <lottie-player src="assets/lottie-happy2016.json" background="transparent" speed="1" loop autoplay></lottie-player>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features">
+            <h2>Funcionalidades Premium</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Game Mode Ultra</h3>
+                    <p>Prioriza threads de jogo, elimina processos concorrentes e maximiza recursos do sistema.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖱️</div>
+                    <h3>Precision Mouse</h3>
+                    <p>Polling de 1000Hz, raw input tuning e otimização de sensibilidade para movimento preciso.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Refresh Boost</h3>
+                    <p>Força display para taxa máxima suportada e reduz tearing de forma consistente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Sistema de Segurança</h3>
+                    <p>Reversível 100%. Cada otimização pode ser desfeita com um clique sem deixar resíduos.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Analytics Real-Time</h3>
+                    <p>Monitore FPS, latência, temperatura e performance em tempo real durante o jogo.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3>Multi-Game Support</h3>
+                    <p>Otimizado para Valorant, CS2, Fortnite, Apex Legends e centenas de outros títulos.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results by Game -->
+        <section id="results">
+            <h2>Resultados Comprovados</h2>
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-game">Valorant</div>
+                    <div class="result-text">
+                        <strong style="color: #ff6b6b;">120 FPS</strong> → <strong style="color: var(--success);">170 FPS</strong>
+                        <div style="margin-top: 8px; color: var(--accent-highlight); font-size: 0.9rem;">+41% Melhoria</div>
+                    </div>
+                </div>
+                <div class="result-card">
+                    <div class="result-game">CS2</div>
+                    <div class="result-text">
+                        <strong style="color: #ff6b6b;">140 FPS</strong> → <strong style="color: var(--success);">200 FPS</strong>
+                        <div style="margin-top: 8px; color: var(--accent-highlight); font-size: 0.9rem;">+42% Melhoria</div>
+                    </div>
+                </div>
+                <div class="result-card">
+                    <div class="result-game">Fortnite</div>
+                    <div class="result-text">
+                        <strong style="color: #ff6b6b;">90 FPS</strong> → <strong style="color: var(--success);">150 FPS</strong>
+                        <div style="margin-top: 8px; color: var(--accent-highlight); font-size: 0.9rem;">+66% Melhoria</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section id="testimonials">
+            <h2>O Que Dizem Nossos Usuários</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <p>"Saí de 250 FPS para 390-400 FPS. A diferença foi absurda, realmente não esperava tanto."</p>
+                    <div class="testimonial-author">Lucas M.</div>
+                    <div class="testimonial-meta">Verificado • Ryzen 7 5700X3D</div>
+                </div>
+                <div class="testimonial">
+                    <p>"Ganhou 40 FPS após aplicar. O jogo ficou muito mais responsivo e estável. Reverter também é simples."</p>
+                    <div class="testimonial-author">João Silva</div>
+                    <div class="testimonial-meta">Verificado • RTX 4060</div>
+                </div>
+                <div class="testimonial">
+                    <p>"Meu PC tá rodando 700 FPS de forma consistente. Resolvi testar e foi um sucesso total."</p>
+                    <div class="testimonial-author">Pedro Costa</div>
+                    <div class="testimonial-meta">Verificado • High-end Build</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison -->
+        <section id="comparison">
+            <h2>Antes × Depois</h2>
+            <div class="comparison-section">
+                <div class="comparison-box">
+                    <div class="comparison-title">Configuração Padrão</div>
+                    <div class="comparison-stat">
+                        <span class="comparison-before">120</span>
+                        <span>FPS</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="comparison-before">35ms</span>
+                        <span>Input Lag</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="comparison-before">68°C</span>
+                        <span>CPU Temp</span>
+                    </div>
+                </div>
+                <div class="comparison-box" style="background: linear-gradient(135deg, rgba(87, 242, 179, 0.1), transparent);">
+                    <div class="comparison-title">Com Honest BOOST</div>
+                    <div class="comparison-stat">
+                        <span class="comparison-after">170</span>
+                        <span>FPS</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="comparison-after">10ms</span>
+                        <span>Input Lag</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="comparison-after">52°C</span>
+                        <span>CPU Temp</span>
+                    </div>
+                    <div class="comparison-gain">↑ +41% Performance</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section style="text-align: center; padding: 100px 5%;">
+            <h2>Pronto para Dominar?</h2>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); max-width: 500px; margin: 20px auto 40px; line-height: 1.8;">Aumente seu FPS, reduza latência e ganhe a vantagem competitiva que você merece. Reversível, seguro e aprovado por milhares de jogadores.</p>
+            <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                <button class="btn-primary">Baixar Honest BOOST Agora</button>
+                <button class="btn-secondary">Ver FAQ →</button>
+            </div>
+            <p style="margin-top: 30px; color: var(--text-muted); font-size: 0.9rem;">✓ Sem limite de tempo • ✓ 100% Seguro • ✓ Suporte 24/7</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Honest BOOST. Todos os direitos reservados.</p>
+        <p>
+            <a href="#privacy">Privacidade</a> • 
+            <a href="#terms">Termos de Uso</a> • 
+            <a href="#contact">Contato</a> • 
+            <a href="#support">Suporte</a>
+        </p>
+        <p style="color: var(--text-muted); margin-top: 20px;">Desenvolvido com precisão para jogadores que exigem máximo desempenho.</p>
+    </footer>
+
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
+    <script>
+        // Load stats from API
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+                const total = data.optimizations?.total || 0;
+                // Update badge or stats as needed
+                console.log('Stats loaded:', total);
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+            }
+        }
+        loadStats();
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(anchor.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.feature-card, .result-card, .testimonial').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

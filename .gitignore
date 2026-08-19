@@ -7,12 +7,28 @@ yarn-error.log*
 # Build outputs
 dist/
 build/
+release/
 *.log
 
-# Environment files
+# Environment files (never commit real credentials)
 .env
 .env.*
+env.env
+*.env
 !.env.example
+
+# SQLite (removido - agora usamos PostgreSQL)
+# data/
+# *.sqlite
+# *.sqlite-shm
+# *.sqlite-wal
+
+# PostgreSQL (local dev only - Railway uses DATABASE_URL)
+pgdata/
+
+# Distributable binaries (published via releases, not git)
+public/downloads/*
+!public/downloads/README.txt
 
 # IDE files
 .vscode/
@@ -28,10 +44,3 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
-
-# Sensitive files (auto-detected)
-.env.example
-node_modules
-server-test-err.log
-server-test.log
-

@@ -1,15 +1,48 @@
 {
   "name": "honest-boost-desktop",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Honest Boost — Otimizador de Windows para Performance (Mouse, Monitor, FPS)",
   "main": "main.js",
   "author": "Honest Boost",
   "license": "MIT",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "publish": "electron-builder --win --publish always"
   },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
+  "build": {
+    "appId": "com.honestboost.desktop",
+    "productName": "Honest Boost",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "../public/logo.svg",
+      "publisherName": "Honest Boost"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Honest Boost"
+    },
+    "publish": {
+      "provider": "github"
+    }
   }
 }
-
