@@ -10,8 +10,6 @@ const PgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { initSchema, get: dbGet, all: dbAll, run: dbRun } = require('./src/db');
-const { PRODUCTS, publicCatalog } = require('./src/products');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -27,6 +25,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 
+/* Session */
 app.use(session({
   store: new PgSession({
     conObject: {
@@ -51,6 +50,16 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+/* Database lazy load */
+let db = null;
+function getDb() {
+  if (!db) {
+    const { initSchema, get: dbGet, all: dbAll, run: dbRun } = require('./src/db');
+    db = { initSchema, dbGet, dbAll, dbRun };
+  }
+  return db;
+}
+
 /* Auth helpers */
 function requireAuth(req, res, next) {
   if (req.session && req.session.user) return next();
@@ -69,25 +78,6 @@ const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next
 const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10 });
 
-/* Validation */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validateCredentials(body) {
-  const errors = [];
-  const username = body.username;
-  const password = body.password;
-  if (!username || typeof username !== 'string' || !username.trim()) errors.push('username_required');
-  else if (username.length > 254) errors.push('username_too_long');
-  else if (!EMAIL_RE.test(username.trim())) errors.push('username_must_be_email');
-  if (!password || typeof password !== 'string' || password.length < 8) errors.push('password_too_short');
-  else if (password.length > 200) errors.push('password_too_long');
-  return errors;
-}
-
-function newLicenseKey() {
-  return uuidv4().replace(/-/g, '').toUpperCase();
-}
-
 /* Routes */
 app.get('/health', (req, res) => {
   res.json({ ok: true });
@@ -100,19 +90,24 @@ app.get('/api/me', (req, res) => {
   return res.json({ authenticated: false });
 });
 
-app.get('/api/products', (req, res) => res.json(publicCatalog()));
+app.get('/api/products', (req, res) => {
+  res.json({ products: [] });
+});
 
 app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
+  const db = getDb();
   const { username, password } = req.body;
-  const errors = validateCredentials({ username, password });
-  if (errors.length) return res.status(400).json({ error: errors[0] });
+  
+  if (!username || !password || password.length < 8) {
+    return res.status(400).json({ error: 'invalid_credentials' });
+  }
   
   const email = username.trim().toLowerCase();
-  const existing = await dbGet('SELECT id FROM users WHERE username = $1', [email]);
+  const existing = await db.dbGet('SELECT id FROM users WHERE username = $1', [email]);
   if (existing) return res.status(409).json({ error: 'user_already_exists' });
   
   const hash = await bcrypt.hash(password, 12);
-  await dbRun(
+  await db.dbRun(
     'INSERT INTO users (username, password_hash, role, created_at) VALUES ($1, $2, $3, $4)',
     [email, hash, 'user', new Date().toISOString()]
   );
@@ -121,20 +116,19 @@ app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
 }));
 
 app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
+  const db = getDb();
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'missing_fields' });
   
   const email = username.trim().toLowerCase();
-  const user = await dbGet('SELECT * FROM users WHERE username = $1', [email]);
+  const user = await db.dbGet('SELECT * FROM users WHERE username = $1', [email]);
   if (!user) return res.status(401).json({ error: 'invalid_credentials' });
   
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'invalid_credentials' });
   
   req.session.user = { id: user.id, username: user.username, role: user.role };
-  
-  const redirectTo = user.role === 'admin' ? '/admin' : '/dashboard';
-  return res.json({ ok: true, user: req.session.user, redirectTo });
+  return res.json({ ok: true, user: req.session.user });
 }));
 
 app.post('/api/logout', (req, res) => {
@@ -144,12 +138,8 @@ app.post('/api/logout', (req, res) => {
 
 /* API Keys */
 app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
+  const db = getDb();
   const userId = req.session.user.id;
-  
-  const activeCount = await dbGet('SELECT COUNT(*) as count FROM api_keys WHERE user_id = $1 AND status = $2', [userId, 'active']);
-  if (parseInt(activeCount?.count || 0) >= 3) {
-    return res.status(429).json({ error: 'too_many_keys' });
-  }
   
   const rawKey = 'hb_' + crypto.randomBytes(24).toString('hex');
   const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
@@ -158,7 +148,7 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   const createdAt = new Date().toISOString();
   const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
   
-  await dbRun(
+  await db.dbRun(
     'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
     [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', req.ip]
   );
@@ -167,8 +157,9 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
+  const db = getDb();
   const userId = req.session.user.id;
-  const keys = await dbAll(
+  const keys = await db.dbAll(
     'SELECT id, key_prefix, created_at, expires_at, last_used_at, status FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
     [userId]
   );
@@ -176,26 +167,28 @@ app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
+  const db = getDb();
   const userId = req.session.user.id;
-  await dbRun('UPDATE api_keys SET status = $1, revoked_at = $2 WHERE id = $3 AND user_id = $4', ['revoked', new Date().toISOString(), req.params.id, userId]);
+  await db.dbRun('UPDATE api_keys SET status = $1, revoked_at = $2 WHERE id = $3 AND user_id = $4', ['revoked', new Date().toISOString(), req.params.id, userId]);
   return res.json({ ok: true });
 }));
 
-/* App auth with key */
+/* App auth */
 app.post('/api/app/auth', asyncRoute(async (req, res) => {
+  const db = getDb();
   const { key, deviceInfo } = req.body;
   if (!key) return res.status(400).json({ error: 'missing_key' });
   
   const keyHash = crypto.createHash('sha256').update(key).digest('hex');
-  const dbKey = await dbGet('SELECT * FROM api_keys WHERE key_hash = $1', [keyHash]);
+  const dbKey = await db.dbGet('SELECT * FROM api_keys WHERE key_hash = $1', [keyHash]);
   
   if (!dbKey) return res.status(401).json({ error: 'key_not_found' });
   if (dbKey.status !== 'active') return res.status(401).json({ error: 'key_' + dbKey.status });
   if (new Date(dbKey.expires_at) < new Date()) return res.status(401).json({ error: 'key_expired' });
   
-  await dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
+  await db.dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
   
-  const user = await dbGet('SELECT id, username, role FROM users WHERE id = $1', [dbKey.user_id]);
+  const user = await db.dbGet('SELECT id, username, role FROM users WHERE id = $1', [dbKey.user_id]);
   if (!user) return res.status(404).json({ error: 'user_not_found' });
   
   return res.json({
@@ -231,31 +224,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'internal_error' });
 });
 
-/* Boot */
-let server;
-async function start() {
-  // Try to init schema but don't block server start
-  try {
-    await initSchema();
+/* Boot - start server immediately */
+const server = app.listen(PORT, () => {
+  console.log(`✓ Server running on port ${PORT}`);
+  
+  // Init schema after server starts (non-blocking)
+  const db = getDb();
+  db.initSchema().then(() => {
     console.log('✓ Schema initialized');
-  } catch (err) {
-    console.error('⚠ Schema init failed (will retry on first request):', err.message);
-  }
-  server = app.listen(PORT, () => console.log(`✓ Server running on port ${PORT}`));
-}
+  }).catch(err => {
+    console.error('⚠ Schema init failed:', err.message);
+  });
+});
 
 function shutdown(signal) {
   console.log(`\n${signal} received, shutting down...`);
   const done = () => process.exit(0);
-  if (server) server.close(done);
-  else done();
+  server.close(done);
   setTimeout(() => process.exit(1), 8000).unref();
 }
 
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
-
-start().catch((err) => {
-  console.error('Failed to start:', err);
-  process.exit(1);
-});
