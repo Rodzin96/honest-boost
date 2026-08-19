@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
+const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
@@ -38,6 +40,44 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 7
   }
 }));
+
+/* Passport */
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+  const db = getDb();
+  db.dbGet('SELECT id, username, role FROM users WHERE id = $1', [id])
+    .then(user => done(null, user || false))
+    .catch(err => done(err));
+});
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: (process.env.PUBLIC_BASE_URL || '') + '/auth/google/callback'
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const db = getDb();
+      const email = profile.emails?.[0]?.value;
+      if (!email) return done(null, false);
+      
+      let user = await db.dbGet('SELECT * FROM users WHERE username = $1', [email]);
+      if (!user) {
+        await db.dbRun(
+          'INSERT INTO users (username, password_hash, role, created_at) VALUES ($1, $2, $3, $4)',
+          [email, 'oauth-user', 'user', new Date().toISOString()]
+        );
+        user = await db.dbGet('SELECT * FROM users WHERE username = $1', [email]);
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }));
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -163,6 +203,16 @@ app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
   await db.dbRun('UPDATE api_keys SET status = $1, revoked_at = $2 WHERE id = $3 AND user_id = $4', ['revoked', new Date().toISOString(), req.params.id, userId]);
   return res.json({ ok: true });
 }));
+
+/* Google OAuth routes */
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login.html' }),
+  (req, res) => {
+    if (req.session) req.session.user = { id: req.user.id, username: req.user.username, role: req.user.role };
+    res.redirect('/dashboard');
+  }
+);
 
 /* App auth */
 app.post('/api/app/auth', asyncRoute(async (req, res) => {
