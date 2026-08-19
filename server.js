@@ -6,7 +6,6 @@ const path = require('path');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const session = require('express-session');
-const PgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -25,16 +24,8 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 
-/* Session */
+/* Session - use memory store for boot, switch to PG later */
 app.use(session({
-  store: new PgSession({
-    conObject: {
-      connectionString: process.env.DATABASE_URL,
-      ssl: IS_PRODUCTION ? { rejectUnauthorized: false } : false
-    },
-    tableName: 'sessions',
-    createTableIfMissing: true
-  }),
   name: 'hb.sid',
   secret: process.env.SESSION_SECRET || 'dev-secret',
   resave: false,
