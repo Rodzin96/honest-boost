@@ -10,19 +10,31 @@ let connected = false;
  * NODE_ENV=production for the running service. */
 function resolveSslConfig(connectionString) {
   if (!connectionString) return false;
-  const isLocalHost = /(^|@)(localhost|127\.0\.0\.1)(:|\/)/.test(connectionString);
-  return isLocalHost ? false : { rejectUnauthorized: false };
+  // Plain localhost and Railway's private network hostname (*.railway.internal)
+  // are unencrypted-by-default connections; only public/external hosts need
+  // the relaxed TLS handshake below.
+  const isUnencryptedHost = /(^|@)(localhost|127\.0\.0\.1)(:|\/)/.test(connectionString)
+    || /\.railway\.internal(:|\/)/.test(connectionString);
+  return isUnencryptedHost ? false : { rejectUnauthorized: false };
 }
 
 function getPool() {
   if (!pool) {
-    if (!process.env.DATABASE_URL) {
+    const raw = process.env.DATABASE_URL;
+    if (!raw) {
       console.error('✗ DATABASE_URL is not set. Add a PostgreSQL database in Railway and link its DATABASE_URL to this service (Variables → Add Reference).');
+    } else if (raw.includes('${{') || !/^postgres(ql)?:\/\//.test(raw)) {
+      // Catches the classic copy/paste mistake in Railway's Variables tab:
+      // pasting the raw connection string into the same field as the
+      // ${{Postgres.DATABASE_URL}} reference token, so the value ends up as
+      // "${{Postgres.DATABASE_URL}}postgresql://..." instead of just one or
+      // the other.
+      console.error('✗ DATABASE_URL looks malformed (starts with: ' + JSON.stringify(raw.slice(0, 32)) + '...). In Railway → Variables, set it to EITHER "${{Postgres.DATABASE_URL}}" OR the raw postgresql:// string — not both concatenated.');
     }
 
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: resolveSslConfig(process.env.DATABASE_URL),
+      connectionString: raw,
+      ssl: resolveSslConfig(raw),
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000,
     });
