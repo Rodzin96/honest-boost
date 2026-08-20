@@ -7,8 +7,6 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const passport = require('passport');
-const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
@@ -26,7 +24,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 
-/* Session - use memory store for boot, switch to PG later */
+/* Session - memory store for boot, switch to PG later */
 app.use(session({
   name: 'hb.sid',
   secret: process.env.SESSION_SECRET || 'dev-secret',
@@ -41,44 +39,6 @@ app.use(session({
   }
 }));
 
-/* Passport */
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-  const db = getDb();
-  db.dbGet('SELECT id, username, role FROM users WHERE id = $1', [id])
-    .then(user => done(null, user || false))
-    .catch(err => done(err));
-});
-
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: (process.env.PUBLIC_BASE_URL || '') + '/auth/google/callback'
-  }, async (accessToken, refreshToken, profile, done) => {
-    try {
-      const db = getDb();
-      const email = profile.emails?.[0]?.value;
-      if (!email) return done(null, false);
-      
-      let user = await db.dbGet('SELECT * FROM users WHERE username = $1', [email]);
-      if (!user) {
-        await db.dbRun(
-          'INSERT INTO users (username, password_hash, role, created_at) VALUES ($1, $2, $3, $4)',
-          [email, 'oauth-user', 'user', new Date().toISOString()]
-        );
-        user = await db.dbGet('SELECT * FROM users WHERE username = $1', [email]);
-      }
-      return done(null, user);
-    } catch (err) {
-      return done(err);
-    }
-  }));
-}
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* Database lazy load */
@@ -92,26 +52,6 @@ function getDb() {
   }
   return db;
 }
-
-/* Wait for DB before handling requests */
-app.use(async (req, res, next) => {
-  if (req.path === '/health') return next();
-  if (!process.env.DATABASE_URL) {
-    console.warn('DATABASE_URL not set - DB features disabled');
-    return next();
-  }
-  try {
-    const database = getDb();
-    if (!dbReady) {
-      await database.initSchema();
-      dbReady = true;
-    }
-    next();
-  } catch (err) {
-    console.error('DB middleware error:', err.message);
-    next();
-  }
-});
 
 /* Auth helpers */
 function requireAuth(req, res, next) {
@@ -131,6 +71,25 @@ const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next
 const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10 });
 
+/* Validation */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateCredentials(body) {
+  const errors = [];
+  const username = body.username;
+  const password = body.password;
+  if (!username || typeof username !== 'string' || !username.trim()) errors.push('username_required');
+  else if (username.length > 254) errors.push('username_too_long');
+  else if (!EMAIL_RE.test(username.trim())) errors.push('username_must_be_email');
+  if (!password || typeof password !== 'string' || password.length < 8) errors.push('password_too_short');
+  else if (password.length > 200) errors.push('password_too_long');
+  return errors;
+}
+
+function newLicenseKey() {
+  return uuidv4().replace(/-/g, '').toUpperCase();
+}
+
 /* Routes */
 app.get('/health', (req, res) => {
   res.json({ ok: true });
@@ -148,19 +107,25 @@ app.get('/api/products', (req, res) => {
 });
 
 app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
-  const db = getDb();
-  const { username, password } = req.body;
-  
-  if (!username || !password || password.length < 8) {
-    return res.status(400).json({ error: 'invalid_credentials' });
+  if (!dbReady) {
+    try {
+      await getDb().initSchema();
+      dbReady = true;
+    } catch (err) {
+      return res.status(503).json({ error: 'database_not_ready' });
+    }
   }
   
+  const { username, password } = req.body;
+  const errors = validateCredentials({ username, password });
+  if (errors.length) return res.status(400).json({ error: errors[0] });
+  
   const email = username.trim().toLowerCase();
-  const existing = await db.dbGet('SELECT id FROM users WHERE username = $1', [email]);
+  const existing = await getDb().dbGet('SELECT id FROM users WHERE username = $1', [email]);
   if (existing) return res.status(409).json({ error: 'user_already_exists' });
   
   const hash = await bcrypt.hash(password, 12);
-  await db.dbRun(
+  await getDb().dbRun(
     'INSERT INTO users (username, password_hash, role, created_at) VALUES ($1, $2, $3, $4)',
     [email, hash, 'user', new Date().toISOString()]
   );
@@ -169,12 +134,20 @@ app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
 }));
 
 app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
-  const db = getDb();
+  if (!dbReady) {
+    try {
+      await getDb().initSchema();
+      dbReady = true;
+    } catch (err) {
+      return res.status(503).json({ error: 'database_not_ready' });
+    }
+  }
+  
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'missing_fields' });
   
   const email = username.trim().toLowerCase();
-  const user = await db.dbGet('SELECT * FROM users WHERE username = $1', [email]);
+  const user = await getDb().dbGet('SELECT * FROM users WHERE username = $1', [email]);
   if (!user) return res.status(401).json({ error: 'invalid_credentials' });
   
   const valid = await bcrypt.compare(password, user.password_hash);
@@ -191,7 +164,15 @@ app.post('/api/logout', (req, res) => {
 
 /* API Keys */
 app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
-  const db = getDb();
+  if (!dbReady) {
+    try {
+      await getDb().initSchema();
+      dbReady = true;
+    } catch (err) {
+      return res.status(503).json({ error: 'database_not_ready' });
+    }
+  }
+  
   const userId = req.session.user.id;
   
   const rawKey = 'hb_' + crypto.randomBytes(24).toString('hex');
@@ -201,7 +182,7 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   const createdAt = new Date().toISOString();
   const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
   
-  await db.dbRun(
+  await getDb().dbRun(
     'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
     [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', req.ip]
   );
@@ -210,9 +191,10 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
-  const db = getDb();
+  if (!dbReady) return res.json({ ok: true, keys: [] });
+  
   const userId = req.session.user.id;
-  const keys = await db.dbAll(
+  const keys = await getDb().dbAll(
     'SELECT id, key_prefix, created_at, expires_at, last_used_at, status FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
     [userId]
   );
@@ -220,38 +202,37 @@ app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
-  const db = getDb();
+  if (!dbReady) return res.json({ ok: true });
+  
   const userId = req.session.user.id;
-  await db.dbRun('UPDATE api_keys SET status = $1, revoked_at = $2 WHERE id = $3 AND user_id = $4', ['revoked', new Date().toISOString(), req.params.id, userId]);
+  await getDb().dbRun('UPDATE api_keys SET status = $1, revoked_at = $2 WHERE id = $3 AND user_id = $4', ['revoked', new Date().toISOString(), req.params.id, userId]);
   return res.json({ ok: true });
 }));
 
-/* Google OAuth routes */
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login.html' }),
-  (req, res) => {
-    if (req.session) req.session.user = { id: req.user.id, username: req.user.username, role: req.user.role };
-    res.redirect('/dashboard');
-  }
-);
-
 /* App auth */
 app.post('/api/app/auth', asyncRoute(async (req, res) => {
-  const db = getDb();
+  if (!dbReady) {
+    try {
+      await getDb().initSchema();
+      dbReady = true;
+    } catch (err) {
+      return res.status(503).json({ error: 'database_not_ready' });
+    }
+  }
+  
   const { key, deviceInfo } = req.body;
   if (!key) return res.status(400).json({ error: 'missing_key' });
   
   const keyHash = crypto.createHash('sha256').update(key).digest('hex');
-  const dbKey = await db.dbGet('SELECT * FROM api_keys WHERE key_hash = $1', [keyHash]);
+  const dbKey = await getDb().dbGet('SELECT * FROM api_keys WHERE key_hash = $1', [keyHash]);
   
   if (!dbKey) return res.status(401).json({ error: 'key_not_found' });
   if (dbKey.status !== 'active') return res.status(401).json({ error: 'key_' + dbKey.status });
   if (new Date(dbKey.expires_at) < new Date()) return res.status(401).json({ error: 'key_expired' });
   
-  await db.dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
+  await getDb().dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
   
-  const user = await db.dbGet('SELECT id, username, role FROM users WHERE id = $1', [dbKey.user_id]);
+  const user = await getDb().dbGet('SELECT id, username, role FROM users WHERE id = $1', [dbKey.user_id]);
   if (!user) return res.status(404).json({ error: 'user_not_found' });
   
   return res.json({
@@ -290,6 +271,17 @@ app.use((err, req, res, next) => {
 /* Boot - start server immediately */
 const server = app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
+  
+  // Init schema after server starts (non-blocking)
+  setTimeout(async () => {
+    try {
+      await getDb().initSchema();
+      dbReady = true;
+      console.log('✓ Schema initialized');
+    } catch (err) {
+      console.error('⚠ Schema init failed:', err.message);
+    }
+  }, 1000);
 });
 
 function shutdown(signal) {

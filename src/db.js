@@ -1,19 +1,43 @@
-/* src/db.js — PostgreSQL database module for Railway */
+/* src/db.js — PostgreSQL database module */
 const { Pool } = require('pg');
 
 let pool;
+let connected = false;
 
 function getPool() {
   if (!pool) {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+    });
+    
+    pool.on('error', (err) => {
+      console.error('PG pool error:', err.message);
+      connected = false;
     });
   }
   return pool;
 }
 
-/* Initialize tables if they don't exist */
+async function testConnection() {
+  try {
+    const p = getPool();
+    await p.query('SELECT 1');
+    connected = true;
+    return true;
+  } catch (err) {
+    connected = false;
+    console.error('DB connection failed:', err.message);
+    return false;
+  }
+}
+
+function isConnected() {
+  return connected;
+}
+
 async function initSchema() {
   const p = getPool();
   
@@ -107,6 +131,7 @@ async function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
   `);
   
+  connected = true;
   console.log('✓ Schema initialized');
 }
 
@@ -122,4 +147,4 @@ function run(sql, params = []) {
   return getPool().query(sql, params);
 }
 
-module.exports = { initSchema, get, all, run, getPool };
+module.exports = { initSchema, get, all, run, getPool, testConnection, isConnected };
