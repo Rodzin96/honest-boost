@@ -96,7 +96,10 @@ function getDb() {
 /* Wait for DB before handling requests */
 app.use(async (req, res, next) => {
   if (req.path === '/health') return next();
-  
+  if (!process.env.DATABASE_URL) {
+    console.warn('DATABASE_URL not set - DB features disabled');
+    return next();
+  }
   try {
     const database = getDb();
     if (!dbReady) {
@@ -106,9 +109,6 @@ app.use(async (req, res, next) => {
     next();
   } catch (err) {
     console.error('DB middleware error:', err.message);
-    if (req.path.startsWith('/api/')) {
-      return res.status(503).json({ error: 'database_not_ready' });
-    }
     next();
   }
 });
