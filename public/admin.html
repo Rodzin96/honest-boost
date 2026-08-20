@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin — Licenças | Honest Boost</title>
+    <title>Administração — Honest Boost</title>
+    <meta name="description" content="Painel administrativo de licenças e operações do Honest Boost.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,104 +21,126 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
         })();
     </script>
+    <style>
+        .admin-shell { display:grid; gap:1.4rem; }
+        .page-eyebrow { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .9rem; border-radius:999px; background:color-mix(in srgb, var(--primary) 12%, transparent); border:1px solid color-mix(in srgb, var(--primary) 24%, transparent); color:var(--primary); font-size:.8rem; font-weight:700; margin-bottom:1rem; }
+        .admin-actions { display:flex; gap:.8rem; flex-wrap:wrap; }
+        .admin-panel { background:var(--surface-1); border:1px solid var(--divider); border-radius:28px; padding:1.5rem; box-shadow:var(--elevation-1); }
+        .loading-state, .empty-state-admin, .error-state-admin { padding:2rem; text-align:center; color:var(--on-surface-variant); }
+        .error-state-admin { color:var(--error); }
+    </style>
 </head>
 <body>
-
     <header class="app-header" id="app-header">
         <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
+            <a href="/" class="brand"><span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span><span>Honest BOOST</span></a>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu"><span class="material-symbols-rounded">menu</span></button>
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/download.html">Download</a></li>
+                </ul>
+            </nav>
             <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
-                </button>
-                <a href="index.html" class="btn btn-text"><span class="material-symbols-rounded">arrow_back</span> Voltar</a>
+                <a href="/" class="btn btn-outlined">Voltar ao site</a>
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema"><span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span><span class="material-symbols-rounded theme-icon moon">dark_mode</span></button>
             </div>
         </div>
     </header>
 
     <main class="section">
-        <div class="container">
-            <h1 style="margin-bottom:1.5rem;display:flex;align-items:center;gap:12px;">
-                <span class="material-symbols-rounded" style="color:var(--primary);font-size:2rem;">admin_panel_settings</span> Admin — Licenças
-            </h1>
+        <div class="container admin-shell">
+            <section>
+                <div class="page-eyebrow"><span class="material-symbols-rounded">admin_panel_settings</span>Operação administrativa</div>
+                <h1>Licenças e visão operacional</h1>
+                <p class="hero-subtitle" style="max-width:72ch;">A página administrativa foi simplificada para priorizar leitura, manutenção e consistência visual com o restante do produto.</p>
+            </section>
 
-            <div id="list" class="table-wrap">
-                <div style="padding:2rem;text-align:center;color:var(--on-surface-variant);">
-                    <span class="material-symbols-rounded" style="font-size:2rem;">hourglass</span><br>Carregando...
+            <section class="admin-panel">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Licenças</h2>
+                        <p class="section-subtitle">Lista atual de licenças retornadas pela API administrativa disponível.</p>
+                    </div>
+                    <div class="admin-actions">
+                        <a href="/api/licenses" class="btn btn-outlined" target="_blank" rel="noreferrer">
+                            <span class="material-symbols-rounded">data_object</span>
+                            Ver JSON
+                        </a>
+                        <button id="refreshBtn" class="btn btn-tonal">
+                            <span class="material-symbols-rounded">refresh</span>
+                            Atualizar
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <div style="margin-top:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
-                <a href="/api/licenses" class="btn btn-outlined" target="_blank">
-                    <span class="material-symbols-rounded">data_object</span> Ver JSON
-                </a>
-                <button id="refreshBtn" class="btn btn-tonal">
-                    <span class="material-symbols-rounded">refresh</span> Atualizar
-                </button>
-            </div>
+                <div id="list" class="table-wrap">
+                    <div class="loading-state">
+                        <span class="material-symbols-rounded" style="font-size:2rem;">hourglass</span><br>
+                        Carregando licenças...
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
+    <script src="/js/hb.js" defer></script>
     <script>
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function statusBadge(status) {
+            if (status === 'active') {
+                return '<span class="status-badge status-active"><span class="material-symbols-rounded" style="font-size:14px;">check_circle</span>Ativa</span>';
+            }
+            return '<span class="status-badge status-pending"><span class="material-symbols-rounded" style="font-size:14px;">schedule</span>' + escapeHtml(status || 'indefinido') + '</span>';
+        }
+
+        function renderTable(data) {
+            var list = document.getElementById('list');
+            if (!Array.isArray(data)) {
+                list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro ao carregar licenças. Verifique autenticação de administrador.</div>';
+                return;
+            }
+            if (!data.length) {
+                list.innerHTML = '<div class="empty-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">inbox</span><br>Nenhuma licença gerada ainda.</div>';
+                return;
+            }
+            var html = '<table><thead><tr><th>ID</th><th>Chave</th><th>Email</th><th>Produto</th><th>Status</th><th>Criado em</th></tr></thead><tbody>';
+            data.forEach(function (r) {
+                html += '<tr>' +
+                    '<td>' + escapeHtml(r.id) + '</td>' +
+                    '<td style="font-family:Courier New, monospace; font-size:0.82rem;">' + escapeHtml(r.license_key) + '</td>' +
+                    '<td>' + escapeHtml(r.email || '-') + '</td>' +
+                    '<td>' + escapeHtml(r.product || '-') + '</td>' +
+                    '<td>' + statusBadge(r.status) + '</td>' +
+                    '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.created_at || '-') + '</td>' +
+                    '</tr>';
             });
-        })();
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
 
         function load() {
             var list = document.getElementById('list');
-            list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--on-surface-variant);"><span class="material-symbols-rounded" style="font-size:2rem;">hourglass</span><br>Carregando...</div>';
-            fetch('/api/licenses')
+            list.innerHTML = '<div class="loading-state"><span class="material-symbols-rounded" style="font-size:2rem;">hourglass</span><br>Carregando licenças...</div>';
+            fetch('/api/licenses', { credentials: 'same-origin' })
                 .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    if (!Array.isArray(data)) {
-                        list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--error);"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro ao carregar licenças. Faça login como admin.</div>';
-                        return;
-                    }
-                    if (!data.length) {
-                        list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--on-surface-variant);"><span class="material-symbols-rounded" style="font-size:2rem;">inbox</span><br>Nenhuma licença gerada ainda.</div>';
-                        return;
-                    }
-                    var html = '<table><thead><tr><th>ID</th><th>Chave</th><th>Email</th><th>Produto</th><th>Status</th><th>Criado em</th></tr></thead><tbody>';
-                    data.forEach(function (r) {
-                        var status = r.status === 'active' ? '<span class="status-badge status-active"><span class="material-symbols-rounded" style="font-size:14px;">check_circle</span> ' + r.status + '</span>' : '<span class="status-badge status-pending"><span class="material-symbols-rounded" style="font-size:14px;">schedule</span> ' + r.status + '</span>';
-                        html += '<tr>'
-                            + '<td>' + r.id + '</td>'
-                            + '<td style="font-family:\'Courier New\',monospace;font-size:0.82rem;">' + r.license_key + '</td>'
-                            + '<td>' + (r.email || '-') + '</td>'
-                            + '<td>' + r.product + '</td>'
-                            + '<td>' + status + '</td>'
-                            + '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + r.created_at + '</td>'
-                            + '</tr>';
-                    });
-                    html += '</tbody></table>';
-                    list.innerHTML = html;
-                })
-                .catch(function (err) {
-                    console.error(err);
-                    list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--error);"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro de conexão.</div>';
+                .then(renderTable)
+                .catch(function () {
+                    list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro de conexão ao carregar licenças.</div>';
                 });
         }
-        load();
 
-        document.getElementById('refreshBtn').addEventListener('click', load);
+        document.addEventListener('DOMContentLoaded', function () {
+            load();
+            document.getElementById('refreshBtn').addEventListener('click', load);
+        });
     </script>
 </body>
 </html>
-

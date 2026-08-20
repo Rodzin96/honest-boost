@@ -50,7 +50,8 @@
     order_not_found: 'Pedido não encontrado.',
     forbidden: 'Você não tem permissão para acessar isto.',
     not_authenticated: 'Faça login para continuar.',
-    internal_error: 'Erro interno. Tente novamente.'
+    internal_error: 'Erro interno. Tente novamente.',
+    database_not_ready: 'O serviço está inicializando ou sem conexão com o banco de dados. Tente novamente em instantes.'
   };
   function errorMessage(data, fallback) {
     if (!data) return fallback || 'Erro inesperado. Tente novamente.';

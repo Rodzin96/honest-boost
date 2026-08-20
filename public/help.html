@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central de Ajuda — Honest Boost</title>
+    <title>Ajuda — Honest Boost</title>
+    <meta name="description" content="Consulte respostas rápidas e canais de suporte do Honest Boost.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,154 +21,103 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
         })();
     </script>
+    <style>
+        .help-grid { display:grid; grid-template-columns:.9fr 1.1fr; gap:1.5rem; }
+        .page-eyebrow { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .9rem; border-radius:999px; background:color-mix(in srgb, var(--primary) 12%, transparent); border:1px solid color-mix(in srgb, var(--primary) 24%, transparent); color:var(--primary); font-size:.8rem; font-weight:700; margin-bottom:1rem; }
+        .page-panel { background:var(--surface-1); border:1px solid var(--divider); border-radius:28px; padding:1.6rem; box-shadow:var(--elevation-1); }
+        .support-cards { display:grid; gap:1rem; }
+        .support-card { background:var(--surface-2); border:1px solid var(--divider); border-radius:20px; padding:1rem 1.1rem; }
+        .faq-question { width:100%; border:none; background:transparent; text-align:left; }
+        @media (max-width:1024px) { .help-grid { grid-template-columns:1fr; } }
+    </style>
 </head>
 <body>
-
     <header class="app-header" id="app-header">
         <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
-            <nav>
+            <a href="/" class="brand"><span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span><span>Honest BOOST</span></a>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu"><span class="material-symbols-rounded">menu</span></button>
+            <nav aria-label="Navegação principal">
                 <ul class="nav-links" id="nav-links">
-                    <li><a href="index.html"><span class="material-symbols-rounded">home</span> Início</a></li>
-                    <li><a href="recursos.html"><span class="material-symbols-rounded">widgets</span> Recursos</a></li>
-                    <li><a href="download.html"><span class="material-symbols-rounded">download</span> Baixar</a></li>
-                    <li><a href="help.html"><span class="material-symbols-rounded">support</span> Ajuda</a></li>
+                    <li><a href="/faq-honest.html">FAQ completo</a></li>
+                    <li><a href="/contact.html">Contato</a></li>
+                    <li><a href="/download.html">Download</a></li>
                 </ul>
             </nav>
-            <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
-                </button>
-                <a href="/login.html" class="btn btn-outlined" style="padding:0.5rem 1.1rem;"><span class="material-symbols-rounded">login</span> Entrar</a>
-                <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="material-symbols-rounded">menu</span></button>
-            </div>
+            <div class="header-actions"><button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema"><span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span><span class="material-symbols-rounded theme-icon moon">dark_mode</span></button></div>
         </div>
     </header>
 
     <main class="section">
         <div class="container">
-            <h1 style="margin-bottom:0.6rem;display:flex;align-items:center;gap:12px;">
-                <span class="material-symbols-rounded" style="color:var(--primary);font-size:2rem;">support</span> Central de Ajuda
-            </h1>
-            <p class="subtitle" style="color:var(--on-surface-variant);margin-bottom:2rem;">Encontre respostas às perguntas mais frequentes ou entre em contato com nosso suporte.</p>
+            <div class="page-eyebrow"><span class="material-symbols-rounded">help</span>Central de ajuda</div>
+            <h1>Respostas rápidas e caminhos de suporte</h1>
+            <p class="hero-subtitle" style="max-width:70ch;">Esta página resume as dúvidas mais comuns e orienta o usuário para o melhor próximo passo sem gerar ruído desnecessário.</p>
 
-            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.4rem;margin-bottom:2.5rem;">
-                <div class="card card-hover" style="text-align:center;padding:2rem;">
-                    <span class="material-symbols-rounded" style="font-size:2.2rem;color:var(--primary);">schedule</span>
-                    <h3 style="margin:0.8rem 0 0.4rem;">Horário de Suporte</h3>
-                    <p style="font-size:0.9rem;"><strong>Seg-Sex:</strong> 09:00-18:00<br><strong>Sab-Dom:</strong> 10:00-15:00</p>
-                </div>
-                <div class="card card-hover" style="text-align:center;padding:2rem;">
-                    <span class="material-symbols-rounded" style="font-size:2.2rem;color:var(--primary);">mail</span>
-                    <h3 style="margin:0.8rem 0 0.4rem;">Email</h3>
-                    <p style="font-size:0.9rem;"><strong>suporte@honestboost.com</strong><br>Resposta em até 24h</p>
-                </div>
-                <div class="card card-hover" style="text-align:center;padding:2rem;">
-                    <span class="material-symbols-rounded" style="font-size:2.2rem;color:var(--primary);">headset</span>
-                    <h3 style="margin:0.8rem 0 0.4rem;">Chat ao Vivo</h3>
-                    <p style="font-size:0.9rem;">Disponível durante horário comercial</p>
-                </div>
-            </div>
-
-            <h2 style="color:var(--primary);margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">
-                <span class="material-symbols-rounded">help</span> Perguntas Frequentes
-            </h2>
-
-            <div class="faq-container">
-                <div class="faq-item active">
-                    <div class="faq-question">
-                        <h3>Como instalar o Honest Boost?</h3>
-                        <span class="material-symbols-rounded faq-toggle">expand_more</span>
+            <div class="help-grid" style="margin-top:1.8rem;">
+                <aside class="page-panel support-cards">
+                    <div class="support-card">
+                        <h3>Horário de suporte</h3>
+                        <p class="text-muted">Segunda a sexta, das 09h às 18h. Fins de semana, das 10h às 15h.</p>
                     </div>
-                    <div class="faq-answer">Baixe o instalador, execute com privilégios de administrador e siga as instruções. A instalação leva cerca de 2 minutos.</div>
-                </div>
-
-                <div class="faq-item active">
-                    <div class="faq-question">
-                        <h3>É seguro usar o Honest Boost?</h3>
-                        <span class="material-symbols-rounded faq-toggle">expand_more</span>
+                    <div class="support-card">
+                        <h3>Email</h3>
+                        <p class="text-muted"><strong>suporte@honestboost.com</strong><br>Atendimento geralmente em até 24 horas úteis.</p>
                     </div>
-                    <div class="faq-answer">Sim! Todos os recursos são testados e o software cria pontos de restauração automáticos. Você pode reverter mudanças a qualquer momento.</div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>Qual é a diferença entre as versões?</h3>
-                        <span class="material-symbols-rounded faq-toggle">expand_more</span>
+                    <div class="support-card">
+                        <h3>Se ainda tiver dúvidas</h3>
+                        <p class="text-muted">Use a página de contato para descrever o problema com detalhes técnicos e contexto.</p>
                     </div>
-                    <div class="faq-answer">Trial: Acesso completo por 30 dias. Pro: Sem limite de tempo + suporte prioritário. Premium: Inclui suporte 24/7 e acesso a beta features.</div>
-                </div>
+                </aside>
 
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>Qual é a taxa de reembolso?</h3>
-                        <span class="material-symbols-rounded faq-toggle">expand_more</span>
+                <section class="page-panel">
+                    <h2 style="margin-bottom:1rem;">Perguntas frequentes</h2>
+                    <div class="faq-container">
+                        <article class="faq-item active">
+                            <button class="faq-question" type="button" aria-expanded="true">
+                                <h3>Como instalar o Honest Boost?</h3>
+                                <span class="material-symbols-rounded faq-toggle">expand_more</span>
+                            </button>
+                            <div class="faq-answer"><p>Baixe o instalador, execute com permissões adequadas e siga o fluxo orientado pela interface.</p></div>
+                        </article>
+                        <article class="faq-item">
+                            <button class="faq-question" type="button" aria-expanded="false">
+                                <h3>É seguro usar?</h3>
+                                <span class="material-symbols-rounded faq-toggle">expand_more</span>
+                            </button>
+                            <div class="faq-answer"><p>A comunicação do produto enfatiza segurança, reversibilidade e clareza sobre o que está sendo aplicado.</p></div>
+                        </article>
+                        <article class="faq-item">
+                            <button class="faq-question" type="button" aria-expanded="false">
+                                <h3>Como funcionam as versões e planos?</h3>
+                                <span class="material-symbols-rounded faq-toggle">expand_more</span>
+                            </button>
+                            <div class="faq-answer"><p>Os detalhes do catálogo são carregados dinamicamente na home e no checkout para evitar divergências de preço e oferta.</p></div>
+                        </article>
                     </div>
-                    <div class="faq-answer">Oferecemos reembolso completo em até 14 dias após a compra, sem perguntas. Após 14 dias, são 7 dias adicionais com 50% de reembolso.</div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>O que o Precision Mouse faz?</h3>
-                        <span class="material-symbols-rounded faq-toggle">expand_more</span>
-                    </div>
-                    <div class="faq-answer">Desativa a aceleração do cursor, ativa o polling rate de 1000Hz e otimiza o raw input para uma mira 1:1 extremamente precisa.</div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>Como funciona o Refresh Rate Boost?</h3>
-                        <span class="material-symbols-rounded faq-toggle">expand_more</span>
-                    </div>
-                    <div class="faq-answer">Ele identifica a taxa máxima suportada pelo seu monitor (60/120/144/165/240Hz) e garante que o Windows a utilize, reduzindo também o input lag.</div>
-                </div>
+                </section>
             </div>
         </div>
     </main>
 
-    <footer class="app-footer">
-        <div class="container">
-            <div class="footer-bottom" style="border:none;padding:0;">
-                <div class="copyright">&copy; 2026 Honest Boost. Todos os direitos reservados.</div>
-            </div>
-        </div>
-    </footer>
-
+    <script src="/js/hb.js" defer></script>
     <script>
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
-            });
-        })();
-
-        document.getElementById('nav-toggle').addEventListener('click', function () {
-            var nav = document.getElementById('nav-links');
-            var expanded = this.getAttribute('aria-expanded') === 'true';
-            this.setAttribute('aria-expanded', String(!expanded));
-            nav.classList.toggle('show');
-        });
-
-        document.querySelectorAll('.faq-question').forEach(function (button) {
-            button.addEventListener('click', function () {
-                button.closest('.faq-item').classList.toggle('active');
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.faq-question').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var item = button.closest('.faq-item');
+                    var isActive = item.classList.contains('active');
+                    document.querySelectorAll('.faq-item').forEach(function (faq) {
+                        faq.classList.remove('active');
+                        var btn = faq.querySelector('.faq-question');
+                        if (btn) btn.setAttribute('aria-expanded', 'false');
+                    });
+                    if (!isActive) {
+                        item.classList.add('active');
+                        button.setAttribute('aria-expanded', 'true');
+                    }
+                });
             });
         });
     </script>
 </body>
 </html>
-

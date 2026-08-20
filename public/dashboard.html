@@ -4,167 +4,722 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — Honest Boost</title>
+    <meta name="description" content="Gerencie sua conta, keys e atividade no painel Honest Boost.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
     <script>
         (function () {
             try {
                 var t = localStorage.getItem('hb-theme');
                 if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', t);
-            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
         })();
     </script>
-</head>
-<body class="dashboard-body">
+    <style>
+        .dashboard-shell {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 14%, transparent), transparent 32%),
+                var(--background);
+        }
 
-    <!-- Mobile Header -->
-    <header class="mobile-header">
-        <div class="mobile-header-inner">
-            <button class="icon-btn" id="mobile-menu-toggle" aria-label="Menu">
-                <span class="material-symbols-rounded">menu</span>
-            </button>
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
-            <button class="icon-btn" id="theme-toggle" aria-label="Alternar tema">
-                <span class="material-symbols-rounded" id="theme-icon">dark_mode</span>
-            </button>
+        .dashboard-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 120;
+            background: color-mix(in srgb, var(--background) 88%, transparent);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .dashboard-topbar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.9rem 0;
+        }
+
+        .dashboard-topbar-left,
+        .dashboard-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dashboard-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.85rem;
+            border-radius: 999px;
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            color: var(--on-surface-variant);
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 1.5rem;
+            padding: 1.5rem 0 2rem;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 88px;
+            align-self: start;
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 28px;
+            padding: 1.25rem;
+            box-shadow: var(--elevation-1);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--divider);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-brand .brand-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: var(--gradient-brand);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            box-shadow: var(--elevation-2);
+        }
+
+        .sidebar-brand .brand-text {
+            font-weight: 800;
+            color: var(--on-surface);
+        }
+
+        .sidebar-brand .brand-text span {
+            color: var(--primary);
+        }
+
+        .nav-section {
+            color: var(--on-surface-variant);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 1.1rem 0 0.65rem;
+            padding-inline: 0.3rem;
+        }
+
+        .nav-item {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--on-surface-variant);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 0.95rem;
+            border-radius: 16px;
+            font: inherit;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: color-mix(in srgb, var(--primary) 10%, transparent);
+            border-color: color-mix(in srgb, var(--primary) 20%, transparent);
+            color: var(--primary);
+        }
+
+        .nav-item .material-symbols-rounded {
+            font-size: 20px;
+        }
+
+        .sidebar-footer {
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--divider);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 0.95rem;
+            background: var(--surface-2);
+            border: 1px solid var(--divider);
+            border-radius: 18px;
+        }
+
+        .user-avatar,
+        .account-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--primary-container);
+            color: var(--on-primary-container);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+        }
+
+        .user-name,
+        .account-name {
+            font-weight: 700;
+            color: var(--on-surface);
+        }
+
+        .user-status,
+        .account-email {
+            color: var(--on-surface-variant);
+            font-size: 0.84rem;
+        }
+
+        .user-status .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            margin-right: 0.35rem;
+        }
+
+        .content-area {
+            display: grid;
+        }
+
+        .panel {
+            display: none;
+            gap: 1.2rem;
+        }
+
+        .panel.active {
+            display: grid;
+        }
+
+        .dashboard-panel {
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 28px;
+            padding: 1.5rem;
+            box-shadow: var(--elevation-1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .section-title {
+            margin-bottom: 0.3rem;
+        }
+
+        .section-subtitle {
+            color: var(--on-surface-variant);
+        }
+
+        .stats-grid,
+        .actions-grid,
+        .usage-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .actions-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .usage-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .stat-card,
+        .usage-card,
+        .account-card,
+        .keys-container,
+        .quick-actions,
+        .activity-list,
+        .empty-state,
+        .modal,
+        .key-item {
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 22px;
+        }
+
+        .stat-card,
+        .usage-card,
+        .quick-actions,
+        .account-card,
+        .keys-container,
+        .activity-list {
+            padding: 1.35rem;
+            box-shadow: var(--elevation-1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: var(--primary-container);
+            color: var(--on-primary-container);
+            margin-bottom: 1rem;
+        }
+
+        .stat-value,
+        .usage-number {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--on-surface);
+            line-height: 1.1;
+        }
+
+        .stat-label,
+        .usage-label {
+            color: var(--on-surface-variant);
+            font-size: 0.86rem;
+            margin-top: 0.35rem;
+        }
+
+        .action-card {
+            border: 1px solid var(--divider);
+            background: var(--surface-2);
+            color: var(--on-surface);
+            border-radius: 18px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-start;
+            font: inherit;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+            background: color-mix(in srgb, var(--primary) 8%, var(--surface-2));
+        }
+
+        .action-card .material-symbols-rounded {
+            color: var(--primary);
+        }
+
+        .keys-limit {
+            color: var(--on-surface-variant);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .keys-list,
+        .activity-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .empty-state {
+            padding: 1.6rem;
+            text-align: center;
+            color: var(--on-surface-variant);
+            background: var(--surface-2);
+        }
+
+        .empty-state .material-symbols-rounded {
+            font-size: 30px;
+            color: var(--primary);
+            margin-bottom: 0.55rem;
+        }
+
+        .key-item,
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem 1.1rem;
+            background: var(--surface-2);
+        }
+
+        .key-prefix,
+        .activity-action,
+        .detail-value {
+            color: var(--on-surface);
+            font-weight: 700;
+        }
+
+        .key-meta,
+        .activity-time,
+        .detail-label {
+            color: var(--on-surface-variant);
+            font-size: 0.85rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.35rem;
+        }
+
+        .key-status {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .status-badge.active,
+        .status-badge.status-active {
+            background: color-mix(in srgb, var(--success) 16%, transparent);
+            color: var(--success);
+        }
+
+        .status-badge.expired {
+            background: color-mix(in srgb, var(--warning) 16%, transparent);
+            color: var(--warning);
+        }
+
+        .status-badge.revoked {
+            background: color-mix(in srgb, var(--error) 16%, transparent);
+            color: var(--error);
+        }
+
+        .account-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .account-details,
+        .modal-body {
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        .detail-row,
+        .usage-stat,
+        .benchline {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .detail-row:last-child,
+        .usage-stat:last-child {
+            border-bottom: none;
+        }
+
+        .usage-card h4 {
+            margin-bottom: 0.8rem;
+        }
+
+        .activity-item {
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .activity-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: var(--primary-container);
+            color: var(--on-primary-container);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--scrim);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 200;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            width: min(560px, 100%);
+            padding: 1.5rem;
+            background: var(--surface-1);
+            box-shadow: var(--elevation-3);
+        }
+
+        .modal-header,
+        .modal-footer,
+        .key-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .modal-header {
+            margin-bottom: 1rem;
+        }
+
+        .modal-warning,
+        .modal-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--on-surface-variant);
+            font-size: 0.9rem;
+        }
+
+        .key-display {
+            padding: 1rem;
+            background: var(--surface-2);
+            border: 1px solid var(--divider);
+            border-radius: 18px;
+            margin: 0.6rem 0;
+            flex-wrap: wrap;
+        }
+
+        .key-display code {
+            color: var(--primary);
+            font-weight: 700;
+            word-break: break-all;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .stats-grid,
+            .actions-grid,
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-topbar-inner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .dashboard-topbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .section-header,
+            .key-item,
+            .detail-row,
+            .usage-stat,
+            .modal-header,
+            .modal-footer,
+            .key-display {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-panel,
+            .sidebar,
+            .stat-card,
+            .usage-card,
+            .quick-actions,
+            .account-card,
+            .keys-container,
+            .activity-list,
+            .modal {
+                border-radius: 20px;
+                padding: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-shell">
+    <header class="dashboard-topbar">
+        <div class="container dashboard-topbar-inner">
+            <div class="dashboard-topbar-left">
+                <a href="/" class="brand" aria-label="Honest Boost, página inicial">
+                    <span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span>
+                    <span>Honest BOOST</span>
+                </a>
+                <span class="dashboard-chip"><span class="material-symbols-rounded">space_dashboard</span>Painel do cliente</span>
+            </div>
+            <div class="dashboard-topbar-right">
+                <a href="/download.html" class="btn btn-outlined">Download</a>
+                <button class="icon-btn" id="theme-toggle" aria-label="Alternar tema">
+                    <span class="material-symbols-rounded" id="theme-icon">dark_mode</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <div class="dashboard-layout">
-        <!-- Sidebar -->
+    <main class="container dashboard-layout">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
+                <div class="brand-icon"><span class="material-symbols-rounded">bolt</span></div>
                 <div class="brand-text">Honest<span>Boost</span></div>
             </div>
-            
-            <nav class="sidebar-nav">
-                <div class="nav-section">Geral</div>
+
+            <nav class="sidebar-nav" aria-label="Seções do dashboard">
+                <div class="nav-section">Visão geral</div>
                 <button class="nav-item active" data-panel="overview">
-                    <span class="material-symbols-rounded">dashboard</span> Dashboard
+                    <span class="material-symbols-rounded">dashboard</span>
+                    Dashboard
                 </button>
                 <button class="nav-item" data-panel="keys">
-                    <span class="material-symbols-rounded">key</span> Minhas Keys
+                    <span class="material-symbols-rounded">key</span>
+                    Minhas keys
                 </button>
-                
+
                 <div class="nav-section">Conta</div>
                 <button class="nav-item" data-panel="account">
-                    <span class="material-symbols-rounded">person</span> Minha Conta
+                    <span class="material-symbols-rounded">person</span>
+                    Minha conta
                 </button>
                 <button class="nav-item" data-panel="usage">
-                    <span class="material-symbols-rounded">analytics</span> Uso
+                    <span class="material-symbols-rounded">analytics</span>
+                    Uso
                 </button>
                 <button class="nav-item" data-panel="activity">
-                    <span class="material-symbols-rounded">history</span> Atividade
+                    <span class="material-symbols-rounded">history</span>
+                    Atividade
                 </button>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <div class="user-card" id="user-card">
                     <div class="user-avatar" id="user-avatar">U</div>
                     <div class="user-info">
                         <div class="user-name" id="user-name">Carregando...</div>
-                        <div class="user-status"><span class="dot"></span> Online</div>
+                        <div class="user-status"><span class="dot"></span> Sessão ativa</div>
                     </div>
                 </div>
-                <button class="btn btn-ghost btn-block" id="logout-btn" style="margin-top:0.8rem;">
-                    <span class="material-symbols-rounded">logout</span> Sair
+                <button class="btn btn-outlined btn-block" id="logout-btn" style="margin-top:0.9rem;">
+                    <span class="material-symbols-rounded">logout</span>
+                    Sair
                 </button>
             </div>
         </aside>
-        
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="content-area">
-                
-                <!-- Overview Panel -->
-                <div class="panel active" id="panel-overview">
+
+        <section class="content-area">
+            <div class="panel active" id="panel-overview">
+                <div class="dashboard-panel">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title">Dashboard</h2>
-                            <p class="section-subtitle">Visão geral da sua conta</p>
+                            <h2 class="section-title">Resumo da conta</h2>
+                            <p class="section-subtitle">Uma visão rápida do seu acesso, uso e recursos disponíveis.</p>
                         </div>
                     </div>
-                    
+
                     <div class="stats-grid">
-                        <div class="stat-card animate-in">
+                        <article class="stat-card animate-in">
                             <div class="stat-icon"><span class="material-symbols-rounded">key</span></div>
                             <div class="stat-value" id="stat-active-keys">0</div>
-                            <div class="stat-label">Keys Ativas</div>
-                        </div>
-                        <div class="stat-card animate-in" style="animation-delay:0.1s">
-                            <div class="stat-icon"><span class="material-symbols-rounded">auto_fix_high</span></div>
+                            <div class="stat-label">Keys ativas</div>
+                        </article>
+                        <article class="stat-card animate-in" style="animation-delay:0.1s">
+                            <div class="stat-icon"><span class="material-symbols-rounded">tune</span></div>
                             <div class="stat-value" id="stat-optimizations">0</div>
-                            <div class="stat-label">Otimizações Aplicadas</div>
-                        </div>
-                        <div class="stat-card animate-in" style="animation-delay:0.2s">
-                            <div class="stat-icon"><span class="material-symbols-rounded">schedule</span></div>
+                            <div class="stat-label">Otimizações aplicadas</div>
+                        </article>
+                        <article class="stat-card animate-in" style="animation-delay:0.2s">
+                            <div class="stat-icon"><span class="material-symbols-rounded">calendar_month</span></div>
                             <div class="stat-value" id="stat-member-since">—</div>
-                            <div class="stat-label">Membro Desde</div>
-                        </div>
-                    </div>
-                    
-                    <div class="quick-actions">
-                        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">Ações Rápidas</h3>
-                        <div class="actions-grid">
-                            <button class="action-card" onclick="navigateTo('keys')">
-                                <span class="material-symbols-rounded">add_key</span>
-                                <span>Gerar Nova Key</span>
-                            </button>
-                            <button class="action-card" onclick="navigateTo('usage')">
-                                <span class="material-symbols-rounded">bar_chart</span>
-                                <span>Ver Estatísticas</span>
-                            </button>
-                            <button class="action-card" onclick="navigateTo('activity')">
-                                <span class="material-symbols-rounded">history</span>
-                                <span>Ver Atividade</span>
-                            </button>
-                        </div>
+                            <div class="stat-label">Membro desde</div>
+                        </article>
                     </div>
                 </div>
-                
-                <!-- Keys Panel -->
-                <div class="panel" id="panel-keys">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title">Minhas Keys</h2>
-                            <p class="section-subtitle">Gere chaves para usar no aplicativo (validade: 4 horas)</p>
-                        </div>
-                        <button class="btn btn-filled" id="generate-key-btn">
-                            <span class="material-symbols-rounded">add</span> Gerar Nova Key
+
+                <div class="quick-actions">
+                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">Ações rápidas</h3>
+                    <div class="actions-grid">
+                        <button class="action-card" onclick="navigateTo('keys')">
+                            <span class="material-symbols-rounded">add_circle</span>
+                            <span>Gerar nova key</span>
+                        </button>
+                        <button class="action-card" onclick="navigateTo('usage')">
+                            <span class="material-symbols-rounded">monitoring</span>
+                            <span>Ver estatísticas</span>
+                        </button>
+                        <button class="action-card" onclick="navigateTo('activity')">
+                            <span class="material-symbols-rounded">history</span>
+                            <span>Ver atividade</span>
                         </button>
                     </div>
-                    
-                    <div class="keys-container">
-                        <div class="keys-limit">
-                            <span id="keys-count">0/3</span> keys ativas
+                </div>
+            </div>
+
+            <div class="panel" id="panel-keys">
+                <div class="dashboard-panel">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Minhas keys</h2>
+                            <p class="section-subtitle">Gere e acompanhe chaves temporárias para uso no aplicativo.</p>
                         </div>
+                        <button class="btn btn-filled" id="generate-key-btn">
+                            <span class="material-symbols-rounded">add</span>
+                            Gerar nova key
+                        </button>
+                    </div>
+
+                    <div class="keys-container">
+                        <div class="keys-limit"><span id="keys-count">0/3</span> keys ativas</div>
                         <div id="keys-list" class="keys-list">
                             <div class="empty-state">
                                 <span class="material-symbols-rounded">key_off</span>
                                 <p>Nenhuma key ativa</p>
-                                <p style="font-size:0.85rem;">Clique em "Gerar Nova Key" para começar</p>
+                                <p style="font-size:0.85rem;">Gere uma nova key para começar.</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Account Panel -->
-                <div class="panel" id="panel-account">
+            </div>
+
+            <div class="panel" id="panel-account">
+                <div class="dashboard-panel">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title">Minha Conta</h2>
-                            <p class="section-subtitle">Informações da conta</p>
+                            <h2 class="section-title">Minha conta</h2>
+                            <p class="section-subtitle">Informações principais do perfil autenticado.</p>
                         </div>
                     </div>
+
                     <div class="account-card">
                         <div class="account-header">
                             <div class="account-avatar" id="account-avatar">U</div>
@@ -183,7 +738,7 @@
                                 <span class="detail-value" id="detail-email">—</span>
                             </div>
                             <div class="detail-row">
-                                <span class="detail-label">Plano</span>
+                                <span class="detail-label">Plano / papel</span>
                                 <span class="detail-value" id="detail-role">—</span>
                             </div>
                             <div class="detail-row">
@@ -193,61 +748,65 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Usage Panel -->
-                <div class="panel" id="panel-usage">
+            </div>
+
+            <div class="panel" id="panel-usage">
+                <div class="dashboard-panel">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title">Estatísticas de Uso</h2>
-                            <p class="section-subtitle">Detalhes do uso da sua conta</p>
+                            <h2 class="section-title">Estatísticas de uso</h2>
+                            <p class="section-subtitle">Detalhes do uso da conta e do consumo de recursos.</p>
                         </div>
                     </div>
+
                     <div class="usage-grid">
                         <div class="usage-card">
                             <h4>Otimizações</h4>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-opts-total">0</span>
                                 <span class="usage-label">Total aplicadas</span>
+                                <span class="usage-number" id="usage-opts-total">0</span>
                             </div>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-opts-unique">0</span>
                                 <span class="usage-label">Tipos diferentes</span>
+                                <span class="usage-number" id="usage-opts-unique">0</span>
                             </div>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-opts-last">—</span>
                                 <span class="usage-label">Última aplicação</span>
+                                <span class="usage-number" id="usage-opts-last">—</span>
                             </div>
                         </div>
                         <div class="usage-card">
                             <h4>Keys</h4>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-keys-total">0</span>
                                 <span class="usage-label">Total geradas</span>
+                                <span class="usage-number" id="usage-keys-total">0</span>
                             </div>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-keys-active">0</span>
                                 <span class="usage-label">Ativas</span>
+                                <span class="usage-number" id="usage-keys-active">0</span>
                             </div>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-keys-expired">0</span>
                                 <span class="usage-label">Expiradas</span>
+                                <span class="usage-number" id="usage-keys-expired">0</span>
                             </div>
                             <div class="usage-stat">
-                                <span class="usage-number" id="usage-keys-revoked">0</span>
                                 <span class="usage-label">Revogadas</span>
+                                <span class="usage-number" id="usage-keys-revoked">0</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Activity Panel -->
-                <div class="panel" id="panel-activity">
+            </div>
+
+            <div class="panel" id="panel-activity">
+                <div class="dashboard-panel">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title">Atividade Recente</h2>
-                            <p class="section-subtitle">Histórico de ações da sua conta</p>
+                            <h2 class="section-title">Atividade recente</h2>
+                            <p class="section-subtitle">Acompanhe eventos recentes relacionados à sua conta.</p>
                         </div>
                     </div>
+
                     <div id="activity-list" class="activity-list">
                         <div class="empty-state">
                             <span class="material-symbols-rounded">history</span>
@@ -255,34 +814,33 @@
                         </div>
                     </div>
                 </div>
-                
             </div>
-        </main>
-    </div>
+        </section>
+    </main>
 
-    <!-- Key Generated Modal -->
     <div class="modal-overlay" id="key-modal">
         <div class="modal">
             <div class="modal-header">
-                <h3><span class="material-symbols-rounded">key</span> Key Gerada!</h3>
-                <button class="icon-btn" id="close-modal">
+                <h3><span class="material-symbols-rounded">key</span> Key gerada</h3>
+                <button class="icon-btn" id="close-modal" aria-label="Fechar modal">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
             <div class="modal-body">
                 <p class="modal-warning">
                     <span class="material-symbols-rounded">warning</span>
-                    Esta key só será mostrada uma vez. Copie-a agora!
+                    Esta key será exibida apenas agora. Copie antes de fechar.
                 </p>
                 <div class="key-display">
                     <code id="generated-key">hb_xxxxxxxxxxxxxxxx</code>
-                    <button class="btn btn-ghost" id="copy-key-btn">
-                        <span class="material-symbols-rounded">content_copy</span> Copiar
+                    <button class="btn btn-outlined" id="copy-key-btn">
+                        <span class="material-symbols-rounded">content_copy</span>
+                        Copiar
                     </button>
                 </div>
                 <p class="modal-info">
                     <span class="material-symbols-rounded">schedule</span>
-                    Expira em: <strong id="key-expires">4 horas</strong>
+                    Expira em <strong id="key-expires">4 horas</strong>
                 </p>
             </div>
             <div class="modal-footer">

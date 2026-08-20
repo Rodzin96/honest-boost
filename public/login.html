@@ -3,458 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Honest Boost</title>
+    <title>Entrar — Honest Boost</title>
+    <meta name="description" content="Acesse sua conta Honest Boost para gerenciar licença, keys e downloads.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
     <script>
         (function () {
             try {
                 var t = localStorage.getItem('hb-theme');
                 if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', t);
-            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
         })();
     </script>
-    <link rel="stylesheet" href="styles.css">
     <style>
-        :root {
-            --bg-primary: #030512;
-            --bg-secondary: #071426;
-            --bg-surface: #07101b;
-            --bg-card: rgba(14, 165, 255, 0.08);
-            --border-color: rgba(14, 165, 255, 0.15);
-            --text-primary: #eef6ff;
-            --text-secondary: #94a3b8;
-            --text-muted: #5a6888;
-            --accent-primary: #0ea5ff;
-            --accent-secondary: #00e5d4;
-            --accent-highlight: #ffd166;
-            --success: #57f2b3;
-            --shadow-sm: 0 4px 12px rgba(2, 8, 20, 0.3);
-            --shadow-md: 0 10px 30px rgba(2, 8, 20, 0.5);
-            --shadow-lg: 0 18px 50px rgba(2, 8, 20, 0.6);
-            --radius-sm: 10px;
-            --radius-md: 14px;
-            --radius-lg: 20px;
-            --transition: 220ms cubic-bezier(0.2, 0.95, 0.2, 1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; }
-        body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-primary) 80%);
-            color: var(--text-primary);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .site-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 12px 5%;
-            height: 70px;
-            display: flex;
+        .auth-split {
+            min-height: calc(100vh - 76px);
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(360px, 460px);
+            gap: 1.5rem;
             align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
-            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 0 2.5rem;
         }
 
-        .brand {
-            font-weight: 900;
-            font-size: 1.5rem;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            transition: all var(--transition);
-        }
-
-        .nav-links a:hover {
-            color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 20px;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            color: #02121a;
-            border-radius: 999px;
-            border: none;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 4px 20px rgba(14, 165, 255, 0.3);
-            transition: all var(--transition);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
-        }
-
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 18px;
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all var(--transition);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .auth-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 5%;
-        }
-
-        .auth-wrapper {
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .auth-logo {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .auth-logo h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .auth-logo p {
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-
-        .auth-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 0.9rem 1.2rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-family: inherit;
-            transition: all var(--transition);
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(14, 165, 255, 0.15);
-        }
-
-        .btn-filled {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 0.9rem 1.5rem;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            color: #02121a;
-            border: none;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        .btn-filled:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(14, 165, 255, 0.4);
-        }
-
-        .btn-block {
-            width: 100%;
-        }
-
-        .divider {
-            text-align: center;
-            margin: 1.5rem 0;
+        .auth-showcase {
             position: relative;
+            padding: 1rem 0;
         }
 
-        .divider::before {
+        .auth-showcase::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: var(--border-color);
+            inset: 8% 10% auto 0;
+            height: 320px;
+            background: radial-gradient(circle, color-mix(in srgb, var(--primary) 22%, transparent), transparent 70%);
+            filter: blur(12px);
+            pointer-events: none;
         }
 
-        .divider span {
-            background: var(--bg-card);
-            padding: 0 1rem;
-            position: relative;
-            color: var(--text-muted);
-            font-size: 0.85rem;
+        .auth-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--primary) 12%, transparent);
+            border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
         }
 
-        .social-login {
+        .auth-showcase h1 {
+            max-width: 13ch;
+            margin-bottom: 0.9rem;
+        }
+
+        .auth-showcase p {
+            max-width: 56ch;
+            font-size: 1.02rem;
             margin-bottom: 1.5rem;
         }
 
-        .social-btn {
+        .auth-benefits {
+            display: grid;
+            gap: 0.8rem;
+            margin: 1.2rem 0 1.5rem;
+        }
+
+        .auth-benefit {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all var(--transition);
+            align-items: flex-start;
+            gap: 0.85rem;
+            padding: 1rem 1.1rem;
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 18px;
+            box-shadow: var(--elevation-1);
         }
 
-        .social-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .auth-benefit .material-symbols-rounded {
+            color: var(--primary);
+            font-size: 22px;
+            margin-top: 1px;
         }
 
-        .footer-links {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            font-size: 0.85rem;
+        .auth-benefit strong {
+            display: block;
+            color: var(--on-surface);
+            margin-bottom: 0.2rem;
         }
 
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .auth-benefit span:last-child {
+            color: var(--on-surface-variant);
+            font-size: 0.92rem;
         }
 
-        .footer-links a:hover {
-            color: var(--accent-primary);
+        .auth-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.8rem;
+        }
+
+        .auth-metric {
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 18px;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .auth-metric strong {
+            display: block;
+            color: var(--on-surface);
+            font-size: 1.35rem;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
+        }
+
+        .auth-metric span {
+            color: var(--on-surface-variant);
+            font-size: 0.82rem;
+        }
+
+        .auth-card {
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .auth-card .intro {
+            color: var(--on-surface-variant);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
         }
 
         .msg {
             margin-top: 1rem;
-            padding: 0.8rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            display: none;
+            min-height: 24px;
         }
 
-        .msg.success {
-            display: block;
-            background: rgba(87, 242, 179, 0.1);
-            border: 1px solid rgba(87, 242, 179, 0.3);
-            color: var(--success);
+        .msg.error,
+        .msg.success,
+        .msg.info {
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
         }
 
-        .msg.error {
-            display: block;
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            color: #ff6b6b;
+        .top-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--on-surface-variant);
+            font-size: 0.92rem;
+            margin-bottom: 1.2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .auth-split {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                flex-direction: column;
-                background: var(--bg-surface);
-                border-bottom: 1px solid var(--border-color);
-                padding: 1rem;
+            .auth-metrics {
+                grid-template-columns: 1fr;
             }
 
-            .nav-links.show {
-                display: flex;
-            }
-
-            .footer-links {
-                flex-direction: column;
-                text-align: center;
+            .auth-showcase {
+                padding-top: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="site-header">
-        <a href="/index.html" class="brand">
-            <span>◆</span> Honest BOOST
-        </a>
-        <nav class="nav-links">
-            <a href="/index.html#features">Funcionalidades</a>
-            <a href="/index.html#results">Resultados</a>
-            <a href="/checkout.html">Planos</a>
-            <a href="/faq-honest.html">FAQ</a>
-        </nav>
-        <div class="header-actions">
-            <a href="/login.html" class="btn-secondary">Entrar</a>
-            <a href="/download-honest.html" class="btn-primary">Download</a>
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="/" class="brand" aria-label="Honest Boost, página inicial">
+                <span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span>
+                <span>Honest BOOST</span>
+            </a>
+
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/index.html#beneficios">Benefícios</a></li>
+                    <li><a href="/index.html#resultados">Resultados</a></li>
+                    <li><a href="/index.html#planos">Planos</a></li>
+                    <li><a href="/faq-honest.html">FAQ</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <a href="/register.html" class="btn btn-outlined">Criar conta</a>
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="auth-page">
-        <div class="auth-wrapper">
-            <div class="auth-logo">
-                <h1><span class="material-symbols-rounded" style="color:var(--accent-primary);font-size:2.4rem;">rocket_launch</span> Honest Boost</h1>
-                <p>Otimize seu Windows para máximo desempenho</p>
-            </div>
+    <main class="section">
+        <div class="container auth-split">
+            <section class="auth-showcase" aria-labelledby="login-heading">
+                <div class="auth-eyebrow">
+                    <span class="material-symbols-rounded">verified_user</span>
+                    Área segura do cliente
+                </div>
+                <h1 id="login-heading">Acesse sua conta e gerencie sua experiência Honest Boost</h1>
+                <p>
+                    Entre para acompanhar suas keys, downloads e status da sua conta em um painel pensado para ser rápido,
+                    claro e funcional.
+                </p>
 
-            <div class="auth-card">
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="username">Email</label>
-                        <input id="username" name="username" type="email" placeholder="seu@email.com" class="input-field" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Senha</label>
-                        <input id="password" name="password" type="password" placeholder="Digite sua senha" class="input-field" required>
-                    </div>
-
-                    <button class="btn-filled btn-block" type="submit" id="loginBtn">
-                        <span class="material-symbols-rounded">login</span> Entrar
-                    </button>
-                </form>
-
-                <div class="divider"><span>OU</span></div>
-
-                <div class="social-login">
-                    <a href="/auth/google" class="social-btn">
-                        <span class="material-symbols-rounded">g_mobiledata</span> Entrar com Google
-                    </a>
+                <div class="auth-benefits">
+                    <article class="auth-benefit">
+                        <span class="material-symbols-rounded">key</span>
+                        <div>
+                            <strong>Gerencie suas keys</strong>
+                            <span>Crie, acompanhe e revogue chaves de uso com poucos cliques.</span>
+                        </div>
+                    </article>
+                    <article class="auth-benefit">
+                        <span class="material-symbols-rounded">download</span>
+                        <div>
+                            <strong>Acesse downloads protegidos</strong>
+                            <span>Entre para baixar arquivos e recursos vinculados à sua conta.</span>
+                        </div>
+                    </article>
+                    <article class="auth-benefit">
+                        <span class="material-symbols-rounded">monitoring</span>
+                        <div>
+                            <strong>Visualize status e atividade</strong>
+                            <span>Tenha uma visão mais clara do uso e da situação atual da sua licença.</span>
+                        </div>
+                    </article>
                 </div>
 
-                <div class="footer-links">
-                    <a href="/reset-request.html"><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">key</span> Esqueci minha senha</a>
-                    <a href="/register.html"><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">person_add</span> Criar conta</a>
+                <div class="auth-metrics" aria-label="Indicadores de confiança">
+                    <div class="auth-metric"><strong>10.000+</strong><span>usuários impactados</span></div>
+                    <div class="auth-metric"><strong>1 clique</strong><span>para acessar o painel</span></div>
+                    <div class="auth-metric"><strong>Suporte</strong><span>fluxo simples e objetivo</span></div>
                 </div>
+            </section>
 
-                <div id="msg" class="msg"></div>
-            </div>
+            <section class="auth-wrapper">
+                <a href="/" class="top-link"><span class="material-symbols-rounded">arrow_back</span>Voltar para a home</a>
+                <div class="auth-card card">
+                    <h2>Entrar</h2>
+                    <p class="intro">Use seu email e senha para acessar sua conta.</p>
+
+                    <form id="loginForm" novalidate>
+                        <div class="form-group">
+                            <label for="username">Email</label>
+                            <input id="username" name="username" type="email" placeholder="voce@exemplo.com" class="input-field" autocomplete="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Senha</label>
+                            <input id="password" name="password" type="password" placeholder="Digite sua senha" class="input-field" autocomplete="current-password" required>
+                        </div>
+
+                        <button class="btn btn-filled btn-block" type="submit" id="loginBtn">
+                            <span class="material-symbols-rounded">login</span>
+                            Entrar
+                        </button>
+                    </form>
+
+                    <div class="divider"><span>OU</span></div>
+
+                    <div class="social-login">
+                        <a href="/auth/google" class="social-btn">
+                            <span class="material-symbols-rounded">account_circle</span>
+                            Entrar com Google
+                        </a>
+                    </div>
+
+                    <div class="footer-links">
+                        <a href="/reset-request.html">Esqueci minha senha</a>
+                        <a href="/register.html">Criar conta</a>
+                    </div>
+
+                    <div id="msg" class="msg" aria-live="polite"></div>
+                </div>
+            </section>
         </div>
     </main>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            var btn = document.getElementById('loginBtn');
-            var msgDiv = document.getElementById('msg');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Entrando...';
-            msgDiv.textContent = '';
-            msgDiv.className = 'msg';
-
-            try {
-                var f = new FormData(e.target);
-                var res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: f.get('username'), password: f.get('password') })
-                });
-                var data = await res.json();
-                if (res.ok && data.ok) {
-                    msgDiv.textContent = 'Login bem-sucedido! Redirecionando...';
-                    msgDiv.className = 'msg success';
-                    setTimeout(function () { window.location = '/dashboard'; }, 800);
-                } else {
-                    msgDiv.textContent = data.error || 'Erro ao fazer login';
-                    msgDiv.className = 'msg error';
-                    btn.disabled = false;
-                    btn.innerHTML = '<span class="material-symbols-rounded">login</span> Entrar';
-                }
-            } catch (err) {
-                msgDiv.textContent = 'Erro de conexão. Tente novamente.';
-                msgDiv.className = 'msg error';
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-rounded">login</span> Entrar';
-            }
-        });
-    </script>
+    <script src="/js/hb.js" defer></script>
+    <script src="/js/login.js" defer></script>
 </body>
 </html>

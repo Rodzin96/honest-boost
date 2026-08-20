@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alterar Senha — Honest Boost</title>
+    <title>Redefinir senha — Honest Boost</title>
+    <meta name="description" content="Defina uma nova senha para sua conta Honest Boost.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,128 +21,51 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
         })();
     </script>
+    <style>
+        .auth-card h1 { font-size:1.65rem; margin-bottom:.45rem; }
+        .intro { color:var(--on-surface-variant); margin-bottom:1.4rem; }
+        .msg { margin-top:1rem; min-height:24px; }
+        .msg.error,.msg.success,.msg.info { padding:.85rem 1rem; border-radius:12px; }
+    </style>
 </head>
 <body>
-
-    <header class="app-header" id="app-header" style="position:fixed;top:0;left:0;right:0;">
+    <header class="app-header" id="app-header">
         <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
-            <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
-                </button>
-            </div>
+            <a href="/" class="brand"><span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span><span>Honest BOOST</span></a>
+            <div class="header-actions"><button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema"><span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span><span class="material-symbols-rounded theme-icon moon">dark_mode</span></button></div>
         </div>
     </header>
 
     <main class="auth-page">
         <div class="auth-wrapper">
-            <div class="auth-logo">
-                <h1><span class="material-symbols-rounded" style="color:var(--primary);font-size:2.2rem;">lock</span> Alterar Senha</h1>
-                <p>Cole o token recebido e escolha uma nova senha</p>
-            </div>
-
-            <div class="auth-card">
-                <form id="resetForm">
+            <div class="auth-card card">
+                <h1>Definir nova senha</h1>
+                <p class="intro">Cole o token recebido e escolha uma senha forte para concluir a recuperação.</p>
+                <form id="resetForm" novalidate>
                     <div class="form-group">
                         <label for="token">Token</label>
-                        <input id="token" name="token" type="text" placeholder="Cole o token recebido" class="input-field" required>
+                        <input id="token" name="token" type="text" class="input-field" placeholder="Cole o token recebido" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="password">Nova Senha</label>
-                        <input id="password" name="password" type="password" placeholder="Mínimo 8 caracteres" class="input-field" required minlength="8">
-                        <div class="password-strength"><div class="password-strength-bar"></div></div>
+                        <label for="password">Nova senha</label>
+                        <input id="password" name="password" type="password" class="input-field" placeholder="Mínimo de 8 caracteres" autocomplete="new-password" required>
+                        <div class="password-strength" aria-hidden="true"><div class="password-strength-bar"></div></div>
                         <div class="strength-text">Força: <span id="strengthText">-</span></div>
                     </div>
-
                     <button class="btn btn-filled btn-block" type="submit" id="resetBtn">
-                        <span class="material-symbols-rounded">check</span> Alterar Senha
+                        <span class="material-symbols-rounded">check</span>
+                        Alterar senha
                     </button>
                 </form>
-
                 <div class="footer-links center">
-                    <a href="/login.html"><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">arrow_back</span> Voltar para Login</a>
+                    <a href="/login.html">Voltar para login</a>
                 </div>
-
-                <div id="msg"></div>
+                <div id="msg" class="msg" aria-live="polite"></div>
             </div>
         </div>
     </main>
 
-    <script>
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
-            });
-        })();
-
-        var passwordInput = document.getElementById('password');
-        var strengthBar = document.querySelector('.password-strength-bar');
-        var strengthText = document.getElementById('strengthText');
-        function checkPasswordStrength(password) {
-            var strength = 0;
-            if (password.length >= 6) strength++;
-            if (password.length >= 12) strength++;
-            if (/[A-Z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^a-zA-Z0-9]/.test(password)) strength++;
-            if (strength < 2) { strengthBar.className = 'password-strength-bar weak'; strengthText.textContent = 'Fraca'; }
-            else if (strength < 4) { strengthBar.className = 'password-strength-bar medium'; strengthText.textContent = 'Média'; }
-            else { strengthBar.className = 'password-strength-bar strong'; strengthText.textContent = 'Forte'; }
-        }
-        passwordInput.addEventListener('input', function (e) { checkPasswordStrength(e.target.value); });
-
-        document.getElementById('resetForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            var btn = document.getElementById('resetBtn');
-            var msgDiv = document.getElementById('msg');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:20px;">progress_activity</span> Alterando...';
-            msgDiv.textContent = '';
-            msgDiv.className = '';
-
-            try {
-                var f = new FormData(e.target);
-                var res = await fetch('/api/password-reset-confirm', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: f.get('token'), newPassword: f.get('password') })
-                });
-                var data = await res.json();
-                if (res.ok) {
-                    msgDiv.textContent = 'Senha alterada com sucesso! Redirecionando...';
-                    msgDiv.className = 'success';
-                    setTimeout(function () { window.location = '/login.html'; }, 1500);
-                } else {
-                    msgDiv.textContent = data.error || 'Erro ao alterar senha';
-                    msgDiv.className = 'error';
-                    btn.disabled = false;
-                    btn.innerHTML = '<span class="material-symbols-rounded">check</span> Alterar Senha';
-                }
-            } catch (err) {
-                msgDiv.textContent = 'Erro de conexão. Tente novamente.';
-                msgDiv.className = 'error';
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-rounded">check</span> Alterar Senha';
-            }
-        });
-    </script>
+    <script src="/js/hb.js" defer></script>
+    <script src="/js/reset.js" defer></script>
 </body>
 </html>
-

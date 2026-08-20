@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compra Concluída — Honest Boost</title>
+    <title>Pedido concluído — Honest Boost</title>
+    <meta name="description" content="Acompanhe o status do seu pedido e sua licença Honest Boost após o pagamento.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,20 +18,82 @@
                 var t = localStorage.getItem('hb-theme');
                 if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', t);
-            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
         })();
     </script>
+    <style>
+        .success-layout {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .success-panel {
+            border-radius: 28px;
+            padding: 2.2rem;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+
+        .status-badge.status-error {
+            background: color-mix(in srgb, var(--error) 16%, transparent);
+            color: var(--error);
+        }
+
+        .headline {
+            margin-bottom: 1.4rem;
+        }
+
+        .headline p {
+            color: var(--on-surface-variant);
+            margin-top: 0.5rem;
+        }
+
+        .support-card {
+            margin-top: 1.4rem;
+            background: var(--surface-2);
+            border: 1px solid var(--divider);
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+        }
+
+        .support-card p {
+            color: var(--on-surface-variant);
+            font-size: 0.92rem;
+        }
+    </style>
 </head>
 <body>
-
     <header class="app-header" id="app-header">
         <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
+            <a href="/" class="brand" aria-label="Honest Boost, página inicial">
+                <span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span>
+                <span>Honest BOOST</span>
             </a>
+
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/index.html#planos">Planos</a></li>
+                    <li><a href="/help.html">Ajuda</a></li>
+                    <li><a href="/contact.html">Contato</a></li>
+                </ul>
+            </nav>
+
             <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
+                <a href="/login.html" class="btn btn-outlined">Entrar</a>
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema">
                     <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
                     <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
                 </button>
@@ -39,88 +102,56 @@
     </header>
 
     <main class="section">
-        <div class="container">
-            <div class="success-card card">
-                <div class="success-icon"><span class="material-symbols-rounded">check_circle</span></div>
-                <h1>Compra Concluída!</h1>
-                <p style="color:var(--on-surface-variant);">Sua licença foi ativada com sucesso. Verifique os detalhes abaixo:</p>
+        <div class="container success-layout">
+            <section class="success-panel success-card card">
+                <div class="success-icon"><span class="material-symbols-rounded">task_alt</span></div>
+
+                <div class="status-row">
+                    <h1 id="success-title">Processando seu pedido</h1>
+                    <span class="status-badge status-pending" id="order-status">aguardando confirmação</span>
+                </div>
+
+                <div class="headline">
+                    <p id="success-subtitle">Estamos verificando o status do pagamento e preparando sua licença.</p>
+                </div>
 
                 <div class="details-box">
                     <div class="detail-row">
-                        <span class="detail-label"><strong><span class="material-symbols-rounded" style="font-size:18px;vertical-align:-4px;">receipt_long</span> Número do Pedido:</strong></span>
+                        <span class="detail-label"><span class="material-symbols-rounded">receipt_long</span>Pedido</span>
                         <span class="detail-value" id="order">-</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-label"><strong><span class="material-symbols-rounded" style="font-size:18px;vertical-align:-4px;">key</span> Chave de Licença:</strong></span>
-                        <span class="detail-value" id="license" style="max-width:220px;">-</span>
+                        <span class="detail-label"><span class="material-symbols-rounded">key</span>Licença</span>
+                        <span class="detail-value" id="license">-</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-label"><strong><span class="material-symbols-rounded" style="font-size:18px;vertical-align:-4px;">mail</span> Email de Confirmação:</strong></span>
-                        <span class="detail-value" id="email">Enviado para seu email</span>
+                        <span class="detail-label"><span class="material-symbols-rounded">mail</span>Status de entrega</span>
+                        <span class="detail-value" id="email">Acompanhamento disponível nesta página</span>
                     </div>
                 </div>
 
                 <div class="actions">
-                    <button id="downloadInstallerBtn" class="btn btn-filled">
-                        <span class="material-symbols-rounded">download</span> Baixar Instalador
+                    <button id="downloadInstallerBtn" class="btn btn-filled" data-hb-download>
+                        <span class="material-symbols-rounded">download</span>
+                        Baixar instalador
                     </button>
-                    <a href="/recursos.html" class="btn btn-tonal">
-                        <span class="material-symbols-rounded">book</span> Ver Recursos
+                    <a href="/dashboard" class="btn btn-tonal">
+                        <span class="material-symbols-rounded">dashboard</span>
+                        Ir para dashboard
                     </a>
                 </div>
 
-                <div class="warning-box">
-                    <strong><span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px;">lock</span> Importante:</strong> Guarde sua chave de licença em um local seguro. Você precisará dela para ativar o software.
+                <div class="support-card">
+                    <p>
+                        Guarde sua licença em local seguro. Se o pagamento ainda estiver em processamento,
+                        esta tela será atualizada automaticamente quando a ativação estiver disponível.
+                    </p>
                 </div>
-            </div>
+            </section>
         </div>
     </main>
 
-    <script>
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
-            });
-        })();
-
-        (function () {
-            var params = new URLSearchParams(location.search);
-            var order = params.get('order') || 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            var license = params.get('license') || 'XXX-XXX-XXX-XXX';
-            document.getElementById('order').textContent = order;
-            document.getElementById('license').textContent = license;
-        })();
-
-        // Download installer (requires login; redirects to /login.html on 401)
-        document.getElementById('downloadInstallerBtn').addEventListener('click', async function () {
-            try {
-                var r = await fetch('/api/download');
-                if (r.status === 401) {
-                    var info = await r.json().catch(function () { return {}; });
-                    window.location = info.loginUrl || '/login.html';
-                    return;
-                }
-                var info = await r.json();
-                var a = document.createElement('a');
-                a.href = info.url;
-                a.download = info.filename || '';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            } catch (err) { console.error(err); alert('Erro ao iniciar download'); }
-        });
-    </script>
+    <script src="/js/hb.js" defer></script>
+    <script src="/js/success.js" defer></script>
 </body>
 </html>
-

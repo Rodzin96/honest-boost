@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Honest BOOST animated icon">
+  <defs>
+    <linearGradient id="hb-anim-gradient" x1="22" y1="18" x2="108" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7AE7FF"/>
+      <stop offset="0.42" stop-color="#18B8FF"/>
+      <stop offset="1" stop-color="#0B63F6"/>
+    </linearGradient>
+    <filter id="hb-anim-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4.5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0.65  0 0 1 0 1  0 0 0 0.34 0"/>
+    </filter>
+    <mask id="hb-reveal-mask">
+      <rect width="128" height="128" fill="black"/>
+      <path id="hb-energy-path" d="M40 24V96M40 64H79M79 64L63 104M79 64L95 24" fill="none" stroke="white" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="230" stroke-dashoffset="230">
+        <animate attributeName="stroke-dashoffset" values="230;120;0;0" dur="1.8s" repeatCount="indefinite" keyTimes="0;0.28;0.62;1"/>
+      </path>
+    </mask>
+  </defs>
+
+  <rect width="128" height="128" rx="32" fill="#08111D"/>
+
+  <circle cx="31" cy="30" r="3" fill="#7AE7FF">
+    <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" keyTimes="0;0.1;0.22"/>
+    <animate attributeName="r" values="2;4;2" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+
+  <g mask="url(#hb-reveal-mask)">
+    <path d="M36 20C31.5817 20 28 23.5817 28 28V100C28 104.418 31.5817 108 36 108H44C48.4183 108 52 104.418 52 100V75H68.8L58.4 102.2C57.0492 105.732 59.658 109.5 63.44 109.5H78.4C80.7052 109.5 82.7817 108.104 83.6583 105.972L95.2 77.9C95.6122 76.8975 95.8244 75.8237 95.8244 74.7397V64.1C95.8244 61.1329 93.4184 58.7269 90.4513 58.7269H69.1L79.085 32.9963C80.4504 29.4774 77.843 25.7 74.0681 25.7H59.32C57.0112 25.7 54.9318 27.1006 54.058 29.2378L44.32 53.06V28C44.32 23.5817 40.7383 20 36.32 20H36Z" fill="url(#hb-anim-gradient)" filter="url(#hb-anim-glow)" opacity="0.95"/>
+    <path d="M42 28C42 25.7909 40.2091 24 38 24C35.7909 24 34 25.7909 34 28V100C34 102.209 35.7909 104 38 104C40.2091 104 42 102.209 42 100V68H78.2C79.3046 68 80.2 67.1046 80.2 66V63.6C80.2 62.4954 79.3046 61.6 78.2 61.6H56.5L67.8642 32.8668C68.5192 31.2109 67.2996 29.432 65.5193 29.432H61.4084C60.5868 29.432 59.8456 29.9318 59.5334 30.6918L42 73.4V28ZM65.76 104C66.7064 104 67.5584 103.426 67.9184 102.551L79.21 75.1027C79.3146 74.8484 79.3686 74.5763 79.3686 74.3012V74.24C79.3686 73.1354 78.4732 72.24 77.3686 72.24H55.76C53.5509 72.24 51.76 74.0309 51.76 76.24V100C51.76 102.209 53.5509 104 55.76 104H65.76Z" fill="#F4FBFF"/>
+  </g>
+
+  <path d="M40 24V96M40 64H79M79 64L63 104M79 64L95 24" fill="none" stroke="#C9F6FF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0" filter="url(#hb-anim-glow)">
+    <animate attributeName="opacity" values="0;0.1;1;0.12;0" dur="1.8s" repeatCount="indefinite" keyTimes="0;0.16;0.45;0.74;1"/>
+  </path>
+
+  <rect x="18" y="18" width="92" height="92" rx="26" fill="none" stroke="rgba(122,231,255,0.12)"/>
+</svg>

@@ -1,272 +1,83 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAQ — Honest BOOST</title>
-    <link rel="stylesheet" href="styles-honest.css">
+    <title>FAQ completo — Honest Boost</title>
+    <meta name="description" content="Consulte respostas completas para dúvidas frequentes sobre o Honest Boost.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
     <style>
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 12px 5%;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            font-weight: 900;
-            font-size: 1.3rem;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-
-        main {
-            padding-top: 100px;
-            max-width: 900px;
-            margin: 0 auto;
-            padding-left: 5%;
-            padding-right: 5%;
-            padding-bottom: 80px;
-        }
-
-        .faq-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .faq-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-
-        .faq-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-
-        .faq-container {
-            display: grid;
-            gap: 16px;
-        }
-
-        .faq-item {
-            background: linear-gradient(135deg, rgba(14, 165, 255, 0.05), transparent);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-
-        .faq-question {
-            padding: 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            color: var(--text-primary);
-            background: linear-gradient(135deg, rgba(14, 165, 255, 0.05), transparent);
-            transition: background var(--transition);
-        }
-
-        .faq-question:hover {
-            background: linear-gradient(135deg, rgba(14, 165, 255, 0.1), transparent);
-        }
-
-        .faq-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-primary);
-            font-size: 1.2rem;
-            transition: transform var(--transition);
-        }
-
-        .faq-item.active .faq-icon {
-            transform: rotate(180deg);
-        }
-
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height var(--transition);
-        }
-
-        .faq-item.active .faq-answer {
-            max-height: 500px;
-        }
-
-        .faq-answer-content {
-            padding: 20px;
-            color: var(--text-secondary);
-            line-height: 1.8;
-        }
-
-        .faq-answer-content strong {
-            color: var(--text-primary);
-        }
-
-        footer {
-            padding: 40px 5%;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            margin-top: 60px;
-            max-width: 1400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+        .faq-shell { max-width: 900px; }
+        .page-eyebrow { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .9rem; border-radius:999px; background:color-mix(in srgb, var(--primary) 12%, transparent); border:1px solid color-mix(in srgb, var(--primary) 24%, transparent); color:var(--primary); font-size:.8rem; font-weight:700; margin-bottom:1rem; }
     </style>
 </head>
 <body>
-    <header>
-        <a href="/" class="logo">◆ Honest BOOST</a>
-        <a href="/" class="btn btn-secondary">Voltar</a>
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="/" class="brand"><span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span><span>Honest Boost</span></a>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu"><span class="material-symbols-rounded">menu</span></button>
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/help.html">Ajuda</a></li>
+                    <li><a href="/contact.html">Contato</a></li>
+                    <li><a href="/download.html">Download</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions"><button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema"><span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span><span class="material-symbols-rounded theme-icon moon">dark_mode</span></button></div>
+        </div>
     </header>
 
-    <main>
-        <div class="faq-header">
-            <h1>Perguntas Frequentes</h1>
-            <p>Encontre respostas para as dúvidas mais comuns sobre Honest BOOST</p>
-        </div>
+    <main class="section">
+        <div class="container faq-shell">
+            <div class="page-eyebrow"><span class="material-symbols-rounded">quiz</span>Base de conhecimento</div>
+            <h1>FAQ completo</h1>
+            <p class="hero-subtitle" style="margin-bottom:1.6rem;">Uma versão mais extensa das perguntas frequentes, agora alinhada visualmente ao restante do produto.</p>
 
-        <div class="faq-container">
-            <div class="faq-item active">
-                <div class="faq-question">
-                    <span>O Honest BOOST é seguro?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Sim! Honest BOOST é totalmente seguro. Todas as otimizações são reversíveis com um clique. Testamos extensivamente em múltiplas configurações de hardware antes de lançar. Você pode fazer backup de seus dados antes de usar, assim como com qualquer software do sistema.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Posso desinstalar o Honest BOOST sem problemas?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        100% seguro. O Honest BOOST não deixa resíduos. Você pode desinstalá-lo normalmente do Painel de Controle > Programas e Recursos. Se desejar reverter todas as otimizações antes de desinstalar, use o botão "Reverter Tudo" no aplicativo.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Qual é a diferença de FPS que posso esperar?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Os ganhos variam dependendo da sua configuração e do jogo. Usuários relatam em média <strong>+30 a +50 FPS</strong> em jogos competitivos como Valorant e CS2. Alguns ganham menos (10-20 FPS), outros ganham mais (100+ FPS). O ganho também depende de quanto "espaço" seu sistema tem para otimizar.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Honest BOOST funciona com meu jogo favorito?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Honest BOOST é otimizado para <strong>Valorant, CS2, Fortnite, Apex Legends</strong> e centenas de outros títulos. As otimizações de sistema são universais e funcionam com qualquer jogo que rode em Windows 10/11. Não alteramos configurações específicas do jogo.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Preciso de direitos de administrador?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Sim. Honest BOOST precisa de privilégios de administrador para aplicar otimizações de sistema. Você será solicitado durante a instalação e ao executar otimizações. Isso é normal e esperado para software de otimização de sistema.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Como obtenho suporte técnico?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Você pode entrar em contato conosco através de <strong>support@honestboost.com</strong>. Respondemos em até 24 horas. Inclua detalhes sobre seu problema (modelo do PC, jogo afetado, versão do Windows) para uma resolução mais rápida.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Hay garantia de reembolso?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Sim! Se você não estiver satisfeito dentro de <strong>7 dias</strong> da compra, oferecemos reembolso 100% sem perguntas. Entre em contato com nossa equipe de vendas para solicitar: <a href="mailto:sales@honestboost.com">sales@honestboost.com</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Quais são os requisitos mínimos?</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        <strong>SO:</strong> Windows 10 ou 11 (64-bit)<br>
-                        <strong>RAM:</strong> 4GB mínimo<br>
-                        <strong>Espaço:</strong> 200MB em disco<br>
-                        <strong>Admin:</strong> Necessário para instalação
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Ainda tenho uma pergunta...</span>
-                    <div class="faq-icon">▼</div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Visite nossa página de <a href="/contact-honest.html">contato</a> para enviar uma mensagem diretamente. Podemos ajudar com qualquer dúvida ou problema!
-                    </div>
-                </div>
+            <div class="faq-container">
+                <article class="faq-item active">
+                    <button class="faq-question" type="button" aria-expanded="true"><h3>O Honest Boost é seguro?</h3><span class="material-symbols-rounded faq-toggle">expand_more</span></button>
+                    <div class="faq-answer"><p>Sim. A proposta do produto é combinar desempenho, segurança e reversibilidade com comunicação clara.</p></div>
+                </article>
+                <article class="faq-item"><button class="faq-question" type="button" aria-expanded="false"><h3>Posso reverter mudanças?</h3><span class="material-symbols-rounded faq-toggle">expand_more</span></button><div class="faq-answer"><p>A experiência geral do site comunica reversibilidade como um dos pilares principais do produto.</p></div></article>
+                <article class="faq-item"><button class="faq-question" type="button" aria-expanded="false"><h3>Quanto posso ganhar em FPS?</h3><span class="material-symbols-rounded faq-toggle">expand_more</span></button><div class="faq-answer"><p>Os ganhos variam conforme hardware, sistema e cenário de uso. A comunicação trabalha com estimativas e exemplos, não garantia universal fixa.</p></div></article>
+                <article class="faq-item"><button class="faq-question" type="button" aria-expanded="false"><h3>Funciona com diferentes jogos?</h3><span class="material-symbols-rounded faq-toggle">expand_more</span></button><div class="faq-answer"><p>O posicionamento do produto é voltado a jogos competitivos no Windows, com benefícios percebidos em cenários diversos.</p></div></article>
+                <article class="faq-item"><button class="faq-question" type="button" aria-expanded="false"><h3>Há suporte?</h3><span class="material-symbols-rounded faq-toggle">expand_more</span></button><div class="faq-answer"><p>Sim. O site reforça canais de suporte por email e páginas de ajuda para reduzir fricção no pós-compra.</p></div></article>
             </div>
         </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Honest BOOST. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="theme-honest.js"></script>
+    <script src="/js/hb.js" defer></script>
     <script>
-        document.querySelectorAll('.faq-question').forEach((question) => {
-            question.addEventListener('click', () => {
-                const item = question.parentElement;
-                item.classList.toggle('active');
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.faq-question').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var item = button.closest('.faq-item');
+                    var isActive = item.classList.contains('active');
+                    document.querySelectorAll('.faq-item').forEach(function (faq) {
+                        faq.classList.remove('active');
+                        var btn = faq.querySelector('.faq-question');
+                        if (btn) btn.setAttribute('aria-expanded', 'false');
+                    });
+                    if (!isActive) {
+                        item.classList.add('active');
+                        button.setAttribute('aria-expanded', 'true');
+                    }
+                });
             });
         });
     </script>

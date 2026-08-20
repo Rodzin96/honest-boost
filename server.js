@@ -44,6 +44,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 /* Database lazy load */
 let db = null;
 let dbReady = false;
+let dbInitPromise = null;
 
 function getDb() {
   if (!db) {
@@ -51,6 +52,22 @@ function getDb() {
     db = { initSchema, dbGet, dbAll, dbRun };
   }
   return db;
+}
+
+async function ensureDbReady() {
+  if (dbReady) return true;
+  if (!dbInitPromise) {
+    dbInitPromise = getDb().initSchema()
+      .then(() => {
+        dbReady = true;
+        return true;
+      })
+      .catch((err) => {
+        dbInitPromise = null;
+        throw err;
+      });
+  }
+  return dbInitPromise;
 }
 
 /* Auth helpers */
@@ -103,14 +120,14 @@ app.get('/api/me', (req, res) => {
 });
 
 app.get('/api/products', (req, res) => {
-  res.json({ products: [] });
+  const { publicCatalog } = require('./src/products');
+  res.json(publicCatalog());
 });
 
 app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
   if (!dbReady) {
     try {
-      await getDb().initSchema();
-      dbReady = true;
+      await ensureDbReady();
     } catch (err) {
       return res.status(503).json({ error: 'database_not_ready' });
     }
@@ -136,8 +153,7 @@ app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
 app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
   if (!dbReady) {
     try {
-      await getDb().initSchema();
-      dbReady = true;
+      await ensureDbReady();
     } catch (err) {
       return res.status(503).json({ error: 'database_not_ready' });
     }
@@ -166,8 +182,7 @@ app.post('/api/logout', (req, res) => {
 app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   if (!dbReady) {
     try {
-      await getDb().initSchema();
-      dbReady = true;
+      await ensureDbReady();
     } catch (err) {
       return res.status(503).json({ error: 'database_not_ready' });
     }
@@ -213,8 +228,7 @@ app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
 app.post('/api/app/auth', asyncRoute(async (req, res) => {
   if (!dbReady) {
     try {
-      await getDb().initSchema();
-      dbReady = true;
+      await ensureDbReady();
     } catch (err) {
       return res.status(503).json({ error: 'database_not_ready' });
     }
@@ -275,9 +289,7 @@ const server = app.listen(PORT, () => {
   // Init schema after server starts (non-blocking)
   setTimeout(async () => {
     try {
-      await getDb().initSchema();
-      dbReady = true;
-      console.log('✓ Schema initialized');
+      await ensureDbReady();
     } catch (err) {
       console.error('⚠ Schema init failed:', err.message);
     }

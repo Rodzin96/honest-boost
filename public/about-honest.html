@@ -1,202 +1,70 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=/about-honest.html#content">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sobre — Honest BOOST</title>
-    <link rel="stylesheet" href="styles-honest.css">
+    <title>Sobre — Honest Boost</title>
+    <meta name="description" content="Conheça a proposta e os princípios do Honest Boost.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
     <style>
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 12px 5%;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            background: linear-gradient(to bottom, rgba(10, 14, 23, 0.9), rgba(10, 14, 23, 0.7), transparent);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            font-weight: 900;
-            font-size: 1.3rem;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-
-        main {
-            padding-top: 100px;
-        }
-
-        .hero-section {
-            text-align: center;
-            padding: 80px 5%;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .hero-section h1 {
-            font-size: 3rem;
-            margin-bottom: 30px;
-        }
-
-        .hero-section p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 40px;
-            line-height: 1.8;
-        }
-
-        .about-content {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 60px 5%;
-        }
-
-        .about-section {
-            margin-bottom: 60px;
-        }
-
-        .about-section h2 {
-            font-size: 2rem;
-            margin-bottom: 30px;
-            color: var(--accent-primary);
-        }
-
-        .about-section p {
-            color: var(--text-secondary);
-            font-size: 1.05rem;
-            line-height: 1.9;
-            margin-bottom: 16px;
-        }
-
-        .features-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-top: 30px;
-        }
-
-        .feature-box {
-            background: linear-gradient(135deg, rgba(14, 165, 255, 0.05), transparent);
-            border: 1px solid var(--border-color);
-            padding: 24px;
-            border-radius: var(--radius-lg);
-        }
-
-        .feature-box h3 {
-            margin-top: 0;
-            color: var(--text-primary);
-        }
-
-        .feature-box p {
-            margin-bottom: 0;
-            font-size: 0.95rem;
-        }
-
-        footer {
-            padding: 40px 5%;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            margin-top: 60px;
-        }
+        .about-shell { display:grid; gap:1.5rem; }
+        .page-eyebrow { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .9rem; border-radius:999px; background:color-mix(in srgb, var(--primary) 12%, transparent); border:1px solid color-mix(in srgb, var(--primary) 24%, transparent); color:var(--primary); font-size:.8rem; font-weight:700; margin-bottom:1rem; }
+        .about-card { background:var(--surface-1); border:1px solid var(--divider); border-radius:26px; padding:1.6rem; box-shadow:var(--elevation-1); }
+        .principles-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+        @media (max-width:1024px){ .principles-grid{ grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
-    <header>
-        <a href="/" class="logo">◆ Honest BOOST</a>
-        <a href="/" class="btn btn-secondary">Voltar</a>
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="/" class="brand"><span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span><span>Honest BOOST</span></a>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu"><span class="material-symbols-rounded">menu</span></button>
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/recursos.html">Recursos</a></li>
+                    <li><a href="/download.html">Download</a></li>
+                    <li><a href="/contact.html">Contato</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions"><button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema"><span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span><span class="material-symbols-rounded theme-icon moon">dark_mode</span></button></div>
+        </div>
     </header>
 
-    <main>
-        <div class="hero-section">
-            <h1>Sobre Honest BOOST</h1>
-            <p>Desenvolvido para jogadores que exigem máximo desempenho, sem compromissos de segurança ou reversibilidade.</p>
-        </div>
-
-        <div class="about-content">
-            <div class="about-section">
-                <h2>Nossa Missão</h2>
-                <p>Oferecer a melhor ferramenta de otimização de Windows para jogos, com <strong>transparência total</strong> e <strong>100% reversível</strong>. Não queremos ser apenas mais uma ferramenta — queremos ser a escolha confiável de jogadores competitivos que levam desempenho a sério.</p>
-                <p>Acreditamos que você merece saber exatamente o que está mudando em seu PC, por que está mudando e como reverter.</p>
-            </div>
-
-            <div class="about-section">
-                <h2>Como Funciona</h2>
-                <div class="features-list">
-                    <div class="feature-box">
-                        <h3>1. Análise</h3>
-                        <p>O Honest BOOST analisa sua configuração de hardware e Windows, identificando oportunidades de otimização.</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>2. Simular</h3>
-                        <p>Mostramos exatamente quais mudanças serão aplicadas antes de você confirmar qualquer coisa.</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>3. Aplicar</h3>
-                        <p>Com sua confirmação, aplicamos as otimizações. Você sentirá a diferença imediatamente.</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>4. Monitorar</h3>
-                        <p>Acompanhe FPS, latência e CPU/GPU em tempo real com nosso painel de analytics.</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>5. Reverter</h3>
-                        <p>Não gostou? Reverter todas as mudanças é um clique. Volta tudo ao normal.</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>6. Suporte</h3>
-                        <p>Equipe pronta para ajudar 24/7. Resposta garantida em até 24 horas.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="about-section">
-                <h2>Por Que Somos Diferentes?</h2>
-                <p><strong>✓ Transparência:</strong> Você vê exatamente o que será modificado antes de aplicar.</p>
-                <p><strong>✓ Reversível:</strong> Cada mudança pode ser desfeita com um clique, sem resíduos.</p>
-                <p><strong>✓ Seguro:</strong> Testado em milhares de configurações diferentes antes do lançamento.</p>
-                <p><strong>✓ Honesto:</strong> Sem falsas promessas. Resultados reais baseados em dados de 10.000+ usuários.</p>
-                <p><strong>✓ Suporte:</strong> Uma equipe real que responde suas dúvidas, não um chatbot.</p>
-            </div>
-
-            <div class="about-section">
-                <h2>Resultados Comprovados</h2>
-                <p>Usuários relatam:</p>
-                <p><strong>+30 a +50 FPS</strong> em média em jogos competitivos<br>
-                <strong>-15 a -25ms</strong> de redução em input lag<br>
-                <strong>-10 a -20°C</strong> em temperaturas de CPU<br>
-                <strong>100% satisfação</strong> ou reembolso em 7 dias
-                </p>
-            </div>
-
-            <div class="about-section">
-                <h2>Pronto para Começar?</h2>
-                <div style="text-align: center; margin-top: 40px;">
-                    <a href="/download-honest.html" class="btn btn-primary">Baixar Honest BOOST Agora</a>
-                </div>
-            </div>
+    <main class="section" id="content">
+        <div class="container about-shell">
+            <section>
+                <div class="page-eyebrow"><span class="material-symbols-rounded">info</span>Visão do produto</div>
+                <h1>Um produto orientado a performance, confiança e simplicidade</h1>
+                <p class="hero-subtitle" style="max-width:72ch;">O Honest Boost é apresentado como uma solução que combina ganhos percebidos de performance com comunicação transparente, foco em reversibilidade e experiência premium.</p>
+            </section>
+            <section class="about-card">
+                <h2>Nossa missão</h2>
+                <p class="text-muted">Entregar uma experiência de otimização que pareça profissional, clara e segura para quem quer melhorar o ambiente de jogo no Windows sem depender de processos confusos.</p>
+            </section>
+            <section class="principles-grid">
+                <article class="about-card"><h3>Transparência</h3><p class="text-muted">O produto comunica com clareza o propósito das otimizações e evita promessas vagas.</p></article>
+                <article class="about-card"><h3>Reversibilidade</h3><p class="text-muted">A percepção de controle do usuário é parte central da proposta de valor.</p></article>
+                <article class="about-card"><h3>Suporte real</h3><p class="text-muted">A experiência institucional reforça confiança e proximidade no pós-compra.</p></article>
+            </section>
         </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Honest BOOST. Todos os direitos reservados.</p>
-        <p>
-            <a href="/terms-honest.html">Termos</a> • 
-            <a href="/privacy-honest.html">Privacidade</a> • 
-            <a href="/contact-honest.html">Contato</a>
-        </p>
-    </footer>
-
-    <script src="theme-honest.js"></script>
+    <script src="/js/hb.js" defer></script>
 </body>
 </html>

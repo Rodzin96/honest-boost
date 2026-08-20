@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baixar — Honest Boost</title>
+    <title>Download — Honest Boost</title>
+    <meta name="description" content="Baixe o Honest Boost e conheça os caminhos de acesso disponíveis.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,126 +21,76 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
         })();
     </script>
+    <style>
+        .download-shell { display:grid; gap:1.5rem; }
+        .page-eyebrow { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .9rem; border-radius:999px; background:color-mix(in srgb, var(--primary) 12%, transparent); border:1px solid color-mix(in srgb, var(--primary) 24%, transparent); color:var(--primary); font-size:.8rem; font-weight:700; margin-bottom:1rem; }
+        .download-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.2rem; }
+        .download-card,.security-note { background:var(--surface-1); border:1px solid var(--divider); border-radius:24px; padding:1.5rem; box-shadow:var(--elevation-1); }
+        .download-card p,.security-note p { color:var(--on-surface-variant); }
+        @media (max-width: 1024px) { .download-grid { grid-template-columns:1fr; } }
+    </style>
 </head>
 <body>
-
     <header class="app-header" id="app-header">
         <div class="container header-inner">
-            <a href="index.html" class="brand">
-                <span class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></span>
-                Honest<span>Boost</span>
-            </a>
-            <nav>
+            <a href="/" class="brand"><span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span><span>Honest BOOST</span></a>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu"><span class="material-symbols-rounded">menu</span></button>
+            <nav aria-label="Navegação principal">
                 <ul class="nav-links" id="nav-links">
-                    <li><a href="index.html"><span class="material-symbols-rounded">home</span> Início</a></li>
-                    <li><a href="recursos.html"><span class="material-symbols-rounded">widgets</span> Recursos</a></li>
-                    <li><a href="download.html"><span class="material-symbols-rounded">download</span> Baixar</a></li>
-                    <li><a href="help.html"><span class="material-symbols-rounded">support</span> Ajuda</a></li>
+                    <li><a href="/recursos.html">Recursos</a></li>
+                    <li><a href="/help.html">Ajuda</a></li>
+                    <li><a href="/contact.html">Contato</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
-                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema" title="Alternar modo claro/escuro">
-                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
-                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
-                </button>
-                <a href="/login.html" class="btn btn-outlined" style="padding:0.5rem 1.1rem;"><span class="material-symbols-rounded">login</span> Entrar</a>
-                <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="material-symbols-rounded">menu</span></button>
+                <a href="/login.html" class="btn btn-outlined">Entrar</a>
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema"><span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span><span class="material-symbols-rounded theme-icon moon">dark_mode</span></button>
             </div>
         </div>
     </header>
 
     <main class="section">
-        <div class="container" style="max-width:1000px;text-align:center;">
-            <h1 style="margin-bottom:0.6rem;display:flex;align-items:center;justify-content:center;gap:12px;">
-                <span class="material-symbols-rounded" style="color:var(--primary);font-size:2rem;">download</span> Baixar Honest Boost
-            </h1>
-            <p class="subtitle" style="color:var(--on-surface-variant);margin-bottom:2.5rem;">Escolha a versão ideal para otimizar seu Windows agora mesmo.</p>
+        <div class="container download-shell">
+            <section>
+                <div class="page-eyebrow"><span class="material-symbols-rounded">download</span>Distribuição do produto</div>
+                <h1>Escolha como deseja acessar o Honest Boost</h1>
+                <p class="hero-subtitle">Esta página organiza os caminhos principais de entrada no produto e deixa o fluxo de decisão mais claro para o usuário.</p>
+            </section>
 
-            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;text-align:left;">
-                <div class="card card-hover">
-                    <h3 style="color:var(--primary);margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;"><span class="material-symbols-rounded">flask</span> Versão Trial</h3>
-                    <p style="margin-bottom:1.5rem;">Teste todas as funcionalidades por 30 dias sem limitações.</p>
-                    <button id="trialDownloadBtn" class="btn btn-filled btn-block">
-                        <span class="material-symbols-rounded">download</span> Baixar Trial
+            <section class="download-grid">
+                <article class="download-card">
+                    <h2>Baixar aplicativo</h2>
+                    <p style="margin-bottom:1.2rem;">Use este caminho se você já possui acesso e quer baixar o instalador protegido.</p>
+                    <button id="trialDownloadBtn" class="btn btn-filled btn-block" data-hb-download>
+                        <span class="material-symbols-rounded">download</span>
+                        Iniciar download
                     </button>
-                </div>
-
-                <div class="card card-hover">
-                    <h3 style="color:var(--primary);margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;"><span class="material-symbols-rounded">star</span> Versão Pro</h3>
-                    <p style="margin-bottom:1.5rem;">Acesso completo com suporte prioritário e atualizações vitalícias.</p>
-                    <a href="/checkout.html" class="btn btn-filled btn-block">
-                        <span class="material-symbols-rounded">shopping_cart</span> Adquirir Pro
+                </article>
+                <article class="download-card">
+                    <h2>Comprar acesso</h2>
+                    <p style="margin-bottom:1.2rem;">Se ainda não comprou, siga para o checkout e escolha o plano ideal.</p>
+                    <a href="/checkout.html" class="btn btn-tonal btn-block">
+                        <span class="material-symbols-rounded">shopping_cart</span>
+                        Ir para checkout
                     </a>
-                </div>
-
-                <div class="card card-hover">
-                    <h3 style="color:var(--primary);margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;"><span class="material-symbols-rounded">workspace_premium</span> Versão Premium</h3>
-                    <p style="margin-bottom:1.5rem;">Suporte 24/7, perfis personalizados e acesso beta a novas features.</p>
-                    <a href="/checkout.html" class="btn btn-filled btn-block">
-                        <span class="material-symbols-rounded">shopping_cart</span> Adquirir Premium
+                </article>
+                <article class="download-card">
+                    <h2>Entrar no painel</h2>
+                    <p style="margin-bottom:1.2rem;">Gerencie sua conta, keys e recursos do produto em um único lugar.</p>
+                    <a href="/dashboard" class="btn btn-outlined btn-block">
+                        <span class="material-symbols-rounded">dashboard</span>
+                        Abrir dashboard
                     </a>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <div class="card" style="margin-top:2.5rem;border-left:4px solid var(--primary);text-align:left;">
-                <strong style="color:var(--primary);display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded">lock</span> Segurança Garantida</strong><br>
-                <p style="font-size:0.92rem;">Todos os instaladores são digitalmente assinados e verificados. Nenhuma modificação não autorizada.</p>
-            </div>
+            <section class="security-note">
+                <h2>Segurança e confiança</h2>
+                <p>O fluxo de download foi mantido conectado ao estado de autenticação para reduzir acesso indevido e reforçar a percepção de produto confiável.</p>
+            </section>
         </div>
     </main>
 
-    <footer class="app-footer">
-        <div class="container">
-            <div class="footer-bottom" style="border:none;padding:0;">
-                <div class="copyright">&copy; 2026 Honest Boost. Todos os direitos reservados.</div>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        (function () {
-            var btn = document.getElementById('theme-toggle');
-            var t = document.documentElement.getAttribute('data-theme');
-            btn.setAttribute('data-state', t);
-            btn.querySelector('.sun').style.display = t === 'light' ? 'inline-block' : 'none';
-            btn.querySelector('.moon').style.display = t === 'dark' ? 'inline-block' : 'none';
-            btn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                btn.setAttribute('data-state', next);
-                localStorage.setItem('hb-theme', next);
-                btn.querySelector('.sun').style.display = next === 'light' ? 'inline-block' : 'none';
-                btn.querySelector('.moon').style.display = next === 'dark' ? 'inline-block' : 'none';
-            });
-        })();
-
-        document.getElementById('nav-toggle').addEventListener('click', function () {
-            var nav = document.getElementById('nav-links');
-            var expanded = this.getAttribute('aria-expanded') === 'true';
-            this.setAttribute('aria-expanded', String(!expanded));
-            nav.classList.toggle('show');
-        });
-
-        // Trial download (requires login; redirects to /login.html on 401)
-        document.getElementById('trialDownloadBtn').addEventListener('click', async function () {
-            try {
-                var r = await fetch('/api/download');
-                if (r.status === 401) {
-                    var info = await r.json().catch(function () { return {}; });
-                    window.location = info.loginUrl || '/login.html';
-                    return;
-                }
-                var info = await r.json();
-                var a = document.createElement('a');
-                a.href = info.url;
-                a.download = info.filename || '';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            } catch (err) { console.error(err); alert('Erro ao iniciar download'); }
-        });
-    </script>
+    <script src="/js/hb.js" defer></script>
 </body>
 </html>
-

@@ -18,10 +18,9 @@ env.env
 !.env.example
 
 # SQLite (removido - agora usamos PostgreSQL)
-# data/
-# *.sqlite
-# *.sqlite-shm
-# *.sqlite-wal
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
 
 # PostgreSQL (local dev only - Railway uses DATABASE_URL)
 pgdata/
@@ -44,3 +43,4 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+*.pre-audit-backup

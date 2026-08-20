@@ -1,16 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60" role="img" aria-label="Honest Boost logo">
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="88" viewBox="0 0 320 88" role="img" aria-label="Honest BOOST logo">
   <defs>
-    <linearGradient id="g" x1="0" x2="1">
-      <stop offset="0" stop-color="#00f2ff"/>
-      <stop offset="1" stop-color="#0066ff"/>
+    <linearGradient id="hb-mark-gradient" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7AE7FF"/>
+      <stop offset="0.45" stop-color="#18B8FF"/>
+      <stop offset="1" stop-color="#0B63F6"/>
     </linearGradient>
+    <linearGradient id="hb-word-gradient" x1="72" y1="24" x2="170" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EAF7FF"/>
+      <stop offset="1" stop-color="#7CCFFF"/>
+    </linearGradient>
+    <filter id="hb-soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0.56  0 0 1 0 1  0 0 0 0.24 0"/>
+    </filter>
   </defs>
-  <rect width="240" height="60" rx="8" fill="none"/>
-  <g transform="translate(8,6)">
-    <rect width="48" height="48" rx="8" fill="#061225" stroke="url(#g)" stroke-width="2"/>
-    <g transform="translate(8,8)" fill="url(#g)">
-      <path d="M6 0 L10 0 L10 4 L14 4 L14 8 L10 8 L10 12 L6 12 L6 8 L2 8 L2 4 L6 4 Z" opacity="0.95"/>
-    </g>
-    <text x="70" y="32" font-family="Outfit, Arial, sans-serif" font-size="20" font-weight="800" fill="#ffffff">Honest<span fill="url(#g)" style="font-weight:700">Boost</span></text>
+
+  <g transform="translate(8 8)">
+    <rect x="0" y="0" width="56" height="56" rx="16" fill="#08111D"/>
+    <path d="M14 10C11.7909 10 10 11.7909 10 14V50C10 52.2091 11.7909 54 14 54H19C21.2091 54 23 52.2091 23 50V37H31.4L26.2 50.6C25.5246 52.3661 26.829 54.25 28.72 54.25H36.2C37.3526 54.25 38.3908 53.5518 38.8291 52.4858L44.6 38.45C44.8061 37.9487 44.9122 37.4118 44.9122 36.8698V31.55C44.9122 30.0664 43.7092 28.8634 42.2256 28.8634H31.55L36.5425 15.9982C37.2252 14.2387 35.9215 12.35 34.0341 12.35H26.66C25.5056 12.35 24.4659 13.0503 24.029 14.1189L19.16 26.03V14C19.16 11.7909 17.3691 10 15.16 10H14Z" fill="url(#hb-mark-gradient)" filter="url(#hb-soft-glow)"/>
+    <path d="M17 14C17 12.8954 16.1046 12 15 12C13.8954 12 13 12.8954 13 14V50C13 51.1046 13.8954 52 15 52C16.1046 52 17 51.1046 17 50V34H37.6C38.1523 34 38.6 33.5523 38.6 33V31.8C38.6 31.2477 38.1523 30.8 37.6 30.8H25.15L31.5321 14.6668C31.8596 13.8391 31.2498 12.95 30.3597 12.95H27.4542C27.0434 12.95 26.6728 13.1999 26.5167 13.5799L17 36.75V14ZM29.72 52C30.1932 52 30.6192 51.7129 30.7992 51.2753L37.194 35.7314C37.2463 35.6042 37.2733 35.4681 37.2733 35.3306V35.3C37.2733 34.7477 36.8256 34.3 36.2733 34.3H23.72C22.6154 34.3 21.72 35.1954 21.72 36.3V50C21.72 51.1046 22.6154 52 23.72 52H29.72Z" fill="#EAF7FF" fill-opacity="0.98"/>
+    <text x="72" y="31" font-family="Outfit, Arial, sans-serif" font-size="24" font-weight="800" fill="url(#hb-word-gradient)">Honest</text>
+    <text x="72" y="55" font-family="Outfit, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="0.14em" fill="#18B8FF">BOOST</text>
   </g>
 </svg>

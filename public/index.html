@@ -4,1120 +4,739 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Honest BOOST — Otimização de Windows Premium</title>
-    <meta name="description" content="Aumente FPS, reduza input lag e domine jogos competitivos com Honest Boost.">
+    <meta name="description" content="Aumente FPS, reduza input lag e estabilize seu Windows para jogos competitivos com Honest Boost.">
+    <meta name="theme-color" content="#0a0f1a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="global.css">
-    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     <style>
-        /* Page specific styles */
-        :root {
-            --bg-primary: #030512;
-            --bg-secondary: #071426;
-            --bg-surface: #07101b;
-            --bg-card: rgba(14, 165, 255, 0.08);
-            --border-color: rgba(14, 165, 255, 0.15);
-            --text-primary: #eef6ff;
-            --text-secondary: #94a3b8;
-            --text-muted: #5a6888;
-            --accent-primary: #0ea5ff;
-            --accent-secondary: #00e5d4;
-            --accent-highlight: #ffd166;
-            --success: #57f2b3;
-            --shadow-sm: 0 4px 12px rgba(2, 8, 20, 0.3);
-            --shadow-md: 0 10px 30px rgba(2, 8, 20, 0.5);
-            --shadow-lg: 0 18px 50px rgba(2, 8, 20, 0.6);
-            --radius-sm: 10px;
-            --radius-md: 14px;
-            --radius-lg: 20px;
-            --transition: 220ms cubic-bezier(0.2, 0.95, 0.2, 1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        
-        body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-primary) 100%);
-            color: var(--text-primary);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            min-height: 100vh;
-        }
-
-        /* Header */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: rgba(3, 5, 18, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 5%;
-        }
-
-        .header-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            text-decoration: none;
-        }
-
-        .logo span {
-            width: 36px;
-            height: 36px;
-            background: var(--accent-primary);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        nav {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        nav a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color var(--transition);
-            font-size: 0.95rem;
-        }
-
-        nav a:hover { color: var(--accent-primary); }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.4rem;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            font-size: 0.95rem;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: all var(--transition);
-        }
-
-        .btn-primary {
-            background: var(--accent-primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(14, 165, 255, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: #0090e0;
-            transform: translateY(-2px);
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-ghost:hover {
-            background: rgba(14, 165, 255, 0.1);
-            border-color: var(--accent-primary);
-        }
-
-        .btn-large {
-            padding: 1rem 2.5rem;
-            font-size: 1.1rem;
-            border-radius: var(--radius-md);
-        }
-
-        /* Hero */
-        .hero {
-            padding: 6rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(14, 165, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 999px;
-            padding: 0.4rem 1rem;
-            font-size: 0.85rem;
-            color: var(--accent-primary);
-            margin-bottom: 1.5rem;
-        }
-
-        .hero-badge .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero h1 span {
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            max-width: 500px;
-        }
-
-        .hero-cta {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .hero-stat {
-            text-align: center;
-        }
-
-        .hero-stat-value {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--accent-primary);
-        }
-
-        .hero-stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        /* Hero Visual */
-        .hero-visual {
-            position: relative;
-        }
-
-        .hero-showcase {
-            background: rgba(14, 165, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            position: relative;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .showcase-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .showcase-dots {
-            display: flex;
-            gap: 0.4rem;
-        }
-
-        .showcase-dots span {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .showcase-dots span:nth-child(1) { background: #ff5f56; }
-        .showcase-dots span:nth-child(2) { background: #ffbd2e; }
-        .showcase-dots span:nth-child(3) { background: #27c93f; }
-
-        .showcase-title {
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .showcase-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .showcase-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .showcase-card .icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .showcase-card .value {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .showcase-card .label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .showcase-badge {
+        .sr-only {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(14, 165, 255, 0.9);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            animation: glow 2s infinite;
-        }
-
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(14, 165, 255, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(14, 165, 255, 0.8); }
-        }
-
-        /* Sections */
-        section {
-            padding: 5rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .section-header h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-
-        .section-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Features */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-        }
-
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 2rem;
-            transition: all var(--transition);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-primary);
-            box-shadow: var(--shadow-md);
-        }
-
-        .feature-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(14, 165, 255, 0.1);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        /* Results */
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-        }
-
-        .result-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 2rem;
-            text-align: center;
-            transition: all var(--transition);
-        }
-
-        .result-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-primary);
-        }
-
-        .result-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .result-value {
-            font-size: 2.5rem;
-            font-weight: 900;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .result-game {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 0.5rem;
-        }
-
-        /* Testimonials - Slide */
-        .testimonials-container {
-            position: relative;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
             overflow: hidden;
-            padding: 2rem 0;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
-        .testimonials-track {
-            display: flex;
-            gap: 2rem;
-            animation: slide 20s linear infinite;
+        .skip-link {
+            position: absolute;
+            left: 12px;
+            top: -48px;
+            z-index: 1000;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            background: var(--primary);
+            color: var(--on-primary);
+            transition: top 0.2s ease;
         }
 
-        @keyframes slide {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+        .skip-link:focus {
+            top: 12px;
         }
 
-        .testimonials-track:hover {
-            animation-play-state: paused;
-        }
-
-        .testimonial-card {
-            min-width: 350px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 2rem;
-            flex-shrink: 0;
-        }
-
-        .testimonial-header {
-            display: flex;
+        .eyebrow {
+            display: inline-flex;
             align-items: center;
+            gap: 0.55rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.9rem;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 28px;
+            height: 1px;
+            background: color-mix(in srgb, var(--primary) 55%, transparent);
+        }
+
+        .hero-proof {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1rem;
-            margin-bottom: 1rem;
+            margin-top: 2rem;
         }
 
-        .testimonial-avatar {
-            width: 50px;
-            height: 50px;
-            background: var(--accent-primary);
-            border-radius: 50%;
+        .hero-proof .card {
+            padding: 1rem 1.1rem;
+            border-radius: 18px;
+        }
+
+        .hero-proof strong {
+            display: block;
+            font-size: 1.35rem;
+            line-height: 1.1;
+            color: var(--on-surface);
+        }
+
+        .hero-proof span {
+            color: var(--on-surface-variant);
+            font-size: 0.84rem;
+        }
+
+        .hero-panel {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .signal-card {
+            background: var(--surface-2);
+            border: 1px solid var(--divider);
+            border-radius: 18px;
+            padding: 1rem;
+        }
+
+        .signal-top {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: white;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+            color: var(--on-surface-variant);
+            font-size: 0.88rem;
         }
 
-        .testimonial-name {
-            font-weight: 700;
+        .signal-top strong {
+            color: var(--on-surface);
+            font-size: 1rem;
         }
 
-        .testimonial-role {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
         }
 
-        .testimonial-text {
-            color: var(--text-secondary);
-            font-style: italic;
-            line-height: 1.6;
+        .signal-metric {
+            border: 1px solid var(--divider);
+            background: var(--surface-1);
+            border-radius: 16px;
+            padding: 1rem;
         }
 
-        .testimonial-stars {
-            color: var(--accent-highlight);
+        .signal-metric .label {
+            color: var(--on-surface-variant);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.35rem;
+        }
+
+        .signal-metric .value {
+            color: var(--on-surface);
+            font-size: 1.35rem;
+            font-weight: 800;
+        }
+
+        .signal-metric .delta {
+            color: var(--success);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .proof-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
             margin-top: 1rem;
         }
 
-        /* Plans */
-        .plans-grid {
+        .results-grid-custom,
+        .feature-grid-custom,
+        .trust-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
+            gap: 1.2rem;
         }
 
-        .plan-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2.5rem;
-            text-align: center;
-            transition: all var(--transition);
-            position: relative;
+        .results-grid-custom {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
-        .plan-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-primary);
+        .feature-grid-custom,
+        .trust-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
-        .plan-card.popular {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 30px rgba(14, 165, 255, 0.2);
-        }
-
-        .plan-badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent-primary);
-            color: white;
-            padding: 0.3rem 1rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .plan-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .plan-price {
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .plan-price span {
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
-
-        .plan-desc {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-        }
-
-        .plan-features {
-            text-align: left;
-            margin-bottom: 2rem;
-        }
-
-        .plan-features li {
-            display: flex;
+        .result-highlight {
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary);
         }
 
-        .plan-features li::before {
-            content: "✓";
+        .feature-list {
+            list-style: none;
+            margin-top: 1rem;
+            display: grid;
+            gap: 0.7rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            color: var(--on-surface-variant);
+            font-size: 0.92rem;
+        }
+
+        .feature-list .material-symbols-rounded {
             color: var(--success);
-            font-weight: 700;
+            font-size: 18px;
+            margin-top: 1px;
+            flex-shrink: 0;
         }
 
-        /* FAQ */
-        .faq-list {
-            max-width: 800px;
-            margin: 0 auto;
+        .section-shell {
+            background: color-mix(in srgb, var(--surface) 80%, transparent);
+            border: 1px solid var(--divider);
+            border-radius: 28px;
+            padding: 2rem;
+            box-shadow: var(--elevation-1);
         }
 
-        .faq-item {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        .faq-question {
-            padding: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
+        .cta-panel {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 1.5rem;
             align-items: center;
-            font-weight: 600;
-            transition: background var(--transition);
         }
 
-        .faq-question:hover {
-            background: rgba(14, 165, 255, 0.05);
-        }
-
-        .faq-answer {
-            padding: 0 1.5rem;
-            max-height: 0;
-            overflow: hidden;
-            transition: all var(--transition);
-            color: var(--text-secondary);
-        }
-
-        .faq-item.open .faq-answer {
+        .cta-aside {
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 22px;
             padding: 1.5rem;
-            max-height: 500px;
-            border-top: 1px solid var(--border-color);
         }
 
-        /* CTA */
-        .cta {
-            text-align: center;
-            padding: 6rem 5%;
+        .cta-aside ul {
+            list-style: none;
+            display: grid;
+            gap: 0.8rem;
         }
 
-        .cta h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
+        .cta-aside li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            color: var(--on-surface-variant);
+            font-size: 0.92rem;
         }
 
-        .cta p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+        .cta-aside .material-symbols-rounded {
+            color: var(--primary);
+            font-size: 18px;
+            margin-top: 1px;
         }
 
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--border-color);
-            padding: 3rem 5%;
-            text-align: center;
-            color: var(--text-muted);
+        .hero-visual {
+            min-height: 100%;
         }
 
-        /* Responsive */
         @media (max-width: 1024px) {
-            .hero { grid-template-columns: 1fr; }
-            .features-grid { grid-template-columns: repeat(2, 1fr); }
-            .results-grid { grid-template-columns: repeat(2, 1fr); }
-            .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
+            .results-grid-custom {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .feature-grid-custom,
+            .trust-grid,
+            .cta-panel {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .features-grid { grid-template-columns: 1fr; }
-            .results-grid { grid-template-columns: 1fr; }
-            nav { display: none; }
-            .hero-stats { flex-direction: column; gap: 1rem; }
+            .hero-proof,
+            .signal-grid,
+            .results-grid-custom {
+                grid-template-columns: 1fr;
+            }
+
+            .section-shell {
+                padding: 1.4rem;
+                border-radius: 22px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-inner">
-            <a href="/" class="logo">
-                <span>◆</span> Honest BOOST
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
+
+    <header class="app-header" id="topo">
+        <div class="container header-inner">
+            <a href="/" class="brand" aria-label="Honest Boost, página inicial">
+                <span class="brand-icon" aria-hidden="true">
+                    <span class="material-symbols-rounded">bolt</span>
+                </span>
+                <span>Honest BOOST</span>
             </a>
-            <nav>
-                <a href="#features">Funcionalidades</a>
-                <a href="#results">Resultados</a>
-                <a href="#testimonials">Depoimentos</a>
-                <a href="#plans">Planos</a>
-                <a href="#faq">FAQ</a>
-                <a href="/login.html" class="btn btn-ghost">Entrar</a>
-                <a href="#plans" class="btn btn-primary">Comprar</a>
+
+            <button
+                class="nav-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="primary-navigation"
+                aria-label="Abrir menu"
+            >
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="primary-navigation">
+                    <li><a href="#beneficios">Benefícios</a></li>
+                    <li><a href="#resultados">Resultados</a></li>
+                    <li><a href="#como-funciona">Como funciona</a></li>
+                    <li><a href="#planos">Planos</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="/login.html">Entrar</a></li>
+                </ul>
             </nav>
+
+            <div class="header-actions">
+                <a href="#planos" class="btn btn-filled">Comprar agora</a>
+            </div>
         </div>
     </header>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <span class="dot"></span>
-                Versão 2.0 Disponível
-            </div>
-            <h1>Fique Honestamente <span>Otimizado!</span></h1>
-            <p>Aumente o FPS, reduza input lag e domine jogos competitivos sem complicações. Seguro, transparente e testado por <strong>10.000+</strong> jogadores.</p>
-            <div class="hero-cta">
-                <a href="#plans" class="btn btn-primary btn-large">Começar Agora</a>
-                <a href="#features" class="btn btn-ghost btn-large">Como Funciona?</a>
-            </div>
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <div class="hero-stat-value">10K+</div>
-                    <div class="hero-stat-label">Usuários</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value">+45%</div>
-                    <div class="hero-stat-label">FPS Médio</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value">-60%</div>
-                    <div class="hero-stat-label">Input Lag</div>
-                </div>
-            </div>
-        </div>
-        <div class="hero-visual">
-            <div class="hero-showcase">
-                <div class="showcase-header">
-                    <div class="showcase-dots">
-                        <span></span><span></span><span></span>
+    <main id="main-content">
+        <section class="hero">
+            <div class="container hero-inner">
+                <div class="hero-content">
+                    <div class="badge animate-up">
+                        <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+                        Versão 2.0 disponível
                     </div>
-                    <span class="showcase-title">Honest Boost App</span>
-                </div>
-                <div class="showcase-grid">
-                    <div class="showcase-card">
-                        <div class="icon">🎮</div>
-                        <div class="value">15</div>
-                        <div class="label">Otimizações</div>
-                    </div>
-                    <div class="showcase-card">
-                        <div class="icon">✅</div>
-                        <div class="value">12</div>
-                        <div class="label">Aplicadas</div>
-                    </div>
-                    <div class="showcase-card">
-                        <div class="icon">⚡</div>
-                        <div class="value">+45%</div>
-                        <div class="label">FPS</div>
-                    </div>
-                    <div class="showcase-card">
-                        <div class="icon">🎯</div>
-                        <div class="value">-60%</div>
-                        <div class="label">Lag</div>
-                    </div>
-                </div>
-                <span class="showcase-badge">⚡ AO VIVO</span>
-            </div>
-        </div>
-    </section>
+                    <div class="eyebrow animate-up delay-1">Otimização premium para Windows gamer</div>
+                    <h1 class="animate-up delay-1">
+                        Mais FPS, menos input lag e uma experiência de jogo
+                        <span class="gradient-text">mais estável</span>
+                    </h1>
+                    <p class="hero-subtitle animate-up delay-2">
+                        O Honest Boost aplica otimizações seguras e reversíveis para melhorar
+                        resposta, estabilidade e desempenho em jogos competitivos, sem exigir
+                        conhecimento técnico avançado.
+                    </p>
 
-    <!-- Features -->
-    <section id="features">
-        <div class="section-header">
-            <h2>Funcionalidades</h2>
-            <p>Tudo que você precisa para dominar qualquer jogo competitivo</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🚀</div>
-                <h3>FPS Boost</h3>
-                <p>Otimizações de CPU, GPU e RAM para máximo desempenho nos jogos.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Input Lag</h3>
-                <p>Reduza a latência do mouse e teclado para respostas instantâneas.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h3>100% Seguro</h3>
-                <p>Otimizações reversíveis. Seu sistema continua intacto sempre.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>Um Clique</h3>
-                <p>Aplique 15 otimizações de uma vez com um único botão.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎮</div>
-                <h3>Modo Gaming</h3>
-                <p>Fecha processos em segundo plano e prioriza seu jogo.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔧</div>
-                <h3>Personalizado</h3>
-                <p>Escolha quais otimizações aplicar ou use o modo automático.</p>
-            </div>
-        </div>
-    </section>
+                    <div class="hero-features animate-up delay-2" aria-label="Diferenciais principais">
+                        <span class="chip"><span class="material-symbols-rounded">security</span> Seguro e reversível</span>
+                        <span class="chip"><span class="material-symbols-rounded">sports_esports</span> Foco em jogos competitivos</span>
+                        <span class="chip"><span class="material-symbols-rounded">flash_on</span> Aplicação rápida</span>
+                    </div>
 
-    <!-- Results -->
-    <section id="results">
-        <div class="section-header">
-            <h2>Resultados Comprovados</h2>
-            <p>Métricas reais de usuários em jogos populares</p>
-        </div>
-        <div class="results-grid">
-            <div class="result-card">
-                <div class="result-icon">🎯</div>
-                <div class="result-value">+45%</div>
-                <div class="result-label">FPS Médio</div>
-                <div class="result-game">CS2, Valorant, Fortnite</div>
-            </div>
-            <div class="result-card">
-                <div class="result-icon">⚡</div>
-                <div class="result-value">-60%</div>
-                <div class="result-label">Input Lag</div>
-                <div class="result-game">Mouse e Teclado</div>
-            </div>
-            <div class="result-card">
-                <div class="result-icon">💾</div>
-                <div class="result-value">2.5GB</div>
-                <div class="result-label">RAM Liberada</div>
-                <div class="result-game">Standby Memory</div>
-            </div>
-            <div class="result-card">
-                <div class="result-icon">🌐</div>
-                <div class="result-value">-30%</div>
-                <div class="result-label">Ping</div>
-                <div class="result-game">Rede Otimizada</div>
-            </div>
-        </div>
-    </section>
+                    <div class="cta-group animate-up delay-3">
+                        <a href="#planos" class="btn btn-filled">Quero otimizar meu PC</a>
+                        <a href="#como-funciona" class="btn btn-outlined">Ver como funciona</a>
+                    </div>
 
-    <!-- Testimonials - Slide -->
-    <section id="testimonials">
-        <div class="section-header">
-            <h2>O Que Dizem Nossos Usuários</h2>
-            <p>Milhares de jogadores já foram honestamente otimizados</p>
-        </div>
-        <div class="testimonials-container">
-            <div class="testimonials-track">
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">JL</div>
-                        <div>
-                            <div class="testimonial-name">João Lucas</div>
-                            <div class="testimonial-role">CS2 - Global Elite</div>
-                        </div>
+                    <div class="hero-proof animate-up delay-3" aria-label="Indicadores de confiança">
+                        <article class="card">
+                            <strong>10.000+</strong>
+                            <span>jogadores impactados</span>
+                        </article>
+                        <article class="card">
+                            <strong>+45%</strong>
+                            <span>ganho médio de FPS</span>
+                        </article>
+                        <article class="card">
+                            <strong>7 dias</strong>
+                            <span>de garantia para testar</span>
+                        </article>
                     </div>
-                    <div class="testimonial-text">"Meu FPS subiu de 180 pra 280! Não acreditei quando vi a diferença. Recomendo demais."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
                 </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">PM</div>
-                        <div>
-                            <div class="testimonial-name">Pedro Mendes</div>
-                            <div class="testimonial-role">Valorant - Immortal</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"O input lag diminuiu muito. Meu aim ficou muito mais consistente depois da otimização."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">RA</div>
-                        <div>
-                            <div class="testimonial-name">Rafael Alves</div>
-                            <div class="testimonial-role">Fortnite - Champion</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Antes eu tinha muito stuttering nos jogos. Agora está tudo liso, sem travamentos."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">LS</div>
-                        <div>
-                            <div class="testimonial-name">Lucas Silva</div>
-                            <div class="testimonial-role">League of Legends</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Muito fácil de usar. Apertar um botão e pronto, tudo otimizado. Nota 10!"</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">MF</div>
-                        <div>
-                            <div class="testimonial-name">Matheus Ferreira</div>
-                            <div class="testimonial-role">Apex Legends</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Ping caiu de 80ms pra 50ms na minha região. Sensacional!"</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">GS</div>
-                        <div>
-                            <div class="testimonial-name">Gabriel Santos</div>
-                            <div class="testimonial-role">PUBG</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Melhor otimizador que já usei. Resultado imediato, sem complicação."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <!-- Duplicar para o loop infinito -->
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">JL</div>
-                        <div>
-                            <div class="testimonial-name">João Lucas</div>
-                            <div class="testimonial-role">CS2 - Global Elite</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Meu FPS subiu de 180 pra 280! Não acreditei quando vi a diferença."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">PM</div>
-                        <div>
-                            <div class="testimonial-name">Pedro Mendes</div>
-                            <div class="testimonial-role">Valorant - Immortal</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"O input lag diminuiu muito. Meu aim ficou muito mais consistente."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">RA</div>
-                        <div>
-                            <div class="testimonial-name">Rafael Alves</div>
-                            <div class="testimonial-role">Fortnite - Champion</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Antes eu tinha muito stuttering. Agora está tudo liso."</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">LS</div>
-                        <div>
-                            <div class="testimonial-name">Lucas Silva</div>
-                            <div class="testimonial-role">League of Legends</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Muito fácil de usar. Apertar um botão e pronto!"</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">MF</div>
-                        <div>
-                            <div class="testimonial-name">Matheus Ferreira</div>
-                            <div class="testimonial-role">Apex Legends</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Ping caiu de 80ms pra 50ms. Sensacional!"</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">GS</div>
-                        <div>
-                            <div class="testimonial-name">Gabriel Santos</div>
-                            <div class="testimonial-role">PUBG</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">"Melhor otimizador que já usei. Resultado imediato!"</div>
-                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Plans -->
-    <section id="plans">
-        <div class="section-header">
-            <h2>Escolha Seu Plano</h2>
-            <p>Comece gratuitis ou desbloqueie todo o potencial</p>
-        </div>
-        <div class="plans-grid">
-            <div class="plan-card">
-                <div class="plan-name">Básico</div>
-                <div class="plan-price">R$ 47<span>/único</span></div>
-                <div class="plan-desc">Perfeito para começar a otimizar</div>
-                <ul class="plan-features">
-                    <li>5 Otimizações de FPS</li>
-                    <li>Otimização de Mouse</li>
-                    <li>Otimização de Rede</li>
-                    <li>Suporte por Email</li>
-                </ul>
-                <a href="/checkout.html?plan=basic" class="btn btn-ghost" style="width:100%;">Comprar Agora</a>
-            </div>
-            <div class="plan-card popular">
-                <div class="plan-badge">Mais Popular</div>
-                <div class="plan-name">Starter</div>
-                <div class="plan-price">R$ 67<span>/único</span></div>
-                <div class="plan-desc">O melhor custo-benefício</div>
-                <ul class="plan-features">
-                    <li>10 Otimizações de FPS</li>
-                    <li>Otimização de Mouse + Monitor</li>
-                    <li>Otimização de Rede + DNS</li>
-                    <li>Modo Gaming</li>
-                    <li>Suporte Prioritário</li>
-                </ul>
-                <a href="/checkout.html?plan=starter" class="btn btn-primary" style="width:100%;">Comprar Agora</a>
-            </div>
-            <div class="plan-card">
-                <div class="plan-name">Pro</div>
-                <div class="plan-price">R$ 97<span>/único</span></div>
-                <div class="plan-desc">Desempenho máximo</div>
-                <ul class="plan-features">
-                    <li>15 Otimizações Completas</li>
-                    <li>Todas as Categorias</li>
-                    <li>Modo Gaming Avançado</li>
-                    <li>Atualizações Vitalícias</li>
-                    <li>Suporte 24/7</li>
-                    <li>Acesso Antecipado</li>
-                </ul>
-                <a href="/checkout.html?plan=pro" class="btn btn-ghost" style="width:100%;">Comprar Agora</a>
-            </div>
-        </div>
-    </section>
+                <aside class="hero-visual" aria-label="Resumo visual da aplicação">
+                    <div class="visual-top">
+                        <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                        <div class="visual-title">Honest Boost App</div>
+                    </div>
 
-    <!-- FAQ -->
-    <section id="faq">
-        <div class="section-header">
-            <h2>Perguntas Frequentes</h2>
-            <p>Tire suas dúvidas sobre o Honest Boost</p>
-        </div>
-        <div class="faq-list">
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
-                    O Honest Boost é seguro? <span>▼</span>
-                </div>
-                <div class="faq-answer">
-                    Sim! Todas as otimizações são 100% reversíveis. Não modificamos nada permanente no seu sistema.
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
-                    Funciona em qual Windows? <span>▼</span>
-                </div>
-                <div class="faq-answer">
-                    Funciona no Windows 10 e 11, tanto 32-bit quanto 64-bit.
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
-                    Preciso pagar todo mês? <span>▼</span>
-                </div>
-                <div class="faq-answer">
-                    Não! O pagamento é único. Você usa para sempre, sem mensalidades.
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
-                    E se não funcionar? <span>▼</span>
-                </div>
-                <div class="faq-answer">
-                    Oferemos 7 dias de garantia. Se não ficar satisfeito, devolvemos 100% do dinheiro.
-                </div>
-            </div>
-        </div>
-    </section>
+                    <div class="hero-panel">
+                        <div class="signal-card">
+                            <div class="signal-top">
+                                <span>Status da sessão</span>
+                                <strong>Otimização recomendada</strong>
+                            </div>
+                            <div class="fps-meters">
+                                <div>
+                                    <div class="meter-label"><span>Antes</span><strong>120 FPS</strong></div>
+                                    <div class="meter-bar"><div class="meter-fill"></div></div>
+                                </div>
+                                <div>
+                                    <div class="meter-label"><span>Depois</span><strong>174 FPS</strong></div>
+                                    <div class="meter-bar"><div class="meter-fill after"></div></div>
+                                </div>
+                            </div>
+                        </div>
 
-    <!-- CTA -->
-    <section class="cta">
-        <h2>Pronto Para Ficar Honestamente Otimizado?</h2>
-        <p>Junte-se a mais de 10.000 jogadores que já melhoraram seu desempenho.</p>
-        <a href="#plans" class="btn btn-primary btn-large">Começar Agora</a>
-    </section>
+                        <div class="signal-grid" aria-label="Métricas simuladas de resultado">
+                            <div class="signal-metric">
+                                <div class="label">Input lag</div>
+                                <div class="value">-60%</div>
+                                <div class="delta">Resposta mais rápida</div>
+                            </div>
+                            <div class="signal-metric">
+                                <div class="label">Memória livre</div>
+                                <div class="value">+2.5 GB</div>
+                                <div class="delta">Menos processos ociosos</div>
+                            </div>
+                            <div class="signal-metric">
+                                <div class="label">Rede</div>
+                                <div class="value">-30%</div>
+                                <div class="delta">Latência otimizada</div>
+                            </div>
+                            <div class="signal-metric">
+                                <div class="label">Aplicação</div>
+                                <div class="value">1 clique</div>
+                                <div class="delta">Fluxo simplificado</div>
+                            </div>
+                        </div>
 
-    <!-- Footer -->
-    <footer style="border-top: 1px solid var(--border-color); padding: 3rem 5%; margin-top: 4rem;">
-        <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 3rem;">
-            <div>
-                <h4 style="margin-bottom: 1rem;">Honest Boost</h4>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Otimização de Windows premium para jogadores competitivos.</p>
+                        <div class="proof-strip" aria-label="Notas adicionais">
+                            <span class="chip"><span class="material-symbols-rounded">tune</span> CPU, GPU e RAM</span>
+                            <span class="chip"><span class="material-symbols-rounded">mouse</span> Mouse e monitor</span>
+                            <span class="chip"><span class="material-symbols-rounded">wifi</span> Rede e DNS</span>
+                        </div>
+                    </div>
+                </aside>
             </div>
-            <div>
-                <h4 style="margin-bottom: 1rem;">Links</h4>
-                <ul style="list-style: none;">
-                    <li><a href="#features" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Funcionalidades</a></li>
-                    <li><a href="#results" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Resultados</a></li>
-                    <li><a href="#plans" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Planos</a></li>
-                    <li><a href="#faq" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">FAQ</a></li>
+        </section>
+
+        <section class="section" id="beneficios">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Benefícios</div>
+                    <h2>Melhorias que o jogador percebe na prática</h2>
+                    <p>
+                        O foco não é apenas “mexer no Windows”. É entregar ganho real de fluidez,
+                        resposta e consistência durante a partida.
+                    </p>
+                </div>
+
+                <div class="feature-grid-custom">
+                    <article class="feature-card card-hover">
+                        <div class="fc-icon"><span class="material-symbols-rounded">speed</span></div>
+                        <h3>Mais estabilidade de frames</h3>
+                        <p>Reduz processos e ajustes que causam oscilações, stutter e perda de consistência.</p>
+                        <ul class="feature-list">
+                            <li><span class="material-symbols-rounded">check_circle</span><span>Otimizações de CPU, GPU e memória</span></li>
+                            <li><span class="material-symbols-rounded">check_circle</span><span>Melhora da previsibilidade em jogos competitivos</span></li>
+                        </ul>
+                    </article>
+
+                    <article class="feature-card card-hover">
+                        <div class="fc-icon"><span class="material-symbols-rounded">ads_click</span></div>
+                        <h3>Resposta mais rápida</h3>
+                        <p>Configurações pensadas para reduzir input lag e tornar mouse e teclado mais responsivos.</p>
+                        <ul class="feature-list">
+                            <li><span class="material-symbols-rounded">check_circle</span><span>Ajustes em latência de entrada e sistema</span></li>
+                            <li><span class="material-symbols-rounded">check_circle</span><span>Mais controle em flicks, tracking e microajustes</span></li>
+                        </ul>
+                    </article>
+
+                    <article class="feature-card card-hover">
+                        <div class="fc-icon"><span class="material-symbols-rounded">shield</span></div>
+                        <h3>Seguro e reversível</h3>
+                        <p>Você ganha desempenho sem abrir mão de segurança, clareza e possibilidade de reversão.</p>
+                        <ul class="feature-list">
+                            <li><span class="material-symbols-rounded">check_circle</span><span>Fluxo simples de aplicação</span></li>
+                            <li><span class="material-symbols-rounded">check_circle</span><span>Ideal para quem quer resultado sem complicação</span></li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section comparison" id="resultados">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Resultados</div>
+                    <h2>Indicadores de ganho em cenários reais</h2>
+                    <p>
+                        Exemplos do tipo de melhoria buscada pelo produto em sessões focadas em jogos online e competitivos.
+                    </p>
+                </div>
+
+                <div class="results-grid-custom">
+                    <article class="card card-hover">
+                        <h3>+45% FPS médio</h3>
+                        <p>Ganho estimado em títulos como CS2, Valorant e Fortnite, variando conforme hardware e sistema.</p>
+                        <div class="result-highlight"><span class="material-symbols-rounded">trending_up</span>Melhora percebida na fluidez</div>
+                    </article>
+                    <article class="card card-hover">
+                        <h3>-60% input lag</h3>
+                        <p>Ajustes que priorizam resposta de mouse e teclado para jogabilidade mais precisa.</p>
+                        <div class="result-highlight"><span class="material-symbols-rounded">mouse</span>Mais consistência nas ações</div>
+                    </article>
+                    <article class="card card-hover">
+                        <h3>+2.5 GB livres</h3>
+                        <p>Liberação de memória para reduzir gargalos e melhorar estabilidade durante partidas longas.</p>
+                        <div class="result-highlight"><span class="material-symbols-rounded">memory</span>Menos ruído no sistema</div>
+                    </article>
+                    <article class="card card-hover">
+                        <h3>-30% latência de rede</h3>
+                        <p>Otimizações em rede e DNS para reduzir tempo de resposta em contextos compatíveis.</p>
+                        <div class="result-highlight"><span class="material-symbols-rounded">network_ping</span>Conexão mais estável</div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="como-funciona">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Como funciona</div>
+                    <h2>Um fluxo pensado para ser simples, claro e rápido</h2>
+                    <p>
+                        A proposta é remover complexidade: você escolhe o plano, acessa o app e aplica as otimizações com segurança.
+                    </p>
+                </div>
+
+                <div class="trust-grid">
+                    <article class="card card-hover">
+                        <h3>1. Escolha o plano ideal</h3>
+                        <p>Compare opções conforme profundidade das otimizações e nível de suporte desejado.</p>
+                    </article>
+                    <article class="card card-hover">
+                        <h3>2. Acesse o app</h3>
+                        <p>Faça login, visualize os recursos disponíveis e acompanhe os dados da sua licença.</p>
+                    </article>
+                    <article class="card card-hover">
+                        <h3>3. Aplique e valide</h3>
+                        <p>Ative as otimizações e perceba ganhos em FPS, resposta e consistência do sistema.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="planos">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Planos</div>
+                    <h2>Escolha o nível de otimização ideal</h2>
+                    <p>
+                        Estrutura clara de planos para facilitar a decisão e conduzir o usuário ao checkout com menos fricção.
+                    </p>
+                </div>
+
+                <div class="pricing-grid" id="pricing-grid" aria-live="polite" aria-busy="true">
+                    <article class="price-card">
+                        <div class="popular-tag">Carregando</div>
+                        <h3>Buscando planos</h3>
+                        <div class="price">...</div>
+                        <p class="text-muted">Consultando catálogo disponível.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <div class="container section-shell">
+                <div class="section-header">
+                    <div class="eyebrow">FAQ</div>
+                    <h2>Perguntas frequentes antes da compra</h2>
+                    <p>
+                        Respostas objetivas para reduzir objeções, aumentar confiança e deixar a decisão mais segura.
+                    </p>
+                </div>
+
+                <div class="faq-container">
+                    <article class="faq-item active">
+                        <button class="faq-question" type="button" aria-expanded="true">
+                            <h3>O Honest Boost é seguro?</h3>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sim. A proposta do produto é aplicar otimizações seguras e reversíveis, preservando clareza e controle sobre o processo.</p>
+                        </div>
+                    </article>
+
+                    <article class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <h3>Em quais versões do Windows funciona?</h3>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>O material da página posiciona o produto para Windows 10 e 11. O ideal é validar compatibilidade detalhada no fluxo de suporte e documentação.</p>
+                        </div>
+                    </article>
+
+                    <article class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <h3>O pagamento é recorrente?</h3>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Não. A comunicação atual da landing trabalha com cobrança única por plano, sem mensalidade recorrente.</p>
+                        </div>
+                    </article>
+
+                    <article class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <h3>Existe garantia?</h3>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sim. A home comunica janela de garantia para reduzir risco percebido e aumentar confiança na conversão.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container section-shell">
+                <div class="cta-panel">
+                    <div>
+                        <div class="eyebrow">Pronto para começar</div>
+                        <h2>Transforme um Windows comum em uma base mais competitiva</h2>
+                        <p>
+                            Se o objetivo é jogar com mais fluidez, menos latência e menos ruído do sistema,
+                            o próximo passo é escolher o plano e iniciar a otimização.
+                        </p>
+                        <div class="cta-group" style="margin-top: 1.5rem;">
+                            <a href="#planos" class="btn btn-filled">Escolher plano</a>
+                            <a href="/download.html" class="btn btn-tonal">Baixar aplicativo</a>
+                        </div>
+                    </div>
+
+                    <aside class="cta-aside" aria-label="Motivos para agir agora">
+                        <ul>
+                            <li><span class="material-symbols-rounded">done_all</span><span>Fluxo direto da landing para o checkout</span></li>
+                            <li><span class="material-symbols-rounded">verified_user</span><span>Comunicação focada em confiança e segurança</span></li>
+                            <li><span class="material-symbols-rounded">rocket_launch</span><span>Aplicação rápida com foco em percepção imediata de ganho</span></li>
+                        </ul>
+                    </aside>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <h4>Honest Boost</h4>
+                <ul>
+                    <li><a href="#beneficios">Benefícios</a></li>
+                    <li><a href="#resultados">Resultados</a></li>
+                    <li><a href="#planos">Planos</a></li>
                 </ul>
             </div>
-            <div>
-                <h4 style="margin-bottom: 1rem;">Suporte</h4>
-                <ul style="list-style: none;">
-                    <li><a href="/contato.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Contato</a></li>
-                    <li><a href="/termos.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Termos de Uso</a></li>
-                    <li><a href="/privacidade.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Privacidade</a></li>
+            <div class="footer-col">
+                <h4>Produto</h4>
+                <ul>
+                    <li><a href="/download.html">Download</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/login.html">Entrar</a></li>
                 </ul>
             </div>
-            <div>
-                <h4 style="margin-bottom: 1rem;">Contato</h4>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Email: contato@honestboost.com.br</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Discord: discord.gg/honestboost</p>
+            <div class="footer-col">
+                <h4>Suporte</h4>
+                <ul>
+                    <li><a href="/help.html">Ajuda</a></li>
+                    <li><a href="/contact.html">Contato</a></li>
+                    <li><a href="/refund.html">Reembolso</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="/terms.html">Termos</a></li>
+                    <li><a href="/privacy.html">Privacidade</a></li>
+                    <li><a href="/faq-honest.html">FAQ completo</a></li>
+                </ul>
             </div>
         </div>
-        <div style="max-width: 1400px; margin: 2rem auto 0; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-            © 2026 Honest Boost. Todos os direitos reservados.
+        <div class="container footer-bottom">
+            <div class="copyright">© 2026 Honest Boost. Todos os direitos reservados.</div>
         </div>
     </footer>
+
+    <a href="#planos" class="floating-cta">
+        <span class="material-symbols-rounded">bolt</span>
+        Comprar agora
+    </a>
+
+    <script src="/init.js"></script>
+    <script src="/js/index.js"></script>
+    <script>
+        (function () {
+            var header = document.querySelector('.app-header');
+            var navToggle = document.querySelector('.nav-toggle');
+            var navLinks = document.querySelector('.nav-links');
+            var pricingGrid = document.getElementById('pricing-grid');
+            var faqButtons = document.querySelectorAll('.faq-question');
+
+            function syncHeaderShadow() {
+                if (!header) return;
+                header.classList.toggle('scrolled', window.scrollY > 12);
+            }
+
+            if (navToggle && navLinks) {
+                navToggle.addEventListener('click', function () {
+                    var expanded = navToggle.getAttribute('aria-expanded') === 'true';
+                    navToggle.setAttribute('aria-expanded', String(!expanded));
+                    navToggle.setAttribute('aria-label', expanded ? 'Abrir menu' : 'Fechar menu');
+                    navLinks.classList.toggle('show', !expanded);
+                });
+
+                navLinks.querySelectorAll('a').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        navToggle.setAttribute('aria-expanded', 'false');
+                        navToggle.setAttribute('aria-label', 'Abrir menu');
+                        navLinks.classList.remove('show');
+                    });
+                });
+            }
+
+            faqButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var item = button.closest('.faq-item');
+                    var isActive = item.classList.contains('active');
+
+                    faqButtons.forEach(function (otherButton) {
+                        var otherItem = otherButton.closest('.faq-item');
+                        otherItem.classList.remove('active');
+                        otherButton.setAttribute('aria-expanded', 'false');
+                    });
+
+                    if (!isActive) {
+                        item.classList.add('active');
+                        button.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            });
+
+            if (pricingGrid) {
+                pricingGrid.setAttribute('aria-busy', 'false');
+            }
+
+            syncHeaderShadow();
+            window.addEventListener('scroll', syncHeaderShadow, { passive: true });
+        })();
+    </script>
 </body>
 </html>
