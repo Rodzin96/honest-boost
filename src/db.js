@@ -4,11 +4,25 @@ const { Pool } = require('pg');
 let pool;
 let connected = false;
 
+/** Railway (and most managed Postgres providers) require SSL on their public
+ * and private hostnames; only plain localhost connections should skip it.
+ * Relying on NODE_ENV here was fragile because Railway does not always set
+ * NODE_ENV=production for the running service. */
+function resolveSslConfig(connectionString) {
+  if (!connectionString) return false;
+  const isLocalHost = /(^|@)(localhost|127\.0\.0\.1)(:|\/)/.test(connectionString);
+  return isLocalHost ? false : { rejectUnauthorized: false };
+}
+
 function getPool() {
   if (!pool) {
+    if (!process.env.DATABASE_URL) {
+      console.error('✗ DATABASE_URL is not set. Add a PostgreSQL database in Railway and link its DATABASE_URL to this service (Variables → Add Reference).');
+    }
+
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: resolveSslConfig(process.env.DATABASE_URL),
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000,
     });

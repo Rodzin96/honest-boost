@@ -64,6 +64,10 @@ async function ensureDbReady() {
       })
       .catch((err) => {
         dbInitPromise = null;
+        // Logged once per failed attempt so Railway's deploy logs show the
+        // real Postgres error (auth failure, wrong host, missing SSL, etc.)
+        // instead of every route silently returning database_not_ready.
+        console.error('✗ Database not ready:', err && err.message ? err.message : err);
         throw err;
       });
   }
