@@ -83,6 +83,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /* Database lazy load */
 let db = null;
+let dbReady = false;
+
 function getDb() {
   if (!db) {
     const { initSchema, get: dbGet, all: dbAll, run: dbRun } = require('./src/db');
@@ -90,6 +92,26 @@ function getDb() {
   }
   return db;
 }
+
+/* Wait for DB before handling requests */
+app.use(async (req, res, next) => {
+  if (req.path === '/health') return next();
+  
+  try {
+    const database = getDb();
+    if (!dbReady) {
+      await database.initSchema();
+      dbReady = true;
+    }
+    next();
+  } catch (err) {
+    console.error('DB middleware error:', err.message);
+    if (req.path.startsWith('/api/')) {
+      return res.status(503).json({ error: 'database_not_ready' });
+    }
+    next();
+  }
+});
 
 /* Auth helpers */
 function requireAuth(req, res, next) {
@@ -268,14 +290,6 @@ app.use((err, req, res, next) => {
 /* Boot - start server immediately */
 const server = app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
-  
-  // Init schema after server starts (non-blocking)
-  const db = getDb();
-  db.initSchema().then(() => {
-    console.log('✓ Schema initialized');
-  }).catch(err => {
-    console.error('⚠ Schema init failed:', err.message);
-  });
 });
 
 function shutdown(signal) {
