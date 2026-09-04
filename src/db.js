@@ -72,11 +72,16 @@ async function initSchema() {
       id SERIAL PRIMARY KEY,
       username TEXT UNIQUE,
       password_hash TEXT,
+      nickname TEXT,
       role TEXT DEFAULT 'user',
       reset_token TEXT,
       reset_expires BIGINT,
       created_at TEXT
     );
+
+    -- Older databases were created before the nickname column existed.
+    -- ADD COLUMN IF NOT EXISTS makes this migration safe to re-run on boot.
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname TEXT;
     
     CREATE TABLE IF NOT EXISTS sessions (
       sid TEXT PRIMARY KEY,

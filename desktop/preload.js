@@ -3,6 +3,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('hbDesktop', {
   getInfo: () => ipcRenderer.invoke('app:info'),
+  getDiagnostic: () => ipcRenderer.invoke('system:diagnostic'),
+  getRecoveryStatus: () => ipcRenderer.invoke('recovery:status'),
+  restoreRegistry: () => ipcRenderer.invoke('recovery:restore-registry'),
   
   // Stats integration
   fetchStats: () => ipcRenderer.invoke('stats:fetch'),
@@ -30,6 +33,9 @@ contextBridge.exposeInMainWorld('hbDesktop', {
   
   // Apply all
   applyAll: () => ipcRenderer.invoke('opt:apply-all'),
+  
+  // Ultra Blaster
+  ultraBlaster: () => ipcRenderer.invoke('ultra:blaster'),
   
   // Gaming mode
   enableGamingMode: () => ipcRenderer.invoke('gaming:enable'),

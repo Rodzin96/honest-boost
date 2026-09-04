@@ -178,8 +178,12 @@
   function updateUI() {
     if (!currentUser) return;
 
-    const username = currentUser.username || 'Usuário';
-    const initial = username.charAt(0).toUpperCase();
+    // "nickname" is the display name chosen at registration; "username" is
+    // the account's email (used for login, not meant to be shown as the
+    // person's name in the UI).
+    const displayName = currentUser.nickname || currentUser.username || 'Usuário';
+    const email = currentUser.username || '—';
+    const initial = displayName.charAt(0).toUpperCase();
     const createdAt = currentUser.createdAt ? new Date(currentUser.createdAt) : null;
     const createdText = createdAt && !isNaN(createdAt.getTime())
       ? createdAt.toLocaleDateString('pt-BR')
@@ -189,12 +193,12 @@
       : '—';
 
     setText('user-avatar', initial);
-    setText('user-name', username);
+    setText('user-name', displayName);
     setText('account-avatar', initial);
-    setText('account-name', username);
-    setText('account-email', username);
-    setText('detail-username', username);
-    setText('detail-email', username);
+    setText('account-name', displayName);
+    setText('account-email', email);
+    setText('detail-username', displayName);
+    setText('detail-email', email);
     setText('detail-role', currentUser.role === 'admin' ? 'Administrador' : 'Usuário');
     setText('detail-created', createdText);
     setText('stat-member-since', memberSince);

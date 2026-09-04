@@ -44,7 +44,14 @@
     token_expired: 'Token expirado. Solicite um novo.',
     invalid_password: 'A senha deve ter entre 8 e 200 caracteres.',
     invalid_email: 'Informe um email válido.',
+    invalid_license: 'Licença inválida ou inativa.',
+    license_required: 'É necessária uma licença ativa para continuar.',
+    device_limit_reached: 'Você atingiu o limite de dispositivos do seu plano.',
+    download_not_available: 'O instalador ainda não está disponível.',
     email_required: 'Informe seu email.',
+    nickname_required: 'Escolha um nome de usuário (apelido).',
+    nickname_invalid_length: 'O nome de usuário deve ter entre 2 e 30 caracteres.',
+    passwords_do_not_match: 'As senhas informadas não coincidem.',
     checkout_not_configured: 'Checkout indisponível no momento. Tente novamente mais tarde.',
     invalid_product: 'Plano inválido.',
     order_not_found: 'Pedido não encontrado.',
@@ -170,7 +177,7 @@
       var who = document.createElement('span');
       who.className = 'text-muted';
       who.style.fontSize = '0.85rem';
-      who.textContent = info.user.username;
+      who.textContent = info.user.nickname || info.user.username;
       wrap.appendChild(who);
 
       var logout = document.createElement('button');

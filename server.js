@@ -9,6 +9,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -54,11 +55,25 @@ function getDb() {
   return db;
 }
 
+async function provisionConfiguredAdmin() {
+  const email = normalizeEmail(process.env.ADMIN_USER);
+  const password = process.env.ADMIN_PASS;
+  if (!isValidEmail(email) || typeof password !== 'string' || password.length < 8) return;
+  const hash = await bcrypt.hash(password, 12);
+  await getDb().dbRun(
+    `INSERT INTO users (username, password_hash, nickname, role, created_at)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash, role = EXCLUDED.role`,
+    [email, hash, 'Admin', 'admin', new Date().toISOString()]
+  );
+}
+
 async function ensureDbReady() {
   if (dbReady) return true;
   if (!dbInitPromise) {
     dbInitPromise = getDb().initSchema()
-      .then(() => {
+      .then(async () => {
+        await provisionConfiguredAdmin();
         dbReady = true;
         return true;
       })
@@ -91,6 +106,7 @@ const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next
 /* Rate limiters */
 const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10 });
+const resetLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5 });
 
 /* Validation */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -108,7 +124,43 @@ function validateCredentials(body) {
 }
 
 function newLicenseKey() {
-  return uuidv4().replace(/-/g, '').toUpperCase();
+  return 'HB-' + uuidv4().replace(/-/g, '').toUpperCase().match(/.{1,4}/g).join('-');
+}
+
+function normalizeEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function isValidEmail(value) {
+  return EMAIL_RE.test(normalizeEmail(value));
+}
+
+function publicOrder(order, license) {
+  return {
+    orderId: order.order_id,
+    product: order.product,
+    amount: order.amount,
+    status: order.status,
+    createdAt: order.created_at,
+    license: license && license.status === 'active' ? license.license_key : null
+  };
+}
+
+async function activeLicenseForEmail(email) {
+  return getDb().dbGet(
+    'SELECT * FROM licenses WHERE email = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+    [email, 'active']
+  );
+}
+
+function passwordResetTransport() {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: Number(process.env.SMTP_PORT) === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  });
 }
 
 /* Routes */
@@ -137,9 +189,17 @@ app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
     }
   }
   
-  const { username, password } = req.body;
+  const { nickname, username, password, confirmPassword } = req.body;
   const errors = validateCredentials({ username, password });
   if (errors.length) return res.status(400).json({ error: errors[0] });
+
+  const nick = typeof nickname === 'string' ? nickname.trim() : '';
+  if (!nick) return res.status(400).json({ error: 'nickname_required' });
+  if (nick.length < 2 || nick.length > 30) return res.status(400).json({ error: 'nickname_invalid_length' });
+
+  if (typeof confirmPassword !== 'string' || confirmPassword !== password) {
+    return res.status(400).json({ error: 'passwords_do_not_match' });
+  }
   
   const email = username.trim().toLowerCase();
   const existing = await getDb().dbGet('SELECT id FROM users WHERE username = $1', [email]);
@@ -147,11 +207,11 @@ app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
   
   const hash = await bcrypt.hash(password, 12);
   await getDb().dbRun(
-    'INSERT INTO users (username, password_hash, role, created_at) VALUES ($1, $2, $3, $4)',
-    [email, hash, 'user', new Date().toISOString()]
+    'INSERT INTO users (username, password_hash, nickname, role, created_at) VALUES ($1, $2, $3, $4, $5)',
+    [email, hash, nick, 'user', new Date().toISOString()]
   );
   
-  return res.status(201).json({ ok: true, email });
+  return res.status(201).json({ ok: true, email, nickname: nick });
 }));
 
 app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
@@ -173,7 +233,7 @@ app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'invalid_credentials' });
   
-  req.session.user = { id: user.id, username: user.username, role: user.role };
+  req.session.user = { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role };
   return res.json({ ok: true, user: req.session.user });
 }));
 
@@ -181,6 +241,87 @@ app.post('/api/logout', (req, res) => {
   if (req.session) req.session.destroy();
   return res.json({ ok: true });
 });
+
+/* Password recovery. Tokens are stored hashed and never returned in production. */
+app.post('/api/password-reset-request', resetLimiter, asyncRoute(async (req, res) => {
+  try {
+    await ensureDbReady();
+  } catch {
+    return res.status(503).json({ error: 'database_not_ready' });
+  }
+
+  const email = normalizeEmail(req.body && req.body.username);
+  // Always return the same response so this endpoint cannot enumerate accounts.
+  const response = { ok: true, message: 'Se a conta existir, um email de recuperação será enviado.' };
+  if (!isValidEmail(email)) return res.json(response);
+
+  const user = await getDb().dbGet('SELECT id FROM users WHERE username = $1', [email]);
+  if (!user) return res.json(response);
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const expires = Date.now() + (60 * 60 * 1000);
+  await getDb().dbRun('UPDATE users SET reset_token = $1, reset_expires = $2 WHERE id = $3', [tokenHash, expires, user.id]);
+
+  const baseUrl = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  const resetUrl = `${baseUrl}/reset.html?token=${encodeURIComponent(rawToken)}`;
+  const transport = passwordResetTransport();
+  if (transport) {
+    await transport.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: 'Redefinição de senha — Honest Boost',
+      text: `Use este link para redefinir sua senha (válido por 1 hora): ${resetUrl}`
+    });
+  } else if (!IS_PRODUCTION) {
+    response.devToken = rawToken;
+  } else {
+    console.warn('Password reset requested but SMTP is not configured.');
+  }
+  return res.json(response);
+}));
+
+app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res) => {
+  try {
+    await ensureDbReady();
+  } catch {
+    return res.status(503).json({ error: 'database_not_ready' });
+  }
+  const token = typeof req.body?.token === 'string' ? req.body.token : '';
+  const newPassword = req.body?.newPassword;
+  if (!token || typeof newPassword !== 'string' || newPassword.length < 8 || newPassword.length > 200) {
+    return res.status(400).json({ error: 'invalid_password' });
+  }
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await getDb().dbGet(
+    'SELECT id FROM users WHERE reset_token = $1 AND reset_expires > $2',
+    [tokenHash, Date.now()]
+  );
+  if (!user) return res.status(400).json({ error: 'invalid_token' });
+  const hash = await bcrypt.hash(newPassword, 12);
+  await getDb().dbRun(
+    'UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires = NULL WHERE id = $2',
+    [hash, user.id]
+  );
+  return res.json({ ok: true });
+}));
+
+/* A signed-in customer may only download after an active license is issued. */
+app.get('/api/download', requireAuth, asyncRoute(async (req, res) => {
+  try {
+    await ensureDbReady();
+  } catch {
+    return res.status(503).json({ error: 'database_not_ready' });
+  }
+  const license = await activeLicenseForEmail(req.session.user.username);
+  if (!license) return res.status(403).json({ error: 'license_required' });
+  const downloadsDir = path.join(__dirname, 'public', 'downloads');
+  const installer = ['HonestBoostSetup.exe', 'honest-boost-setup.exe'].find((name) =>
+    require('fs').existsSync(path.join(downloadsDir, name))
+  );
+  if (!installer) return res.status(503).json({ error: 'download_not_available' });
+  return res.json({ ok: true, url: `/downloads/${installer}`, filename: installer });
+}));
 
 /* API Keys */
 app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
@@ -193,6 +334,16 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   }
   
   const userId = req.session.user.id;
+  const license = await activeLicenseForEmail(req.session.user.username);
+  if (!license) return res.status(403).json({ error: 'license_required' });
+  const product = require('./src/products').getProduct(license.product);
+  const activeKeys = await getDb().dbGet(
+    'SELECT COUNT(*)::int AS count FROM api_keys WHERE user_id = $1 AND status = $2 AND expires_at > $3',
+    [userId, 'active', new Date().toISOString()]
+  );
+  if (Number(activeKeys && activeKeys.count) >= (product ? product.seats : 1)) {
+    return res.status(409).json({ error: 'device_limit_reached' });
+  }
   
   const rawKey = 'hb_' + crypto.randomBytes(24).toString('hex');
   const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
@@ -250,15 +401,83 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
   
   await getDb().dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
   
-  const user = await getDb().dbGet('SELECT id, username, role FROM users WHERE id = $1', [dbKey.user_id]);
+  const user = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE id = $1', [dbKey.user_id]);
   if (!user) return res.status(404).json({ error: 'user_not_found' });
   
   return res.json({
     ok: true,
     token: key,
-    user: { id: user.id, username: user.username, role: user.role },
+    user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role },
     expiresAt: dbKey.expires_at
   });
+}));
+
+/* Commerce administration. Payment creation remains deliberately disabled until
+ * a provider integration can attach a provider transaction to our order id. */
+app.post('/api/create-checkout-session', asyncRoute(async (req, res) => {
+  const { isValidProduct } = require('./src/products');
+  const email = normalizeEmail(req.body && req.body.email);
+  if (!isValidProduct(req.body && req.body.product)) return res.status(400).json({ error: 'invalid_product' });
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
+  return res.status(503).json({
+    error: 'checkout_not_configured',
+    message: 'O checkout ainda não está configurado para vincular pagamentos a licenças com segurança.'
+  });
+}));
+
+app.get('/api/orders/:orderId', requireAuth, asyncRoute(async (req, res) => {
+  try {
+    await ensureDbReady();
+  } catch {
+    return res.status(503).json({ error: 'database_not_ready' });
+  }
+  const order = await getDb().dbGet('SELECT * FROM orders WHERE order_id = $1', [req.params.orderId]);
+  if (!order) return res.status(404).json({ error: 'order_not_found' });
+  if (req.session.user.role !== 'admin' && order.email !== req.session.user.username) return res.status(403).json({ error: 'forbidden' });
+  const license = await getDb().dbGet('SELECT * FROM licenses WHERE order_id = $1 ORDER BY created_at DESC LIMIT 1', [order.order_id]);
+  return res.json(publicOrder(order, license));
+}));
+
+app.get('/api/orders', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const orders = await getDb().dbAll('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200');
+  return res.json(orders);
+}));
+
+app.get('/api/licenses', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const licenses = await getDb().dbAll('SELECT * FROM licenses ORDER BY created_at DESC LIMIT 200');
+  return res.json(licenses);
+}));
+
+/* Manual issuance is kept for support and migration. It creates an active
+ * entitlement, which is required before a customer can issue desktop keys. */
+app.post('/api/licenses', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const { getProduct } = require('./src/products');
+  const email = normalizeEmail(req.body && req.body.email);
+  const product = getProduct(req.body && req.body.product);
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
+  if (!product) return res.status(400).json({ error: 'invalid_product' });
+  const license = newLicenseKey();
+  const createdAt = new Date().toISOString();
+  await getDb().dbRun(
+    'INSERT INTO licenses (license_key, email, product, status, created_at) VALUES ($1, $2, $3, $4, $5)',
+    [license, email, product.id, 'active', createdAt]
+  );
+  return res.status(201).json({ ok: true, license });
+}));
+
+app.post('/api/licenses/verify', asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const suppliedKey = req.body?.licenseKey || req.body?.license;
+  const licenseKey = typeof suppliedKey === 'string' ? suppliedKey.trim() : '';
+  const license = await getDb().dbGet(
+    'SELECT license_key, email, product, status FROM licenses WHERE license_key = $1',
+    [licenseKey]
+  );
+  if (!license || license.status !== 'active') return res.status(401).json({ error: 'invalid_license' });
+  return res.json({ ok: true, valid: true, product: license.product, email: license.email });
 }));
 
 /* Dashboard */

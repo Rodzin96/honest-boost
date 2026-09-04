@@ -57,6 +57,10 @@
             <button class="nav-item active" data-panel="dashboard">
                 <span class="material-symbols-rounded">dashboard</span> Dashboard
             </button>
+            <button class="nav-item" data-panel="quick-optimize">
+                <span class="material-symbols-rounded">bolt</span> Otimização Rápida
+                <span class="nav-badge" style="background:var(--success);">NOVO</span>
+            </button>
             <button class="nav-item" data-panel="all-opts">
                 <span class="material-symbols-rounded">auto_fix_high</span> Otimizações
                 <span class="nav-badge">15</span>
@@ -133,13 +137,55 @@
                         <h1 class="hero-title">Seu PC está <span>otimizado</span></h1>
                         <p class="hero-desc">Aplique todas as otimizações com um clique e libere o verdadeiro potencial do seu setup para jogos competitivos.</p>
                         <div class="hero-actions">
-                            <button class="btn btn-filled" onclick="document.querySelector('[data-panel=all-opts]').click()">
-                                <span class="material-symbols-rounded">bolt</span> Aplicar Todas
+                            <button class="btn btn-filled" id="quick-optimize-btn">
+                                <span class="material-symbols-rounded">bolt</span> Otimização Rápida
+                            </button>
+                            <button class="btn btn-ghost" onclick="document.querySelector('[data-panel=all-opts]').click()">
+                                <span class="material-symbols-rounded">auto_fix_high</span> Aplicar Todas
                             </button>
                             <button class="btn btn-ghost" onclick="document.querySelector('[data-panel=gaming]').click()">
                                 <span class="material-symbols-rounded">sports_esports</span> Modo Gaming
                             </button>
                         </div>
+                    </div>
+                </section>
+
+                <section class="diagnostic-section" aria-labelledby="diagnostic-title">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="diagnostic-title">Prontidão competitiva</h2>
+                            <p class="section-subtitle" id="diagnostic-summary">Analisando as configurações essenciais do seu setup...</p>
+                        </div>
+                        <button class="btn btn-ghost" id="refresh-diagnostic-btn" type="button">
+                            <span class="material-symbols-rounded">refresh</span> Analisar novamente
+                        </button>
+                    </div>
+                    <div class="diagnostic-grid" id="diagnostic-grid" aria-live="polite"></div>
+                    <p class="diagnostic-note"><span class="material-symbols-rounded">info</span> O diagnóstico apenas lê configurações; nenhuma alteração é aplicada automaticamente.</p>
+                    <div class="recovery-bar">
+                        <div><strong>Recuperação de Registro</strong><span id="recovery-status">Verificando alterações reversíveis...</span></div>
+                        <button class="btn btn-ghost" id="restore-registry-btn" type="button" disabled>
+                            <span class="material-symbols-rounded">settings_backup_restore</span> Restaurar alterações
+                        </button>
+                    </div>
+                </section>
+
+                <section class="game-profile-section" aria-labelledby="game-profile-title">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="game-profile-title">Perfil competitivo por jogo</h2>
+                            <p class="section-subtitle">Escolha seu jogo para receber uma preparação recomendada.</p>
+                        </div>
+                        <select class="profile-select" id="game-profile-select" aria-label="Escolha seu jogo">
+                            <option value="valorant">Valorant</option>
+                            <option value="cs2">Counter-Strike 2</option>
+                            <option value="fortnite">Fortnite</option>
+                            <option value="generic">Competitivo geral</option>
+                        </select>
+                    </div>
+                    <div class="profile-content">
+                        <div id="game-profile-details"></div>
+                        <button class="btn btn-filled" id="view-profile-optimizations-btn" type="button"><span class="material-symbols-rounded">tune</span> Ver ajustes recomendados</button>
                     </div>
                 </section>
                 
@@ -169,9 +215,38 @@
                         <div class="stat-change positive"><span class="material-symbols-rounded" style="font-size:14px;">arrow_downward</div>
                     </div>
                 </section>
-            </div>
+                </div>
             
-            <!-- ALL OPTIMIZATIONS PANEL -->
+                <!-- QUICK OPTIMIZE PANEL -->
+                <div class="panel" id="panel-quick-optimize">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Otimização Rápida</h2>
+                            <p class="section-subtitle">Aplica as otimizações mais importantes com um clique</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="max-width:700px;text-align:center;padding:3rem;margin-bottom:2rem;">
+                        <div style="width:100px;height:100px;margin:0 auto 1.5rem;border-radius:24px;background:var(--gradient-brand);display:grid;place-items:center;box-shadow:var(--shadow-glow);">
+                            <span class="material-symbols-rounded" style="font-size:48px;color:#fff;">bolt</span>
+                        </div>
+                        <h3 style="font-size:1.6rem;font-weight:800;margin-bottom:0.5rem;">Modo Ultra Blaster Mega Gamer</h3>
+                        <p style="color:var(--text-secondary);margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto;">Limpa arquivos temporários, desativa startups desnecessários, otimiza rede, desativa telemetria e aplica todas as otimizações de performance de uma vez.</p>
+                        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                            <button class="btn btn-filled" id="ultra-blaster-btn" style="padding:1rem 2rem;font-size:1rem;">
+                                <span class="material-symbols-rounded">rocket_launch</span> Ativar Ultra Blaster
+                            </button>
+                        </div>
+                        <div id="ultra-blaster-status" style="margin-top:1.5rem;font-size:0.9rem;color:var(--text-muted);"></div>
+                    </div>
+                    <div class="section-header">
+                        <div>
+                            <h3 class="section-title" style="font-size:1.1rem;">O que será aplicado:</h3>
+                        </div>
+                    </div>
+                    <div class="opt-grid" id="opt-grid-quick" style="margin-top:1rem;"></div>
+                </div>
+            
+                <!-- ALL OPTIMIZATIONS PANEL -->
             <div class="panel" id="panel-all-opts">
                 <div class="section-header">
                     <div>
@@ -384,6 +459,25 @@ const CATEGORY_TITLES = {
     'servicos': 'Serviços do Windows'
 };
 
+const OPTIMIZATION_SAFETY = {
+    'high-perf-power': ['Reversível', 'Pode exigir reinício'],
+    'cpu-core-parking': ['Requer administrador', 'Pode exigir reinício'],
+    'cpu-scheduler': ['Requer administrador', 'Registro'],
+    'disable-gamedvr': ['Reversível', 'Registro'],
+    'visual-effects': ['Reversível', 'Registro'],
+    'disable-mouse-accel': ['Reversível', 'Registro'],
+    'polling-rate': ['Não altera o hardware', 'Registro'],
+    'mouse-threshold': ['Reversível', 'Registro'],
+    'monitor-refresh': ['Reversível pelo Windows', 'Tela pode piscar'],
+    'disable-fullscreen-opt': ['Reversível', 'Registro'],
+    'network': ['Altera rede', 'Reversão manual'],
+    'dns-cloudflare': ['Altera DNS', 'Reversão manual'],
+    'qos-disable': ['Requer administrador', 'Registro'],
+    'clean-ram': ['Temporário', 'Sem reinício'],
+    'disable-telemetry': ['Requer administrador', 'Altera serviços'],
+    'disable-updates': ['Requer administrador', 'Altera políticas']
+};
+
 // ==================== STATE ====================
 let currentUser = null;
 let licenseData = null;
@@ -403,7 +497,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initOptCards();
     initApplyAll();
     initGamingMode();
+    initQuickOptimize();
     initUpdates();
+    initDiagnostic();
+    initRecovery();
+    initGameProfiles();
     checkExistingSession();
     updateStats();
     fetchGlobalStats();
@@ -477,7 +575,7 @@ async function handleLogin() {
             const result = await window.hbDesktop.authenticateWithKey(key);
             if (result.ok) {
                 licenseData = { key, product: result.user?.role || 'pro', email: result.user?.username || 'user@honestboost.com.br' };
-                currentUser = { name: result.user?.username || 'Usuário', email: licenseData.email, product: licenseData.product };
+                currentUser = { name: result.user?.nickname || result.user?.username || 'Usuário', email: licenseData.email, product: licenseData.product };
                 localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
                 showApp();
                 return;
@@ -535,6 +633,7 @@ function showApp() {
     document.getElementById('app-layout').style.display = 'flex';
     updateUserInfo();
     updateOSInfo();
+    refreshDiagnostic();
 }
 
 function logout() {
@@ -577,6 +676,148 @@ async function updateOSInfo() {
     } catch {}
 }
 
+// ==================== COMPETITIVE READINESS DIAGNOSTIC ====================
+function initDiagnostic() {
+    const refreshBtn = document.getElementById('refresh-diagnostic-btn');
+    if (refreshBtn) refreshBtn.addEventListener('click', refreshDiagnostic);
+}
+
+function initRecovery() {
+    const restoreBtn = document.getElementById('restore-registry-btn');
+    if (restoreBtn) {
+        restoreBtn.addEventListener('click', async () => {
+            if (!window.confirm('Restaurar as alterações de Registro salvas pelo Honest Boost? Algumas mudanças podem exigir reinício.')) return;
+            restoreBtn.disabled = true;
+            restoreBtn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Restaurando...';
+            try {
+                const result = await window.hbDesktop.restoreRegistry();
+                const status = document.getElementById('recovery-status');
+                if (result.ok) {
+                    status.textContent = `${result.restored} alteração(ões) restaurada(s).`;
+                    restoreBtn.disabled = true;
+                } else {
+                    status.textContent = `${result.restored} alteração(ões) restaurada(s); ${result.failures.length} exigem atenção.`;
+                    restoreBtn.disabled = false;
+                }
+            } catch {
+                document.getElementById('recovery-status').textContent = 'Não foi possível restaurar todas as alterações.';
+                restoreBtn.disabled = false;
+            }
+            restoreBtn.innerHTML = '<span class="material-symbols-rounded">settings_backup_restore</span> Restaurar alterações';
+            refreshDiagnostic();
+        });
+    }
+    refreshRecoveryStatus();
+}
+
+function initGameProfiles() {
+    const select = document.getElementById('game-profile-select');
+    const button = document.getElementById('view-profile-optimizations-btn');
+    if (!select) return;
+    const render = () => renderGameProfile(select.value);
+    select.addEventListener('change', render);
+    if (button) button.addEventListener('click', () => navigateTo('all-opts'));
+    render();
+}
+
+function renderGameProfile(profileId) {
+    const details = document.getElementById('game-profile-details');
+    if (!details) return;
+    const profiles = {
+        valorant: { title: 'Valorant — foco em consistência', items: ['Precisão do mouse e aceleração desligada', 'Plano de energia e Game DVR revisados', 'Confirme o maior refresh rate disponível'] },
+        cs2: { title: 'Counter-Strike 2 — foco em resposta', items: ['Precisão do mouse e fullscreen revisados', 'Plano de energia e tarefas em segundo plano', 'Revise a rede antes de entrar na partida'] },
+        fortnite: { title: 'Fortnite — foco em estabilidade', items: ['Plano de energia e efeitos visuais', 'Game DVR e processos em segundo plano', 'Não altere a rede sem testar sua conexão'] },
+        generic: { title: 'Competitivo geral — preparação segura', items: ['Analise o diagnóstico antes de alterar', 'Aplique um ajuste por vez e valide no jogo', 'Use a recuperação de Registro se necessário'] }
+    };
+    const profile = profiles[profileId] || profiles.generic;
+    details.replaceChildren();
+    const title = document.createElement('strong');
+    title.textContent = profile.title;
+    const list = document.createElement('ul');
+    profile.items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        list.appendChild(li);
+    });
+    details.append(title, list);
+}
+
+async function refreshRecoveryStatus() {
+    if (!window.hbDesktop?.getRecoveryStatus) return;
+    const status = document.getElementById('recovery-status');
+    const restoreBtn = document.getElementById('restore-registry-btn');
+    try {
+        const recovery = await window.hbDesktop.getRecoveryStatus();
+        status.textContent = recovery.count
+            ? `${recovery.count} alteração(ões) de Registro podem ser restauradas.`
+            : 'Nenhuma alteração de Registro salva nesta sessão.';
+        restoreBtn.disabled = !recovery.count;
+    } catch {
+        status.textContent = 'Status de recuperação indisponível.';
+    }
+}
+
+async function refreshDiagnostic() {
+    const grid = document.getElementById('diagnostic-grid');
+    const summary = document.getElementById('diagnostic-summary');
+    const refreshBtn = document.getElementById('refresh-diagnostic-btn');
+    if (!grid || !summary || !window.hbDesktop?.getDiagnostic) return;
+
+    if (refreshBtn) refreshBtn.disabled = true;
+    summary.textContent = 'Analisando as configurações essenciais do seu setup...';
+    grid.replaceChildren();
+
+    try {
+        const result = await window.hbDesktop.getDiagnostic();
+        if (!result?.ok || !result.diagnostic) throw new Error('diagnostic_failed');
+        const diagnostic = result.diagnostic;
+        const checks = diagnostic.checks || [];
+        const readyCount = checks.filter(check => check.state === 'ready').length;
+        summary.textContent = checks.length
+            ? `${readyCount} de ${checks.length} verificações essenciais estão prontas para jogar.`
+            : `Setup detectado: ${diagnostic.cpuCores} núcleos e ${diagnostic.memoryTotalGb} GB de RAM.`;
+
+        checks.forEach(check => {
+            const card = document.createElement('article');
+            card.className = 'diagnostic-card ' + (check.state === 'ready' ? 'is-ready' : 'needs-attention');
+            const icon = document.createElement('span');
+            icon.className = 'material-symbols-rounded diagnostic-icon';
+            icon.textContent = check.state === 'ready' ? 'verified' : 'priority_high';
+            const content = document.createElement('div');
+            const title = document.createElement('strong');
+            title.textContent = check.label;
+            const value = document.createElement('span');
+            value.className = 'diagnostic-value';
+            value.textContent = check.value;
+            const recommendation = document.createElement('p');
+            recommendation.textContent = check.recommendation;
+            content.append(title, value, recommendation);
+            card.append(icon, content);
+            grid.appendChild(card);
+        });
+
+        const setup = document.createElement('article');
+        setup.className = 'diagnostic-card setup-card';
+        setup.innerHTML = '<span class="material-symbols-rounded diagnostic-icon">memory</span>';
+        const setupContent = document.createElement('div');
+        const setupTitle = document.createElement('strong');
+        setupTitle.textContent = 'Seu setup';
+        const setupValue = document.createElement('span');
+        setupValue.className = 'diagnostic-value';
+        setupValue.textContent = `${diagnostic.cpuCores} núcleos · ${diagnostic.memoryTotalGb} GB RAM`;
+        const setupNote = document.createElement('p');
+        setupNote.textContent = `${diagnostic.memoryFreeGb} GB de RAM livre no momento.`;
+        setupContent.append(setupTitle, setupValue, setupNote);
+        setup.appendChild(setupContent);
+        grid.appendChild(setup);
+    } catch {
+        summary.textContent = 'Não foi possível concluir o diagnóstico agora.';
+    } finally {
+        if (refreshBtn) refreshBtn.disabled = false;
+        refreshRecoveryStatus();
+    }
+}
+
 // ==================== NAVIGATION ====================
 function initNavigation() {
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -605,6 +846,7 @@ function navigateTo(panelId) {
     
     const titles = {
         'dashboard': ['Dashboard', 'Visão geral do seu sistema'],
+        'quick-optimize': ['Otimização Rápida', 'Modo Ultra Blaster Mega Gamer'],
         'all-opts': ['Otimizações', 'Todas as otimizações disponíveis'],
         'fps': ['FPS & CPU', 'Otimizações de processamento e energia'],
         'mouse': ['Mouse', 'Reduza input lag e melhore a precisão'],
@@ -646,6 +888,8 @@ function createOptCard(opt) {
     card.dataset.opt = opt.id;
     if (appliedOpts.has(opt.id)) card.classList.add('applied');
     
+    const labels = OPTIMIZATION_SAFETY[opt.id] || [];
+    const labelsHtml = labels.map(label => `<span class="safety-tag">${label}</span>`).join('');
     card.innerHTML = `
         <div class="opt-header">
             <div class="opt-icon"><span class="material-symbols-rounded">${opt.icon}</span></div>
@@ -655,6 +899,7 @@ function createOptCard(opt) {
             </div>
         </div>
         <div class="opt-desc">${opt.desc}</div>
+        <div class="safety-tags">${labelsHtml}</div>
         <div class="opt-footer">
             <div class="opt-result"></div>
             <button class="btn btn-filled run-btn" data-opt="${opt.id}" style="padding:0.5rem 1rem;font-size:0.8rem;">
@@ -709,6 +954,7 @@ async function runOpt(optId, btn) {
             totalAppliedCount++;
             saveAppliedOpts();
             updateStats();
+            refreshRecoveryStatus();
             
             // Report to stats server
             const opt = OPTIMIZATIONS.find(o => o.id === optId);
@@ -768,6 +1014,116 @@ async function fetchGlobalStats() {
             if (el) el.textContent = total.toLocaleString('pt-BR') + '+';
         }
     } catch {}
+}
+
+// ==================== QUICK OPTIMIZE (ULTRA BLASTER) ====================
+function initQuickOptimize() {
+    // Populate quick optimize grid
+    const quickGrid = document.getElementById('opt-grid-quick');
+    if (quickGrid) {
+        const quickOpts = [
+            { name: 'Limpeza de Disco', icon: 'cleaning_services', desc: 'Remove arquivos temporários e cache do sistema' },
+            { name: 'Desativar Startups', icon: 'restart_alt', desc: 'Desabilita programas de inicialização desnecessários' },
+            { name: 'Otimizar Rede', icon: 'wifi', desc: 'Ajusta TCP e desativa Interrupt Moderation' },
+            { name: 'Desativar Telemetria', icon: 'privacy_tip', desc: 'Desativa coleta de dados do Windows' },
+            { name: 'Plano de Energia', icon: 'battery_charging_full', desc: 'Ativa modo Alto Desempenho' },
+            { name: 'Core Parking Off', icon: 'developer_board', desc: 'Mantém todos os cores do processador ativos' },
+            { name: 'GPU Max Performance', icon: 'memory', desc: 'GPU em modo de máxima performance' },
+            { name: 'Serviços Desnecessários', icon: 'tune', desc: 'Desativa serviços que consomem recursos' }
+        ];
+        
+        quickOpts.forEach(opt => {
+            const card = document.createElement('div');
+            card.className = 'opt-card';
+            card.innerHTML = `
+                <div class="opt-header">
+                    <div class="opt-icon"><span class="material-symbols-rounded">${opt.icon}</span></div>
+                    <div class="opt-info">
+                        <div class="opt-title">${opt.name}</div>
+                    </div>
+                </div>
+                <div class="opt-desc">${opt.desc}</div>
+            `;
+            quickGrid.appendChild(card);
+        });
+    }
+    
+    // Quick optimize button in hero
+    const quickBtn = document.getElementById('quick-optimize-btn');
+    if (quickBtn) {
+        quickBtn.addEventListener('click', () => navigateTo('quick-optimize'));
+    }
+    
+    // Ultra Blaster button
+    const ultraBtn = document.getElementById('ultra-blaster-btn');
+    const ultraStatus = document.getElementById('ultra-blaster-status');
+    
+    if (ultraBtn) {
+        ultraBtn.addEventListener('click', async () => {
+            if (!window.hbDesktop) return;
+            
+            ultraBtn.disabled = true;
+            ultraBtn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Aplicando...';
+            ultraStatus.innerHTML = '<span style="color:var(--warning);">Otimizando seu PC...</span>';
+            
+            try {
+                // Run all optimizations via Ultra Blaster
+                const results = await window.hbDesktop.ultraBlaster();
+                
+                const successCount = results.filter(r => r.ok).length;
+                const failCount = results.filter(r => !r.ok).length;
+                const cleanResult = results.find(r => r.name === 'Limpeza de Disco');
+                const freedMB = cleanResult?.freedMB || 0;
+                
+                let resultText = `<span style="color:var(--success);font-weight:600;">✓ Ultra Blaster aplicado!</span> — ${successCount} otimizações com sucesso`;
+                if (failCount > 0) resultText += `, ${failCount} falharam`;
+                if (freedMB > 0) resultText += `. <strong>${freedMB} MB</strong> de disco liberados`;
+                
+                const successfulNames = new Set(results.filter(r => r.ok).map(r => r.name));
+                document.querySelectorAll('#opt-grid-quick .opt-card').forEach(card => {
+                    const name = card.querySelector('.opt-title')?.textContent;
+                    if (successfulNames.has(name)) card.classList.add('applied');
+                });
+
+                // Only reflect confirmed operations in the main optimization list.
+                const resultToOptimization = {
+                    'Otimizar Rede': 'network',
+                    'Plano de Energia': 'high-perf-power',
+                    'Core Parking Off': 'cpu-core-parking',
+                    'Desativar Telemetria': 'disable-telemetry'
+                };
+                results.filter(r => r.ok && resultToOptimization[r.name]).forEach(result => {
+                    const optId = resultToOptimization[result.name];
+                    appliedOpts.add(optId);
+                    const card = document.querySelector(`.opt-card[data-opt="${optId}"]`);
+                    if (card) {
+                        card.classList.add('applied');
+                        const resultEl = card.querySelector('.opt-result');
+                        if (resultEl) {
+                            resultEl.className = 'opt-result ok';
+                            resultEl.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Aplicado';
+                        }
+                    }
+                });
+
+                totalAppliedCount += successCount;
+                saveAppliedOpts();
+                updateStats();
+                refreshRecoveryStatus();
+                
+                ultraStatus.innerHTML = resultText;
+                
+                if (window.hbDesktop.notify) {
+                    window.hbDesktop.notify('Ultra Blaster', `${successCount} otimizações aplicadas com sucesso!`);
+                }
+            } catch (e) {
+                ultraStatus.innerHTML = `<span style="color:var(--error);">Erro: ${e.message}</span>`;
+            }
+            
+            ultraBtn.disabled = false;
+            ultraBtn.innerHTML = '<span class="material-symbols-rounded">rocket_launch</span> Ativar Ultra Blaster';
+        });
+    }
 }
 
 // ==================== APPLY ALL ====================

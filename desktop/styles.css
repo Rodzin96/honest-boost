@@ -484,6 +484,83 @@ a { color: var(--primary); text-decoration: none; }
   margin-top: 2px;
 }
 
+/* ---------- Competitive readiness diagnostic ---------- */
+.diagnostic-section {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: 18px;
+  padding: 1.25rem;
+}
+
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.diagnostic-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-glass);
+}
+
+.diagnostic-card.is-ready { border-color: color-mix(in srgb, var(--success) 35%, var(--border-subtle)); }
+.diagnostic-card.needs-attention { border-color: color-mix(in srgb, var(--warning) 38%, var(--border-subtle)); }
+
+.diagnostic-icon { color: var(--primary); margin-top: 2px; }
+.diagnostic-card.is-ready .diagnostic-icon { color: var(--success); }
+.diagnostic-card.needs-attention .diagnostic-icon { color: var(--warning); }
+.diagnostic-card strong, .diagnostic-value { display: block; }
+.diagnostic-card strong { font-size: 0.9rem; }
+.diagnostic-value { color: var(--text-primary); font-size: 0.82rem; font-weight: 600; margin-top: 0.1rem; }
+.diagnostic-card p { color: var(--text-muted); font-size: 0.76rem; line-height: 1.45; margin-top: 0.3rem; }
+
+.diagnostic-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  margin-top: 0.9rem;
+}
+.diagnostic-note .material-symbols-rounded { color: var(--primary); font-size: 16px; }
+
+.recovery-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+.recovery-bar strong { display: block; font-size: 0.84rem; }
+.recovery-bar span { display: block; color: var(--text-muted); font-size: 0.76rem; margin-top: 0.15rem; }
+
+.game-profile-section {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: 18px;
+  padding: 1.25rem;
+}
+.profile-select {
+  padding: 0.6rem 2rem 0.6rem 0.8rem;
+  color: var(--text-primary);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  font: inherit;
+}
+.profile-content { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+.profile-content strong { font-size: 0.92rem; }
+.profile-content ul { color: var(--text-secondary); font-size: 0.82rem; margin: 0.5rem 0 0 1.1rem; }
+.profile-content li + li { margin-top: 0.2rem; }
+
 /* ============================================================
    STATS DASHBOARD
    ============================================================ */
@@ -682,6 +759,22 @@ a { color: var(--primary); text-decoration: none; }
   line-height: 1.5;
   position: relative;
   z-index: 1;
+}
+
+.safety-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  position: relative;
+  z-index: 1;
+}
+.safety-tag {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 .opt-footer {
