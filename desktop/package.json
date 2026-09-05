@@ -5,6 +5,10 @@
   "main": "main.js",
   "author": "Honest Boost",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rodzin96/honest-boost.git"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
@@ -31,7 +35,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "../public/logo.svg",
+      "icon": "icon.ico",
       "publisherName": "Honest Boost"
     },
     "nsis": {
@@ -40,9 +44,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Honest Boost"
-    },
-    "publish": {
-      "provider": "github"
     }
+  },
+  "publish": {
+    "provider": "github"
   }
 }

@@ -306,17 +306,10 @@ app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res
   return res.json({ ok: true });
 }));
 
-/* A signed-in customer may only download after an active license is issued. */
+/* Download - available to any logged-in user (trial or premium) */
 app.get('/api/download', requireAuth, asyncRoute(async (req, res) => {
-  try {
-    await ensureDbReady();
-  } catch {
-    return res.status(503).json({ error: 'database_not_ready' });
-  }
-  const license = await activeLicenseForEmail(req.session.user.username);
-  if (!license) return res.status(403).json({ error: 'license_required' });
   const downloadsDir = path.join(__dirname, 'public', 'downloads');
-  const installer = ['HonestBoostSetup.exe', 'honest-boost-setup.exe'].find((name) =>
+  const installer = ['HonestBoostSetup.exe', 'honest-boost-setup.exe', 'Honest Boost Setup 2.0.0.exe'].find((name) =>
     require('fs').existsSync(path.join(downloadsDir, name))
   );
   if (!installer) return res.status(503).json({ error: 'download_not_available' });
