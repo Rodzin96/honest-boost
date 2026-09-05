@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolha seu plano — Honest Boost</title>
+    <meta name="description" content="Escolha o plano ideal para suas necessidades. Do básico ao competitivo.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#0a0f1a">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('hb-theme');
+                if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <style>
+        .plans-page { padding: 2rem 0 4rem; }
+        .plans-hero { text-align: center; max-width: 700px; margin: 0 auto 3rem; }
+        .plans-eyebrow {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; border-radius: 999px;
+            background: color-mix(in srgb, var(--primary) 12%, transparent);
+            border: 1px solid color-mix(in srgb, var(--primary) 24%, transparent);
+            color: var(--primary); font-size: 0.85rem; font-weight: 700;
+            margin-bottom: 1.2rem;
+        }
+        .plans-hero h1 { margin-bottom: 0.8rem; }
+        .plans-hero p { color: var(--on-surface-variant); font-size: 1.05rem; }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .plan-card {
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 28px;
+            padding: 2rem;
+            box-shadow: var(--elevation-1);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--elevation-2);
+            border-color: color-mix(in srgb, var(--primary) 30%, var(--divider));
+        }
+
+        .plan-card.featured {
+            border-color: var(--primary);
+            background: color-mix(in srgb, var(--primary) 4%, var(--surface-1));
+        }
+
+        .plan-card.featured::before {
+            content: 'Mais popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .plan-header { margin-bottom: 1.5rem; }
+        .plan-name { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .plan-tagline { color: var(--on-surface-variant); font-size: 0.9rem; margin-bottom: 1rem; }
+        .plan-price { display: flex; align-items: baseline; gap: 0.3rem; }
+        .plan-price .currency { font-size: 1.2rem; font-weight: 600; }
+        .plan-price .amount { font-size: 2.5rem; font-weight: 800; color: var(--primary); }
+        .plan-price .period { color: var(--on-surface-variant); font-size: 0.9rem; }
+
+        .plan-features { list-style: none; display: grid; gap: 0.7rem; margin-bottom: 1.5rem; flex: 1; }
+        .plan-features li {
+            display: flex; align-items: flex-start; gap: 0.6rem;
+            font-size: 0.9rem; color: var(--on-surface-variant);
+        }
+        .plan-features li .material-symbols-rounded {
+            color: var(--success); font-size: 18px; margin-top: 1px; flex-shrink: 0;
+        }
+        .plan-features li.disabled { opacity: 0.4; }
+        .plan-features li.disabled .material-symbols-rounded { color: var(--on-surface-variant); }
+
+        .plan-card .btn { width: 100%; }
+
+        .plan-comparison {
+            max-width: 1100px;
+            margin: 3rem auto 0;
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 28px;
+            padding: 2rem;
+        }
+        .plan-comparison h2 { margin-bottom: 1.5rem; text-align: center; }
+        .comparison-table { width: 100%; border-collapse: collapse; }
+        .comparison-table th, .comparison-table td {
+            padding: 0.8rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--divider);
+        }
+        .comparison-table th { font-weight: 600; font-size: 0.9rem; }
+        .comparison-table td:first-child { text-align: left; color: var(--on-surface-variant); }
+        .comparison-table tr:last-child td { border-bottom: none; }
+        .check-icon { color: var(--success); }
+        .cross-icon { color: var(--error); opacity: 0.5; }
+
+        @media (max-width: 1024px) {
+            .plans-grid { grid-template-columns: 1fr; max-width: 500px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header" id="app-header">
+        <div class="container header-inner">
+            <a href="/" class="brand" aria-label="Honest Boost, página inicial">
+                <span class="brand-icon"><span class="material-symbols-rounded">bolt</span></span>
+                <span>Honest BOOST</span>
+            </a>
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+            <nav aria-label="Navegação principal">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/index.html#beneficios">Benefícios</a></li>
+                    <li><a href="/index.html#resultados">Resultados</a></li>
+                    <li><a href="/index.html#faq">FAQ</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="/login.html" class="btn btn-outlined">Entrar</a>
+                <button class="icon-btn" id="theme-toggle" data-state="dark" aria-label="Alternar tema">
+                    <span class="material-symbols-rounded theme-icon sun" style="display:none;">light_mode</span>
+                    <span class="material-symbols-rounded theme-icon moon">dark_mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="section plans-page">
+        <div class="container">
+            <div class="plans-hero">
+                <div class="plans-eyebrow">
+                    <span class="material-symbols-rounded">workspace_premium</span>
+                    Planos e preços
+                </div>
+                <h1>Escolha o plano ideal para o seu setup</h1>
+                <p>Do básico para começar ao competitivo para quem quer cada frame. Todos incluem acesso ao app e atualizações.</p>
+            </div>
+
+            <div class="plans-grid">
+                <div class="plan-card" data-plan="basic">
+                    <div class="plan-header">
+                        <div class="plan-name">Plano Básico</div>
+                        <div class="plan-tagline">1 PC • Melhor custo-benefício</div>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">47</span>
+                            <span class="period">/único</span>
+                        </div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><span class="material-symbols-rounded">check_circle</span> Otimização completa (CPU/RAM)</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Game Mode (boost automático)</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Mouse Acceleration Off</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte por email</li>
+                        <li class="disabled"><span class="material-symbols-rounded">close</span> Polling Rate 1000Hz</li>
+                        <li class="disabled"><span class="material-symbols-rounded">close</span> Refresh Rate Boost</li>
+                        <li class="disabled"><span class="material-symbols-rounded">close</span> G-Sync / FreeSync Tuning</li>
+                    </ul>
+                    <button class="btn btn-outlined" data-select="basic">Selecionar Básico</button>
+                </div>
+
+                <div class="plan-card featured" data-plan="starter">
+                    <div class="plan-header">
+                        <div class="plan-name">Starter</div>
+                        <div class="plan-tagline">2 PCs • Para quem joga todo dia</div>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">67</span>
+                            <span class="period">/único</span>
+                        </div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Plano Básico</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Polling Rate 1000Hz</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Refresh Rate Boost</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Perfis mais rápidos por jogo</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte prioritário</li>
+                        <li class="disabled"><span class="material-symbols-rounded">close</span> G-Sync / FreeSync Tuning</li>
+                        <li class="disabled"><span class="material-symbols-rounded">close</span> Color Profile Calibration</li>
+                    </ul>
+                    <button class="btn btn-filled" data-select="starter">Selecionar Starter</button>
+                </div>
+
+                <div class="plan-card" data-plan="pro">
+                    <div class="plan-header">
+                        <div class="plan-name">Pro</div>
+                        <div class="plan-tagline">Até 3 PCs • Performance competitiva</div>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">97</span>
+                            <span class="period">/único</span>
+                        </div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Starter</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> G-Sync / FreeSync Tuning</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Color Profile Calibration</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte Discord VIP</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Atualizações antecipadas</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Otimizações avançadas de rede</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Perfis exclusivos por jogo</li>
+                    </ul>
+                    <button class="btn btn-outlined" data-select="pro">Selecionar Pro</button>
+                </div>
+            </div>
+
+            <div class="plan-comparison">
+                <h2>Comparação completa</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Funcionalidade</th>
+                            <th>Básico</th>
+                            <th>Starter</th>
+                            <th>Pro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Otimização CPU/RAM</td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Game Mode</td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mouse Accel Off</td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Polling Rate 1000Hz</td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Refresh Rate Boost</td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>G-Sync / FreeSync Tuning</td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Color Profile Calibration</td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Otimizações avançadas de rede</td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                        </tr>
+                        <tr>
+                            <td>Número de PCs</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/hb.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-select]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const plan = btn.dataset.select;
+                    window.location.href = '/checkout.html?plan=' + plan;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

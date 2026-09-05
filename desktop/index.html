@@ -424,31 +424,31 @@
 <script>
 // ==================== OPTIMIZATION DEFINITIONS ====================
 const OPTIMIZATIONS = [
-    // FPS & CPU (5)
-    { id: 'high-perf-power', name: 'Plano de Energia Máximo', icon: 'battery_charging_full', category: 'fps', desc: 'Ativa o plano "Alto Desempenho" para máxima performance de CPU.' },
-    { id: 'cpu-core-parking', name: 'Core Parking Disable', icon: 'developer_board', category: 'fps', desc: 'Desativa o core parking para usar todos os cores do processador.' },
-    { id: 'cpu-scheduler', name: 'Scheduler Otimizado', icon: 'schedule', category: 'fps', desc: 'Ajusta o scheduler do Windows para priorizar jogos.' },
-    { id: 'disable-gamedvr', name: 'Desativar Game DVR', icon: 'videocam_off', category: 'fps', desc: 'Desativa gravação em segundo plano do Xbox Game Bar.' },
-    { id: 'visual-effects', name: 'Efeitos Visuais Leves', icon: 'animation', category: 'fps', desc: 'Ajusta o Windows para melhor desempenho visual.' },
+    // FPS & CPU (5) - basic+
+    { id: 'high-perf-power', name: 'Plano de Energia Máximo', icon: 'battery_charging_full', category: 'fps', tier: 'basic', desc: 'Ativa o plano "Alto Desempenho" para máxima performance de CPU.' },
+    { id: 'cpu-core-parking', name: 'Core Parking Disable', icon: 'developer_board', category: 'fps', tier: 'basic', desc: 'Desativa o core parking para usar todos os cores do processador.' },
+    { id: 'cpu-scheduler', name: 'Scheduler Otimizado', icon: 'schedule', category: 'fps', tier: 'starter', desc: 'Ajusta o scheduler do Windows para priorizar jogos.' },
+    { id: 'disable-gamedvr', name: 'Desativar Game DVR', icon: 'videocam_off', category: 'fps', tier: 'basic', desc: 'Desativa gravação em segundo plano do Xbox Game Bar.' },
+    { id: 'visual-effects', name: 'Efeitos Visuais Leves', icon: 'animation', category: 'fps', tier: 'basic', desc: 'Ajusta o Windows para melhor desempenho visual.' },
     
-    // Mouse (3)
-    { id: 'disable-mouse-accel', name: 'Desativar Aceleração do Mouse', icon: 'pan_tool_alt', category: 'mouse', desc: 'Desliga o "Aprimorar precisão do ponteiro". Movimento 1:1.' },
-    { id: 'polling-rate', name: 'Polling Rate 1000Hz', icon: 'sensors', category: 'mouse', desc: 'Configura o mouse para reportar em 1000Hz.' },
-    { id: 'mouse-threshold', name: 'Mouse Threshold Zero', icon: 'tune', category: 'mouse', desc: 'Remove thresholds de aceleração do mouse.' },
+    // Mouse (3) - starter+
+    { id: 'disable-mouse-accel', name: 'Desativar Aceleração do Mouse', icon: 'pan_tool_alt', category: 'mouse', tier: 'basic', desc: 'Desliga o "Aprimorar precisão do ponteiro". Movimento 1:1.' },
+    { id: 'polling-rate', name: 'Polling Rate 1000Hz', icon: 'sensors', category: 'mouse', tier: 'starter', desc: 'Configura o mouse para reportar em 1000Hz.' },
+    { id: 'mouse-threshold', name: 'Mouse Threshold Zero', icon: 'tune', category: 'mouse', tier: 'starter', desc: 'Remove thresholds de aceleração do mouse.' },
     
-    // Monitor (2)
-    { id: 'monitor-refresh', name: 'Refresh Rate Máximo', icon: 'refresh', category: 'monitor', desc: 'Detecta e aplica a maior taxa de atualização suportada.' },
-    { id: 'disable-fullscreen-opt', name: 'Fullscreen Optimizations Off', icon: 'fullscreen', category: 'monitor', desc: 'Desativa otimizações de tela cheia para menor input lag.' },
+    // Monitor (2) - starter+
+    { id: 'monitor-refresh', name: 'Refresh Rate Máximo', icon: 'refresh', category: 'monitor', tier: 'starter', desc: 'Detecta e aplica a maior taxa de atualização suportada.' },
+    { id: 'disable-fullscreen-opt', name: 'Fullscreen Optimizations Off', icon: 'fullscreen', category: 'monitor', tier: 'pro', desc: 'Desativa otimizações de tela cheia para menor input lag.' },
     
-    // Rede (3)
-    { id: 'network', name: 'Rede Otimizada para Jogos', icon: 'wifi', category: 'rede', desc: 'Ajusta TCP auto-tuning e timestamps para menor latência.' },
-    { id: 'dns-cloudflare', name: 'DNS Cloudflare (1.1.1.1)', icon: 'dns', category: 'rede', desc: 'Usa DNS Cloudflare para resolução mais rápida.' },
-    { id: 'qos-disable', name: 'QoS Throttling Off', icon: 'speed', category: 'rede', desc: 'Remove limitação de banda do QoS do Windows.' },
+    // Rede (3) - basic+
+    { id: 'network', name: 'Rede Otimizada para Jogos', icon: 'wifi', category: 'rede', tier: 'basic', desc: 'Ajusta TCP auto-tuning e timestamps para menor latência.' },
+    { id: 'dns-cloudflare', name: 'DNS Cloudflare (1.1.1.1)', icon: 'dns', category: 'rede', tier: 'basic', desc: 'Usa DNS Cloudflare para resolução mais rápida.' },
+    { id: 'qos-disable', name: 'QoS Throttling Off', icon: 'speed', category: 'rede', tier: 'pro', desc: 'Remove limitação de banda do QoS do Windows.' },
     
-    // Serviços (3)
-    { id: 'clean-ram', name: 'Limpar RAM Standby', icon: 'memory', category: 'servicos', desc: 'Libera memória em cache standby para evitar stuttering.' },
-    { id: 'disable-telemetry', name: 'Desativar Telemetria', icon: 'privacy_tip', category: 'servicos', desc: 'Desativa coleta de dados e telemetria do Windows.' },
-    { id: 'disable-updates', name: 'Pausar Updates Automáticos', icon: 'update_disabled', category: 'servicos', desc: 'Pausa atualizações automáticas que podem causar stutter.' },
+    // Serviços (3) - basic+
+    { id: 'clean-ram', name: 'Limpar RAM Standby', icon: 'memory', category: 'servicos', tier: 'basic', desc: 'Libera memória em cache standby para evitar stuttering.' },
+    { id: 'disable-telemetry', name: 'Desativar Telemetria', icon: 'privacy_tip', category: 'servicos', tier: 'basic', desc: 'Desativa coleta de dados e telemetria do Windows.' },
+    { id: 'disable-updates', name: 'Pausar Updates Automáticos', icon: 'update_disabled', category: 'servicos', tier: 'starter', desc: 'Pausa atualizações automáticas que podem causar stutter.' },
 ];
 
 const CATEGORY_TITLES = {
@@ -486,6 +486,34 @@ let totalAppliedCount = 0;
 let gamingModeActive = false;
 const APPLIED_STORAGE_KEY = 'hb-applied-opts';
 const LICENSE_STORAGE_KEY = 'hb-license';
+
+// ==================== TIER PERMISSIONS ====================
+// trial = free, basic = 1, starter = 2, pro = 3
+const TIER_LEVELS = { trial: 0, basic: 1, starter: 2, pro: 3 };
+
+function getUserTier() {
+    // Premium keys get tier from product; trial keys are trial
+    if (licenseData?.tier) return licenseData.tier;
+    if (licenseData?.product) {
+        const product = licenseData.product.toLowerCase();
+        if (product.includes('pro')) return 'pro';
+        if (product.includes('starter')) return 'starter';
+        if (product.includes('basic')) return 'basic';
+    }
+    return 'trial';
+}
+
+function canUseTier(requiredTier) {
+    const userLevel = TIER_LEVELS[getUserTier()] || 0;
+    const requiredLevel = TIER_LEVELS[requiredTier] || 0;
+    return userLevel >= requiredLevel;
+}
+
+function showTierRequired(opt) {
+    const tier = opt.tier || 'basic';
+    const tierLabels = { basic: 'Plano Básico', starter: 'Starter', pro: 'Pro' };
+    alert(`Esta funcionalidade requer o ${tierLabels[tier]}.\n\nFaça upgrade em honestboost.com.br/planos.html`);
+}
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -574,7 +602,7 @@ async function handleLogin() {
         try {
             const result = await window.hbDesktop.authenticateWithKey(key);
             if (result.ok) {
-                licenseData = { key, product: result.user?.role || 'pro', email: result.user?.username || 'user@honestboost.com.br' };
+                licenseData = { key, product: result.user?.role || 'pro', email: result.user?.username || 'user@honestboost.com.br', tier: result.tier || 'trial' };
                 currentUser = { name: result.user?.nickname || result.user?.username || 'Usuário', email: licenseData.email, product: licenseData.product };
                 localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
                 showApp();
@@ -888,8 +916,16 @@ function createOptCard(opt) {
     card.dataset.opt = opt.id;
     if (appliedOpts.has(opt.id)) card.classList.add('applied');
     
+    // Check tier permission
+    const hasAccess = canUseTier(opt.tier);
+    if (!hasAccess) card.classList.add('locked');
+    
     const labels = OPTIMIZATION_SAFETY[opt.id] || [];
     const labelsHtml = labels.map(label => `<span class="safety-tag">${label}</span>`).join('');
+    
+    const tierLabel = opt.tier === 'starter' ? 'Starter' : opt.tier === 'pro' ? 'Pro' : 'Básico';
+    const lockOverlay = !hasAccess ? `<div class="tier-lock"><span class="material-symbols-rounded">lock</span> ${tierLabel}+</div>` : '';
+    
     card.innerHTML = `
         <div class="opt-header">
             <div class="opt-icon"><span class="material-symbols-rounded">${opt.icon}</span></div>
@@ -902,16 +938,24 @@ function createOptCard(opt) {
         <div class="safety-tags">${labelsHtml}</div>
         <div class="opt-footer">
             <div class="opt-result"></div>
-            <button class="btn btn-filled run-btn" data-opt="${opt.id}" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                <span class="material-symbols-rounded" style="font-size:16px;">bolt</span> Aplicar
+            <button class="btn btn-filled run-btn" data-opt="${opt.id}" style="padding:0.5rem 1rem;font-size:0.8rem;" ${!hasAccess ? 'disabled' : ''}>
+                <span class="material-symbols-rounded" style="font-size:16px;">${!hasAccess ? 'lock' : 'bolt'}</span> ${!hasAccess ? 'Bloqueado' : 'Aplicar'}
             </button>
         </div>
+        ${lockOverlay}
     `;
     return card;
 }
 
 async function runOpt(optId, btn) {
     if (!window.hbDesktop) return;
+    
+    // Check tier permission
+    const opt = OPTIMIZATIONS.find(o => o.id === optId);
+    if (opt && !canUseTier(opt.tier)) {
+        showTierRequired(opt);
+        return;
+    }
     
     const card = btn.closest('.opt-card');
     const resultEl = card.querySelector('.opt-result');

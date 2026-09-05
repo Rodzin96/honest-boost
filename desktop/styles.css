@@ -688,7 +688,39 @@ a { color: var(--primary); text-decoration: none; }
 .opt-card:hover::after { opacity: 1; }
 
 .opt-card.applied {
-  border-color: rgba(87, 242, 179, 0.3);
+  border-color: var(--success);
+}
+
+.opt-card.locked {
+  opacity: 0.5;
+  filter: grayscale(30%);
+  position: relative;
+}
+
+.opt-card.locked .run-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.tier-lock {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--warning);
+  z-index: 5;
+}
+
+.tier-lock .material-symbols-rounded {
+  font-size: 14px !important;
 }
 
 .opt-card.applied::before {

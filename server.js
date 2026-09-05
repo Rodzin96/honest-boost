@@ -404,12 +404,17 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
   
   const user = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE id = $1', [dbKey.user_id]);
   if (!user) return res.status(404).json({ error: 'user_not_found' });
-  
+
+  // Determine tier from active license
+  const license = await activeLicenseForEmail(user.username);
+  const tier = license ? license.product : 'trial';
+
   return res.json({
     ok: true,
     token: key,
-    user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role },
-    expiresAt: dbKey.expires_at
+    user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier },
+    expiresAt: dbKey.expires_at,
+    tier
   });
 }));
 

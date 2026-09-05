@@ -6,7 +6,7 @@
 
   var HB = window.HB;
   var params = new URLSearchParams(location.search);
-  var requestedProduct = params.get('product') || 'pro';
+  var requestedProduct = params.get('plan') || params.get('product') || 'pro';
   var selectedProduct = null;
 
   var nameEl = document.getElementById('product-name');
