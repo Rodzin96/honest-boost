@@ -28,6 +28,7 @@ pgdata/
 # Distributable binaries (published via releases, not git)
 public/downloads/*
 !public/downloads/README.txt
+!public/downloads/*.exe
 
 # IDE files
 .vscode/
