@@ -137,8 +137,11 @@ async function initSchema() {
       ip_address TEXT,
       revoked_at TEXT,
       revoke_reason TEXT,
+      key_type TEXT DEFAULT 'trial',
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+    
+    ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS key_type TEXT DEFAULT 'trial';
     
     CREATE TABLE IF NOT EXISTS audit_logs (
       id SERIAL PRIMARY KEY,

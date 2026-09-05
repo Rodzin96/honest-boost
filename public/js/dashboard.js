@@ -110,7 +110,7 @@
     try {
       const result = await api('/api/keys', { method: 'POST' });
       if (result.ok) {
-        showKeyModal(result.key, result.expiresAt);
+        showKeyModal(result.key, result.expiresAt, result.type);
         await loadKeys();
       } else {
         window.alert(result.error || 'Erro ao gerar key.');
@@ -123,7 +123,7 @@
     generateKeyBtn.innerHTML = '<span class="material-symbols-rounded">add</span> Gerar nova key';
   }
 
-  function showKeyModal(key, expiresAt) {
+  function showKeyModal(key, expiresAt, keyType) {
     if (!generatedKeyEl || !keyModal) return;
     generatedKeyEl.textContent = key;
     const expires = new Date(expiresAt);
@@ -132,6 +132,8 @@
     const hours = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
     const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
     if (keyExpiresEl) keyExpiresEl.textContent = hours + 'h ' + minutes + 'min';
+    const typeLabel = document.getElementById('key-type-label');
+    if (typeLabel) typeLabel.textContent = keyType === 'premium' ? 'Premium (1 ano)' : 'Trial (4 horas)';
     keyModal.classList.add('open');
   }
 
@@ -228,7 +230,8 @@
       createdAt: key.created_at || key.createdAt || null,
       expiresAt: key.expires_at || key.expiresAt || null,
       lastUsedAt: key.last_used_at || key.lastUsedAt || null,
-      status: key.status || 'active'
+      status: key.status || 'active',
+      keyType: key.key_type || key.keyType || 'trial'
     };
   }
 
@@ -247,10 +250,12 @@
     }
 
     keysList.innerHTML = keys.map(function (key) {
+      const typeLabel = key.keyType === 'premium' ? 'Premium' : 'Trial';
+      const typeBadge = '<span class="key-type-badge ' + escapeHtml(key.keyType) + '">' + typeLabel + '</span>';
       return [
         '<div class="key-item ' + escapeHtml(key.status) + '">',
         '<div class="key-info">',
-        '<div class="key-prefix">' + escapeHtml(key.prefix) + '...</div>',
+        '<div class="key-prefix">' + escapeHtml(key.prefix) + '... ' + typeBadge + '</div>',
         '<div class="key-meta">',
         '<span><span class="material-symbols-rounded" style="font-size:14px;">schedule</span> ' + escapeHtml(formatDate(key.createdAt)) + '</span>',
         key.expiresAt ? '<span><span class="material-symbols-rounded" style="font-size:14px;">timer_off</span> ' + escapeHtml(formatDate(key.expiresAt)) + '</span>' : '',

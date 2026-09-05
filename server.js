@@ -335,14 +335,22 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   
   const userId = req.session.user.id;
   const license = await activeLicenseForEmail(req.session.user.username);
-  if (!license) return res.status(403).json({ error: 'license_required' });
-  const product = require('./src/products').getProduct(license.product);
+  const product = license ? require('./src/products').getProduct(license.product) : null;
+  
+  // Determine key type and expiry
+  const isPremium = !!license && !!product;
+  const keyType = isPremium ? 'premium' : 'trial';
+  const maxActive = isPremium ? (product.seats || 1) : 1;
+  
+  // Trial: 4 hours. Premium: 1 year (365 days)
+  const ttlMs = isPremium ? 365 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000;
+  
   const activeKeys = await getDb().dbGet(
     'SELECT COUNT(*)::int AS count FROM api_keys WHERE user_id = $1 AND status = $2 AND expires_at > $3',
     [userId, 'active', new Date().toISOString()]
   );
-  if (Number(activeKeys && activeKeys.count) >= (product ? product.seats : 1)) {
-    return res.status(409).json({ error: 'device_limit_reached' });
+  if (Number(activeKeys && activeKeys.count) >= maxActive) {
+    return res.status(409).json({ error: 'device_limit_reached', max: maxActive });
   }
   
   const rawKey = 'hb_' + crypto.randomBytes(24).toString('hex');
@@ -350,14 +358,14 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   const keyPrefix = rawKey.slice(0, 8);
   const id = uuidv4();
   const createdAt = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + ttlMs).toISOString();
   
   await getDb().dbRun(
-    'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-    [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', req.ip]
+    'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, ip_address, key_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+    [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', req.ip, keyType]
   );
   
-  return res.status(201).json({ ok: true, id, key: rawKey, expiresAt });
+  return res.status(201).json({ ok: true, id, key: rawKey, expiresAt, type: keyType });
 }));
 
 app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
@@ -365,7 +373,7 @@ app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   
   const userId = req.session.user.id;
   const keys = await getDb().dbAll(
-    'SELECT id, key_prefix, created_at, expires_at, last_used_at, status FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
+    'SELECT id, key_prefix, created_at, expires_at, last_used_at, status, key_type FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
     [userId]
   );
   return res.json({ ok: true, keys });

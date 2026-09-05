@@ -15,9 +15,11 @@ function getKeyPrefix(key) {
   return key.slice(0, 8);
 }
 
-function calculateExpiry() {
+function calculateExpiry(isPremium = false) {
   const now = new Date();
-  return new Date(now.getTime() + 4 * 60 * 60 * 1000);
+  // Premium: 1 year. Trial: 4 hours.
+  const ttlMs = isPremium ? 365 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000;
+  return new Date(now.getTime() + ttlMs);
 }
 
 function isExpired(expiresAt) {
@@ -41,14 +43,15 @@ async function createKey(userId, options = {}) {
   const keyPrefix = getKeyPrefix(rawKey);
   const id = uuidv4();
   const createdAt = new Date().toISOString();
-  const expiresAt = calculateExpiry().toISOString();
+  const isPremium = options.keyType === 'premium';
+  const expiresAt = calculateExpiry(isPremium).toISOString();
 
   await run(
-    'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, device_info, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-    [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', options.deviceInfo || null, options.ipAddress || null]
+    'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, device_info, ip_address, key_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+    [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', options.deviceInfo || null, options.ipAddress || null, options.keyType || 'trial']
   );
 
-  return { id, key: rawKey, prefix: keyPrefix, createdAt, expiresAt, status: 'active' };
+  return { id, key: rawKey, prefix: keyPrefix, createdAt, expiresAt, status: 'active', keyType: options.keyType || 'trial' };
 }
 
 async function validateAndGetKey(rawKey) {
@@ -77,7 +80,7 @@ async function updateLastUsed(keyId) {
 }
 
 async function getUserKeys(userId, options = {}) {
-  let sql = 'SELECT id, key_prefix, created_at, expires_at, last_used_at, status, device_info FROM api_keys WHERE user_id = $1';
+  let sql = 'SELECT id, key_prefix, created_at, expires_at, last_used_at, status, device_info, key_type FROM api_keys WHERE user_id = $1';
   const params = [userId];
   
   if (options.status) {

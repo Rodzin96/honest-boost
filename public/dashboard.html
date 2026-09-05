@@ -406,6 +406,28 @@
             color: var(--error);
         }
 
+        .key-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: 0.4rem;
+        }
+
+        .key-type-badge.trial {
+            background: color-mix(in srgb, var(--warning) 18%, transparent);
+            color: var(--warning);
+        }
+
+        .key-type-badge.premium {
+            background: color-mix(in srgb, var(--success) 18%, transparent);
+            color: var(--success);
+        }
+
         .account-header {
             display: flex;
             align-items: center;
@@ -841,6 +863,10 @@
                 <p class="modal-info">
                     <span class="material-symbols-rounded">schedule</span>
                     Expira em <strong id="key-expires">4 horas</strong>
+                </p>
+                <p class="modal-info" id="key-type-info">
+                    <span class="material-symbols-rounded">info</span>
+                    Tipo: <strong id="key-type-label">Trial</strong>
                 </p>
             </div>
             <div class="modal-footer">
