@@ -6,6 +6,8 @@ const path = require('path');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -14,6 +16,37 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const SESSION_SECRET = process.env.SESSION_SECRET || '';
+
+if (IS_PRODUCTION && SESSION_SECRET.length < 32) {
+  throw new Error('SESSION_SECRET must be set to at least 32 characters in production.');
+}
+
+/* Database lazy load */
+let db = null;
+let dbReady = false;
+let dbInitPromise = null;
+
+function getDb() {
+  if (!db) {
+    const { initSchema, get: dbGet, all: dbAll, run: dbRun } = require('./src/db');
+    db = { initSchema, dbGet, dbAll, dbRun };
+  }
+  return db;
+}
+
+function createSessionStore() {
+  if (!IS_PRODUCTION || !process.env.DATABASE_URL) return undefined;
+  const PgSession = require('connect-pg-simple')(session);
+  const { getPool } = require('./src/db');
+  return new PgSession({
+    pool: getPool(),
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+    pruneSessionInterval: 60 * 15,
+    ttl: 60 * 60 * 24 * 7,
+  });
+}
 
 /* Middleware */
 app.use(express.json({ limit: '1mb' }));
@@ -28,7 +61,8 @@ app.use(helmet({
 /* Session - memory store for boot, switch to PG later */
 app.use(session({
   name: 'hb.sid',
-  secret: process.env.SESSION_SECRET || 'dev-secret',
+  secret: SESSION_SECRET || 'dev-secret',
+  store: createSessionStore(),
   resave: false,
   saveUninitialized: false,
   rolling: true,
@@ -42,17 +76,55 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* Database lazy load */
-let db = null;
-let dbReady = false;
-let dbInitPromise = null;
+/* Passport + Google OAuth */
+app.use(passport.initialize());
+app.use(passport.session());
 
-function getDb() {
-  if (!db) {
-    const { initSchema, get: dbGet, all: dbAll, run: dbRun } = require('./src/db');
-    db = { initSchema, dbGet, dbAll, dbRun };
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser(async (id, done) => {
+  try {
+    try { await ensureDbReady(); } catch (e) { /* ignore */ }
+    const user = await getDb().dbGet('SELECT id, username, nickname, role, avatar_url, auth_provider FROM users WHERE id = $1', [id]);
+    done(null, user || false);
+  } catch (err) {
+    done(err);
   }
-  return db;
+});
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+      if (!email) return done(null, false, { message: 'no_email' });
+      const googleId = profile.id;
+      const avatarUrl = profile.photos && profile.photos[0] && profile.photos[0].value;
+      const nickname = profile.displayName || email.split('@')[0];
+
+      // Try to find by google_id first, then by email
+      let user = await getDb().dbGet('SELECT * FROM users WHERE google_id = $1', [googleId]);
+      if (!user) {
+        user = await getDb().dbGet('SELECT * FROM users WHERE username = $1', [email]);
+        if (user) {
+          // Link Google to existing account
+          await getDb().dbRun('UPDATE users SET google_id = $1, avatar_url = $2, auth_provider = $3 WHERE id = $4', [googleId, avatarUrl, 'google', user.id]);
+        } else {
+          // Create new user
+          await getDb().dbRun(
+            'INSERT INTO users (username, nickname, role, auth_provider, google_id, avatar_url, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [email, nickname, 'user', 'google', googleId, avatarUrl, new Date().toISOString()]
+          );
+          user = await getDb().dbGet('SELECT * FROM users WHERE google_id = $1', [googleId]);
+        }
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }));
 }
 
 async function provisionConfiguredAdmin() {
@@ -153,6 +225,35 @@ async function activeLicenseForEmail(email) {
   );
 }
 
+async function accountEntitlement(email) {
+  const license = await activeLicenseForEmail(email);
+  const product = license ? require('./src/products').getProduct(license.product) : null;
+  const isPremium = Boolean(license && product);
+  return {
+    license,
+    product,
+    tier: isPremium ? product.id : 'trial',
+    keyType: isPremium ? 'premium' : 'trial',
+    maxActiveKeys: isPremium ? (product.seats || 1) : 1,
+    keyTtlMs: isPremium ? 365 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000
+  };
+}
+
+async function audit(req, action, details) {
+  try {
+    const user = req.session && req.session.user;
+    await require('./src/audit').log(null, {
+      userId: user && user.id,
+      action,
+      details: details ? JSON.stringify(details) : null,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    });
+  } catch (err) {
+    console.warn('Audit log failed:', err && err.message ? err.message : err);
+  }
+}
+
 function passwordResetTransport() {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
   return nodemailer.createTransport({
@@ -210,6 +311,7 @@ app.post('/api/register', registerLimiter, asyncRoute(async (req, res) => {
     'INSERT INTO users (username, password_hash, nickname, role, created_at) VALUES ($1, $2, $3, $4, $5)',
     [email, hash, nick, 'user', new Date().toISOString()]
   );
+  await audit(req, 'user.register', { email });
   
   return res.status(201).json({ ok: true, email, nickname: nick });
 }));
@@ -234,6 +336,7 @@ app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
   if (!valid) return res.status(401).json({ error: 'invalid_credentials' });
   
   req.session.user = { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role };
+  await audit(req, 'login', { email });
   return res.json({ ok: true, user: req.session.user });
 }));
 
@@ -303,10 +406,31 @@ app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res
     'UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires = NULL WHERE id = $2',
     [hash, user.id]
   );
+  await audit(req, 'password.reset_confirm', { userId: user.id });
   return res.json({ ok: true });
 }));
 
-/* Download - available to any logged-in user (trial or premium) */
+/* Google OAuth routes */
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login.html' }),
+  async (req, res) => {
+    if (!req.user) return res.redirect('/login.html');
+    try {
+      const user = await getDb().dbGet('SELECT id, username, nickname, role, avatar_url, auth_provider FROM users WHERE id = $1', [req.user.id]);
+      if (user) {
+        req.session.user = { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, avatar: user.avatar_url };
+        await audit(req, 'login_google', { email: user.username });
+      }
+    } catch (err) {
+      console.error('Google callback error:', err.message);
+    }
+    res.redirect('/dashboard');
+  }
+);
 app.get('/api/download', requireAuth, asyncRoute(async (req, res) => {
   const downloadsDir = path.join(__dirname, 'public', 'downloads');
   const installer = ['HonestBoostSetup.exe', 'honest-boost-setup.exe', 'Honest Boost Setup 2.0.0.exe'].find((name) =>
@@ -327,16 +451,10 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   }
   
   const userId = req.session.user.id;
-  const license = await activeLicenseForEmail(req.session.user.username);
-  const product = license ? require('./src/products').getProduct(license.product) : null;
-  
-  // Determine key type and expiry
-  const isPremium = !!license && !!product;
-  const keyType = isPremium ? 'premium' : 'trial';
-  const maxActive = isPremium ? (product.seats || 1) : 1;
-  
-  // Trial: 4 hours. Premium: 1 year (365 days)
-  const ttlMs = isPremium ? 365 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000;
+  const entitlement = await accountEntitlement(req.session.user.username);
+  const keyType = entitlement.keyType;
+  const maxActive = entitlement.maxActiveKeys;
+  const ttlMs = entitlement.keyTtlMs;
   
   const activeKeys = await getDb().dbGet(
     'SELECT COUNT(*)::int AS count FROM api_keys WHERE user_id = $1 AND status = $2 AND expires_at > $3',
@@ -357,19 +475,32 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
     'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, ip_address, key_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
     [id, userId, keyHash, keyPrefix, createdAt, expiresAt, 'active', req.ip, keyType]
   );
+  await audit(req, 'key.create', { keyId: id, keyType, tier: entitlement.tier });
   
-  return res.status(201).json({ ok: true, id, key: rawKey, expiresAt, type: keyType });
+  return res.status(201).json({ ok: true, id, key: rawKey, expiresAt, type: keyType, tier: entitlement.tier, maxActive });
 }));
 
 app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   if (!dbReady) return res.json({ ok: true, keys: [] });
   
   const userId = req.session.user.id;
+  const entitlement = await accountEntitlement(req.session.user.username);
   const keys = await getDb().dbAll(
     'SELECT id, key_prefix, created_at, expires_at, last_used_at, status, key_type FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
     [userId]
   );
-  return res.json({ ok: true, keys });
+  return res.json({
+    ok: true,
+    keys,
+    tier: entitlement.tier,
+    keyType: entitlement.keyType,
+    maxActive: entitlement.maxActiveKeys,
+    license: entitlement.license ? {
+      product: entitlement.license.product,
+      status: entitlement.license.status,
+      createdAt: entitlement.license.created_at
+    } : null
+  });
 }));
 
 app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
@@ -377,6 +508,7 @@ app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
   
   const userId = req.session.user.id;
   await getDb().dbRun('UPDATE api_keys SET status = $1, revoked_at = $2 WHERE id = $3 AND user_id = $4', ['revoked', new Date().toISOString(), req.params.id, userId]);
+  await audit(req, 'key.revoke', { keyId: req.params.id });
   return res.json({ ok: true });
 }));
 
@@ -405,16 +537,15 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
   const user = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE id = $1', [dbKey.user_id]);
   if (!user) return res.status(404).json({ error: 'user_not_found' });
 
-  // Determine tier from active license
-  const license = await activeLicenseForEmail(user.username);
-  const tier = license ? license.product : 'trial';
+  const entitlement = await accountEntitlement(user.username);
+  await audit(req, 'app.auth', { keyId: dbKey.id, tier: entitlement.tier });
 
   return res.json({
     ok: true,
     token: key,
-    user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier },
+    user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier: entitlement.tier },
     expiresAt: dbKey.expires_at,
-    tier
+    tier: entitlement.tier
   });
 }));
 
@@ -471,6 +602,7 @@ app.post('/api/licenses', requireAdmin, asyncRoute(async (req, res) => {
     'INSERT INTO licenses (license_key, email, product, status, created_at) VALUES ($1, $2, $3, $4, $5)',
     [license, email, product.id, 'active', createdAt]
   );
+  await audit(req, 'license.issue', { email, product: product.id });
   return res.status(201).json({ ok: true, license });
 }));
 

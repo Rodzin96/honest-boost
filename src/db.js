@@ -74,14 +74,19 @@ async function initSchema() {
       password_hash TEXT,
       nickname TEXT,
       role TEXT DEFAULT 'user',
+      auth_provider TEXT DEFAULT 'local',
+      google_id TEXT UNIQUE,
+      avatar_url TEXT,
       reset_token TEXT,
       reset_expires BIGINT,
       created_at TEXT
     );
 
-    -- Older databases were created before the nickname column existed.
-    -- ADD COLUMN IF NOT EXISTS makes this migration safe to re-run on boot.
+    -- Migrations para colunas adicionadas depois
     ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT DEFAULT 'local';
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
     
     CREATE TABLE IF NOT EXISTS sessions (
       sid TEXT PRIMARY KEY,

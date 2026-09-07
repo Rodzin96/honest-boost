@@ -5,6 +5,7 @@
 
   let currentUser = null;
   let keys = [];
+  let maxActiveKeys = 1;
 
   const sidebar = document.getElementById('sidebar');
   const themeToggle = document.getElementById('theme-toggle');
@@ -99,8 +100,8 @@
 
   async function generateKey() {
     const activeKeys = keys.filter(k => k.status === 'active').length;
-    if (activeKeys >= 3) {
-      window.alert('Você já possui 3 chaves ativas. Revogue uma antes de gerar outra.');
+    if (activeKeys >= maxActiveKeys) {
+      window.alert('Você já possui ' + maxActiveKeys + ' key(s) ativa(s). Revogue uma antes de gerar outra.');
       return;
     }
 
@@ -110,10 +111,11 @@
     try {
       const result = await api('/api/keys', { method: 'POST' });
       if (result.ok) {
+        if (Number(result.maxActive) > 0) maxActiveKeys = Number(result.maxActive);
         showKeyModal(result.key, result.expiresAt, result.type);
         await loadKeys();
       } else {
-        window.alert(result.error || 'Erro ao gerar key.');
+        window.alert(window.HB?.errorMessage ? window.HB.errorMessage(result, 'Erro ao gerar key.') : (result.error || 'Erro ao gerar key.'));
       }
     } catch (e) {
       window.alert('Erro de conexão. Tente novamente.');
@@ -211,11 +213,12 @@
     try {
       const result = await api('/api/keys');
       if (result.ok) {
+        if (Number(result.maxActive) > 0) maxActiveKeys = Number(result.maxActive);
         keys = (result.keys || []).map(normalizeKey);
         renderKeys();
         const activeCount = keys.filter(k => k.status === 'active').length;
         setText('stat-active-keys', String(activeCount));
-        setText('keys-count', activeCount + '/3');
+        setText('keys-count', activeCount + '/' + maxActiveKeys);
         renderUsageFromKeys();
       }
     } catch (e) {

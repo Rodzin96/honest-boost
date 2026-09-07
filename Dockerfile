@@ -1,8 +1,8 @@
 # Dockerfile for Honest Boost app
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --omit=dev
 COPY . .
 EXPOSE 3000
 ENV NODE_ENV=production

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honest Boost — Sims Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-bright: #60a5fa;
+            --primary-deep: #2563eb;
+            --accent: #06b6d4;
+            --accent-bright: #22d3ee;
+            --glow-primary: rgba(59, 130, 246, 0.4);
+            --glow-accent: rgba(6, 182, 212, 0.3);
+            --bg-base: #0a0e1a;
+            --bg-surface: #0f1629;
+            --bg-elevated: rgba(15, 22, 41, 0.85);
+            --bg-card: rgba(15, 22, 41, 0.6);
+            --bg-card-hover: rgba(20, 30, 55, 0.8);
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --bg-glass-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #eef6ff;
+            --text-secondary: #94a3b8;
+            --text-muted: #5a6888;
+            --text-accent: #3b82f6;
+            --success: #57f2b3;
+            --success-bg: rgba(87, 242, 179, 0.1);
+            --error: #ff6b6b;
+            --error-bg: rgba(255, 107, 107, 0.1);
+            --warning: #ffd166;
+            --warning-bg: rgba(255, 209, 102, 0.1);
+            --gradient-brand: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            --gradient-card: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
+            --gradient-glow: radial-gradient(ellipse at top right, rgba(59, 130, 246, 0.15), transparent 60%);
+            --gradient-hero: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+            --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+            --shadow-glow-accent: 0 0 20px rgba(6, 182, 212, 0.2);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            --border-glow: rgba(59, 130, 246, 0.3);
+            --ease-out: cubic-bezier(0.2, 0.95, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-base);
+            background-image: 
+                radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.08), transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(6, 182, 212, 0.05), transparent 50%);
+        }
+
+        .material-symbols-rounded {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+            line-height: 1;
+            vertical-align: middle;
+            user-select: none;
+        }
+
+        /* === LAYOUT === */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 2rem;
+            gap: 1.5rem;
+        }
+
+        /* === HEADER === */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-brand);
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 20px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .brand-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text span {
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .version-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-glass);
+            border: 1px solid var(--border-default);
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+
+        /* === HERO === */
+        .hero {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-hero);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--success-bg);
+            border: 1px solid rgba(87, 242, 179, 0.2);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--success);
+            margin-bottom: 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-title span {
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto 1.5rem;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.9rem 2rem;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s var(--ease-out);
+            text-decoration: none;
+            line-height: 1.2;
+            font-family: inherit;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn .material-symbols-rounded { font-size: 22px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+        .btn-primary {
+            background: var(--gradient-brand);
+            color: #fff;
+            box-shadow: var(--shadow-glow);
+            font-size: 1.1rem;
+            padding: 1rem 2.5rem;
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-glow), var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .btn-ghost {
+            background: var(--bg-glass);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-default);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-strong);
+        }
+
+        /* === SYSTEM INFO === */
+        .system-info {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 14px;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .info-card .material-symbols-rounded {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* === RESULTS === */
+        .results-section {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .results-section.visible {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .results-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .results-summary {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .summary-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .summary-badge.success {
+            color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .summary-badge.error {
+            color: var(--error);
+            background: var(--error-bg);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeIn 0.3s var(--ease-out) both;
+        }
+
+        .result-card.ok {
+            border-color: color-mix(in srgb, var(--success) 35%, var(--border-subtle));
+        }
+
+        .result-card.fail {
+            border-color: color-mix(in srgb, var(--error) 35%, var(--border-subtle));
+        }
+
+        .result-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .result-card.ok .result-icon {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .result-card.fail .result-icon {
+            background: var(--error-bg);
+            color: var(--error);
+        }
+
+        .result-icon .material-symbols-rounded {
+            font-size: 18px;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .result-msg {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* === LOADING === */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 14, 26, 0.9);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-default);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .loading-status {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === SCROLLBAR === */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+        /* === FOOTER === */
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding-top: 0.5rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
+                <div class="brand-text">Honest<span>Boost</span></div>
+            </div>
+            <span class="version-badge">Sims Edition v1.0</span>
+        </header>
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-badge"><span class="material-symbols-rounded" style="font-size:14px;">check_circle</span> Otimização para The Sims 4</div>
+                <h1 class="hero-title">Seu notebook <span>pronto pra jogar</span></h1>
+                <p class="hero-desc">Otimizações seguras de Windows para rodar The Sims 4 com mais estabilidade e performance. Sem login, sem complicação.</p>
+                <button class="btn btn-primary" id="optimize-btn">
+                    <span class="material-symbols-rounded">auto_awesome</span> Otimizar para The Sims 4
+                </button>
+            </div>
+        </section>
+
+        <!-- SYSTEM INFO -->
+        <div class="system-info" id="system-info">
+            <div class="info-card">
+                <span class="material-symbols-rounded">memory</span>
+                <div>
+                    <div class="info-label">Processador</div>
+                    <div class="info-value" id="cpu-info">Detectando...</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <span class="material-symbols-rounded">sd_card</span>
+                <div>
+                    <div class="info-label">Memória RAM</div>
+                    <div class="info-value" id="ram-info">Detectando...</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <span class="material-symbols-rounded">computer</span>
+                <div>
+                    <div class="info-label">Sistema</div>
+                    <div class="info-value" id="os-info">Detectando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <section class="results-section" id="results-section">
+            <div class="results-header">
+                <h2 class="results-title">Resultados da Otimização</h2>
+                <div class="results-summary" id="results-summary"></div>
+            </div>
+            <div class="results-grid" id="results-grid"></div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            Honest Boost Sims Edition — Feito com 💙 para rodar The Sims 4
+        </footer>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Otimizando seu PC...</div>
+        <div class="loading-status" id="loading-status">Aplicando configurações</div>
+    </div>
+
+    <script>
+        const optimizeBtn = document.getElementById('optimize-btn');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingStatus = document.getElementById('loading-status');
+        const resultsSection = document.getElementById('results-section');
+        const resultsGrid = document.getElementById('results-grid');
+        const resultsSummary = document.getElementById('results-summary');
+
+        // Load system info
+        async function loadSystemInfo() {
+            try {
+                const result = await window.hbSims.getSystemInfo();
+                if (result.ok) {
+                    const info = result.info;
+                    document.getElementById('cpu-info').textContent = `${info.cpu.split(' ').slice(0, 3).join(' ')} (${info.cpuCores} cores)`;
+                    document.getElementById('ram-info').textContent = `${info.memoryTotal} GB Total / ${info.memoryFree} GB Livre`;
+                    document.getElementById('os-info').textContent = `${info.platform} (${info.arch})`;
+                }
+            } catch (e) {
+                document.getElementById('cpu-info').textContent = 'Não detectado';
+                document.getElementById('ram-info').textContent = 'Não detectado';
+                document.getElementById('os-info').textContent = 'Não detectado';
+            }
+        }
+
+        // Optimize
+        optimizeBtn.addEventListener('click', async () => {
+            optimizeBtn.disabled = true;
+            loadingOverlay.classList.add('visible');
+            resultsSection.classList.remove('visible');
+
+            const statuses = [
+                'Aplicando configurações de energia...',
+                'Desativando Game DVR...',
+                'Otimizando CPU...',
+                'Limpando arquivos temporários...',
+                'Finalizando otimizações...'
+            ];
+
+            let statusIdx = 0;
+            const statusInterval = setInterval(() => {
+                if (statusIdx < statuses.length) {
+                    loadingStatus.textContent = statuses[statusIdx];
+                    statusIdx++;
+                }
+            }, 800);
+
+            try {
+                const result = await window.hbSims.optimize();
+                clearInterval(statusInterval);
+                loadingOverlay.classList.remove('visible');
+
+                if (result.ok) {
+                    renderResults(result.results);
+                } else {
+                    alert('Erro ao otimizar: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (e) {
+                clearInterval(statusInterval);
+                loadingOverlay.classList.remove('visible');
+                alert('Erro ao otimizar: ' + e.message);
+            }
+
+            optimizeBtn.disabled = false;
+        });
+
+        function renderResults(results) {
+            resultsGrid.innerHTML = '';
+            let okCount = 0;
+            let failCount = 0;
+
+            results.forEach((r, i) => {
+                if (r.ok) okCount++;
+                else failCount++;
+
+                const card = document.createElement('div');
+                card.className = `result-card ${r.ok ? 'ok' : 'fail'}`;
+                card.style.animationDelay = `${i * 0.05}s`;
+
+                const icon = r.ok ? 'check_circle' : 'error';
+                const msg = r.ok ? (r.freedMB ? `Liberado ${r.freedMB.toFixed(1)} MB` : 'Aplicado com sucesso') : (r.msg || 'Falha ao aplicar');
+
+                card.innerHTML = `
+                    <div class="result-icon"><span class="material-symbols-rounded">${icon}</span></div>
+                    <div class="result-info">
+                        <div class="result-name">${r.name}</div>
+                        <div class="result-msg">${msg}</div>
+                    </div>
+                `;
+                resultsGrid.appendChild(card);
+            });
+
+            resultsSummary.innerHTML = `
+                <span class="summary-badge success"><span class="material-symbols-rounded" style="font-size:14px;">check</span> ${okCount} aplicados</span>
+                ${failCount > 0 ? `<span class="summary-badge error"><span class="material-symbols-rounded" style="size:14px;">close</span> ${failCount} falhas</span>` : ''}
+            `;
+
+            resultsSection.classList.add('visible');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Init
+        loadSystemInfo();
+    </script>
+</body>
+</html>

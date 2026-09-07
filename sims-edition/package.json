@@ -1,0 +1,40 @@
+{
+  "name": "honest-boost-sims",
+  "version": "1.0.0",
+  "description": "Honest Boost — Sims Edition | Otimização para The Sims 4",
+  "main": "main.js",
+  "author": "Honest Boost",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {},
+  "build": {
+    "appId": "com.honestboost.sims",
+    "productName": "Honest Boost Sims Edition",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "publisherName": "Honest Boost"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Honest Boost - Sims Edition"
+    }
+  }
+}

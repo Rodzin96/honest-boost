@@ -573,7 +573,7 @@ async function handleLogin() {
     const input = document.getElementById('license-input');
     const errorEl = document.getElementById('login-error');
     const btn = document.getElementById('login-btn');
-    const key = input.value.trim().toUpperCase();
+    const key = input.value.trim();
     
     if (!key) {
         showLoginError('Insira sua chave de licença.');
@@ -618,15 +618,7 @@ async function handleLogin() {
         }
     }
 
-    // Demo mode: accept any key format
-    if (key.length >= 8) {
-        licenseData = { key, product: 'pro', email: 'demo@honestboost.com.br' };
-        currentUser = { name: 'Demo User', email: licenseData.email, product: licenseData.product };
-        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
-        showApp();
-    } else {
-        showLoginError('Não foi possível verificar a licença. Verifique sua conexão.');
-    }
+    showLoginError('Não foi possível verificar a licença. Confira a key e a conexão com o servidor.');
     
     btn.disabled = false;
     btn.innerHTML = '<span class="material-symbols-rounded">lock_open</span> Entrar';
@@ -673,14 +665,50 @@ function logout() {
     document.getElementById('license-input').value = '';
 }
 
-function checkExistingSession() {
+async function checkExistingSession() {
     const saved = localStorage.getItem(LICENSE_STORAGE_KEY);
     if (saved) {
         try {
             licenseData = JSON.parse(saved);
-            currentUser = { name: 'Usuário Premium', email: licenseData.email || 'user@honestboost.com.br', product: licenseData.product };
-            showApp();
-        } catch { /* ignore */ }
+            if (!licenseData.key) throw new Error('missing_key');
+
+            if (window.hbDesktop && window.hbDesktop.authenticateWithKey) {
+                const result = await window.hbDesktop.authenticateWithKey(licenseData.key);
+                if (result.ok) {
+                    licenseData = {
+                        key: licenseData.key,
+                        product: result.tier || result.user?.tier || 'trial',
+                        email: result.user?.username || licenseData.email,
+                        tier: result.tier || 'trial'
+                    };
+                    currentUser = {
+                        name: result.user?.nickname || result.user?.username || 'Usuário',
+                        email: licenseData.email,
+                        product: licenseData.product
+                    };
+                    localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
+                    showApp();
+                    return;
+                }
+            }
+
+            const valid = await verifyLicense(licenseData.key);
+            if (valid) {
+                licenseData = {
+                    key: licenseData.key,
+                    product: valid.product || 'pro',
+                    email: valid.email || licenseData.email || 'user@honestboost.com.br'
+                };
+                currentUser = { name: 'Usuário Premium', email: licenseData.email, product: licenseData.product };
+                localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
+                showApp();
+                return;
+            }
+
+            localStorage.removeItem(LICENSE_STORAGE_KEY);
+        } catch {
+            localStorage.removeItem(LICENSE_STORAGE_KEY);
+        }
     }
 }
 
