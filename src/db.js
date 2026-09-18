@@ -35,13 +35,18 @@ function getPool() {
     pool = new Pool({
       connectionString: raw,
       ssl: resolveSslConfig(raw),
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
+      // Neon (serverless Postgres) scales compute to zero on the Free plan:
+      // the first connection after idling has to wake the compute, which can
+      // take a few seconds. A 20s budget absorbs that cold start.
+      connectionTimeoutMillis: 20000,
+      idleTimeoutMillis: 60000,
     });
     
     pool.on('error', (err) => {
-      console.error('PG pool error:', err.message);
-      connected = false;
+      // Idle clients are killed by Neon when the compute suspends (scale to
+      // zero). pg recreates clients automatically on next use, so a stray
+      // pool error must NOT flip the app into a permanent "offline" state.
+      console.error('PG pool idle client error (non-fatal):', err.message);
     });
   }
   return pool;

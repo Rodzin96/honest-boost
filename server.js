@@ -394,8 +394,19 @@ function passwordResetTransport() {
 }
 
 /* Routes */
-app.get('/health', (req, res) => {
-  res.json({ ok: true });
+app.get('/health', async (req, res) => {
+  // Touches the database on purpose: with Neon's scale-to-zero, a periodic
+  // health ping (e.g. a cron keepalive) keeps the compute warm, and the db
+  // flag lets us see connection health without failing Render's check.
+  let db = false;
+  try {
+    const { getPool } = require('./src/db');
+    await getPool().query('SELECT 1');
+    db = true;
+  } catch (err) {
+    /* temporary — Neon may be waking up; still report ok to keep the check green */
+  }
+  res.json({ ok: true, db });
 });
 
 app.get('/api/me', (req, res) => {
