@@ -681,7 +681,9 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
 }));
 
 /* Commerce. Creates a Stripe Checkout session; the post-payment webhook
- * attaches the Stripe transaction to our order id and activates the license. */
+ * attaches the Stripe transaction to our order id and activates the license.
+ * One-time (lifetime) plan: customers are linked to a Stripe Customer so the
+ * account, receipts and Stripe Tax stay coherent for the same user. */
 app.post('/api/create-checkout-session', asyncRoute(async (req, res) => {
   if (!stripe) return res.status(503).json({
     error: 'checkout_not_configured',
@@ -694,23 +696,57 @@ app.post('/api/create-checkout-session', asyncRoute(async (req, res) => {
   if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
 
   const publicBase = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+
+  /* Link the logged-in user to a Stripe Customer (one per user, reused across
+   * orders and future Billing/Invoicing). Guests pay with just the email. */
+  let customer;
+  if (req.user && req.user.id) {
+    await ensureDbReady();
+    const row = await getDb().dbGet('SELECT stripe_customer_id FROM users WHERE id = $1', [req.user.id]);
+    customer = row && row.stripe_customer_id;
+    if (!customer) {
+      const created = await stripe.customers.create({
+        email,
+        metadata: { userId: String(req.user.id), email }
+      });
+      customer = created.id;
+      await getDb().dbRun(
+        'UPDATE users SET stripe_customer_id = $1 WHERE id = $2',
+        [customer, req.user.id]
+      );
+    }
+  }
+
+  const catalogPrice = product.stripePriceId;
+  const enableTax = process.env.ENABLE_STRIPE_TAX === '1';
   let session;
   try {
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      customer_email: email,
+      ...(customer ? { customer } : { customer_email: email }),
       line_items: [{
         quantity: 1,
-        price_data: {
-          currency: 'brl',
-          unit_amount: product.amount,
-          product_data: {
-            name: `Honest Boost — ${product.name}`,
-            description: product.tagline || undefined
-          }
-        }
+        ...(catalogPrice
+          ? { price: catalogPrice }
+          : {
+              price_data: {
+                currency: 'brl',
+                unit_amount: product.amount,
+                product_data: {
+                  name: `Honest Boost — ${product.name}`,
+                  description: product.tagline || undefined
+                }
+              }
+            })
       }],
-      metadata: { email, product: product.id },
+      metadata: { email, product: product.id, ...(req.user ? { userId: String(req.user.id) } : {}) },
+      /* Brazilian digital goods need a billing address + tax id (CPF/CNPJ)
+       * for receipts and Stripe Tax; automatic_tax stays opt-in until the
+       * registrations are done in the Dashboard. */
+      billing_address_collection: 'required',
+      tax_id_collection: { enabled: true },
+      ...(enableTax ? { automatic_tax: { enabled: true } } : {}),
+      locale: 'pt-BR',
       // Stripe replaces {CHECKOUT_SESSION_ID} with the real session id.
       success_url: `${publicBase}/checkout/success/{CHECKOUT_SESSION_ID}`,
       cancel_url: `${publicBase}/checkout.html?plan=${product.id}&cancelled=1`

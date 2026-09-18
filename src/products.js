@@ -49,6 +49,16 @@ const PRODUCTS = {
   }
 };
 
+/* Optional Stripe catalog Price IDs (one per plan). Set env vars like
+ * STRIPE_PRICE_BASIC=price_xxx to charge via catalog prices instead of the
+ * inline unit_amount above. Catalog prices are required by Stripe Billing,
+ * Invoicing and Tax; once created, keeping the env var set switches the
+ * checkout to the real catalog price. */
+const stripeEnv = (key) => process.env[`STRIPE_PRICE_${key.toUpperCase()}`] || null;
+Object.keys(PRODUCTS).forEach((id) => {
+  PRODUCTS[id].stripePriceId = stripeEnv(id);
+});
+
 /** @param {string} id */
 function isValidProduct(id) {
   return Object.prototype.hasOwnProperty.call(PRODUCTS, id);

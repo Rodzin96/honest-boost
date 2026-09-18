@@ -34,6 +34,9 @@ npm start
 Notes
 
 - To enable real Stripe integration set `STRIPE_SECRET` and `PAYMENT_WEBHOOK_SECRET` in `.env`, then register `POST /webhook` in the Stripe Dashboard (event: `checkout.session.completed`).
+- The checkout charges the catalog amount in `src/products.js` (BRL, one-time/lifetime). Optional catalog Price IDs (`STRIPE_PRICE_BASIC|STARTER|PRO`) switch it to real Stripe Prices — needed before enabling Tax/Billing/Invoicing.
+- Stripe Tax is opt-in: enable it in the Dashboard, add the tax registrations, then set `ENABLE_STRIPE_TAX=1`. Pix only needs to be enabled in Stripe → Payment Methods.
+- Checkout always collects billing address + tax id (CPF/CNPJ) for Brazilian receipts.
 - Replace the placeholder download file in `public/downloads/` with your real installer binary.
 
 Admin access

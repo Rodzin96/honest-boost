@@ -87,6 +87,7 @@ async function initSchema() {
     ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT DEFAULT 'local';
     ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
     
     CREATE TABLE IF NOT EXISTS sessions (
       sid TEXT PRIMARY KEY,
@@ -102,8 +103,13 @@ async function initSchema() {
       status TEXT DEFAULT 'pending',
       order_id TEXT,
       activated_at TEXT,
-      created_at TEXT
+      created_at TEXT,
+      license_type TEXT DEFAULT 'lifetime',
+      expires_at TEXT
     );
+    
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS license_type TEXT DEFAULT 'lifetime';
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS expires_at TEXT;
     
     CREATE TABLE IF NOT EXISTS orders (
       id SERIAL PRIMARY KEY,
