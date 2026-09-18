@@ -36,7 +36,7 @@ Notes
 - To enable real Stripe integration set `STRIPE_SECRET` and `PAYMENT_WEBHOOK_SECRET` in `.env`, then register `POST /webhook` in the Stripe Dashboard (event: `checkout.session.completed`).
 - The checkout charges the catalog amount in `src/products.js` (BRL, one-time/lifetime). It uses the live Stripe catalog Prices embedded as defaults in that file; set `STRIPE_PRICE_BASIC|STARTER|PRO` to override.
 - Stripe Tax is **not available for Brazil-based accounts** yet (see Stripe docs). Keep `ENABLE_STRIPE_TAX` off; Brazilian digital-goods taxes (ICMS/ISS) must be handled externally (nota fiscal / accountant). The env var only exists for when Stripe expands support.
-- Pix only needs to be enabled in Stripe → Payment Methods.
+- Pix appears automatically in Checkout once Stripe releases it for the account (new accounts get Pix only after ~60 days/onboarding validation). No code change needed — the checkout never hardcodes `payment_method_types`.
 - Checkout always collects billing address + tax id (CPF/CNPJ) for Brazilian receipts.
 - Replace the placeholder download file in `public/downloads/` with your real installer binary.
 
