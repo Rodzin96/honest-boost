@@ -245,6 +245,30 @@
                 border-radius: 22px;
             }
         }
+
+        #faq .faq-container {
+            max-width: 1100px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        #faq .faq-container .faq-item:first-child {
+            grid-column: 1 / -1;
+        }
+
+        #faq .faq-question {
+            padding: 0.9rem 1.15rem;
+        }
+
+        #faq .faq-question h3 {
+            font-size: 0.95rem;
+            line-height: 1.35;
+        }
+
+        @media (max-width: 768px) {
+            #faq .faq-container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -465,8 +489,8 @@
                 </div>
 
                 <div class="faq-container">
-                    <article class="faq-item active">
-                        <button class="faq-question" type="button" aria-expanded="true">
+                    <article class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Quanto tempo dura o teste grátis?</h3>
                             <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
                         </button>
