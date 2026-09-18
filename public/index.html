@@ -247,8 +247,10 @@
         }
 
         #faq .faq-container {
-            max-width: 900px;
-            gap: 0;
+            max-width: 1080px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 1.5rem;
+            row-gap: 0;
         }
 
         #faq .faq-item {
@@ -258,28 +260,41 @@
             border-bottom: 1px solid var(--divider);
         }
 
-        #faq .faq-item:first-child {
-            border-top: 1px solid var(--divider);
-        }
-
         #faq .faq-question {
-            padding: 1.1rem 0.25rem;
+            padding: 0.75rem 0.15rem;
+            gap: 0.9rem;
         }
 
         #faq .faq-question h3 {
-            font-size: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.35;
         }
 
         #faq .faq-question:hover {
             background: transparent;
         }
 
+        #faq .faq-toggle {
+            font-size: 20px;
+        }
+
         #faq .faq-answer {
-            padding: 0 0.25rem;
+            padding: 0 0.15rem;
         }
 
         #faq .faq-item.active .faq-answer {
-            padding: 0 0.25rem 1.2rem;
+            padding: 0 0.15rem 1rem;
+        }
+
+        #faq .faq-answer p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            #faq .faq-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -504,7 +519,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Quanto tempo dura o teste grátis?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Você tem 4 horas de teste gratuito. Após esse prazo, a key para de funcionar — para continuar usando, é necessário efetuar a aquisição de um plano.</p>
@@ -514,7 +529,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>O que é o Honest Boost?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>É um aplicativo de otimização para Windows focado em jogos competitivos: mais FPS, menos input lag e um sistema mais estável durante o gameplay.</p>
@@ -524,7 +539,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Como funciona?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>O Honest Boost ajusta configurações do Windows — serviços desnecessários, prioridade de processos, energia e atividades em segundo plano — deixando mais recursos livres para o jogo. As mudanças são aplicadas de forma reversível.</p>
@@ -534,7 +549,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Funciona em qualquer Windows?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>O aplicativo é compatível com Windows 10 e Windows 11. Confira os requisitos detalhados na página de Download antes de instalar.</p>
@@ -544,7 +559,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Pode estragar meu computador?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Não. Todas as otimizações são reversíveis e não removem arquivos do sistema. Recomendamos ativar os ajustes por etapas e reiniciar o computador após aplicar as otimizações.</p>
@@ -554,7 +569,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>É seguro de usar o Honest Boost?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Sim. O produto combina desempenho com segurança: mudanças explicadas, possibilidade de reverter e comunicação clara sobre o que cada ajuste faz.</p>
@@ -564,7 +579,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Por quanto tempo funciona?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>O teste grátis vale por 4 horas. Já os planos são pagamentos únicos com licença vitalícia — depois de adquirir, você continua usando sem cobranças recorrentes.</p>
@@ -574,7 +589,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Se eu formatar o computador, eu perco o Honest Boost?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Não. Sua licença fica vinculada à sua conta. Basta entrar novamente no app e ativar sua key no mesmo dispositivo para continuar usando.</p>
@@ -584,7 +599,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>É bom executar o Honest Boost de quanto em quanto tempo?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Não precisa rodar todo dia. Recomendamos executar após instalar jogos, atualizar drivers ou quando perceber queda de desempenho. Depois de aplicar, reinicie o computador para as mudanças valerem.</p>
@@ -594,7 +609,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>A assinatura do Honest Boost é mensal?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Não. A compra é única (pagamento único) e a licença é vitalícia — sem mensalidade nem cobranças futuras.</p>
@@ -604,7 +619,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>A compra é segura?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Sim. O pagamento é processado pelo Stripe, uma das plataformas de pagamento mais seguras do mundo, com criptografia e proteção antifraude.</p>
@@ -614,7 +629,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Posso pedir reembolso?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Sim. O Honest Boost possui política de reembolso — consulte a página Reembolso para conhecer as condições e como solicitar.</p>
@@ -624,7 +639,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>O app precisa ficar aberto em segundo plano?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Não. As otimizações são aplicadas no sistema e permanecem ativas mesmo com o app fechado. Você pode abrir apenas quando precisar ajustar algo.</p>
@@ -634,7 +649,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Consigo usar em vários computadores?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>A ativação é por licença e controlada por plano. Para trocar de máquina, basta desativar a key em um computador e ativá-la em outro — respeitando o limite de dispositivos do seu plano.</p>
@@ -644,7 +659,7 @@
                     <article class="faq-item">
                         <button class="faq-question" type="button" aria-expanded="false">
                             <h3>Meu aplicativo não abre, o que eu faço?</h3>
-                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-rounded faq-toggle" aria-hidden="true">add</span>
                         </button>
                         <div class="faq-answer">
                             <p>Confira o guia de Primeiro Uso — muitas vezes é o SmartScreen ou o antivírus bloqueando. Caso persista, entre em contato pelo suporte (página Contato) que a gente ajuda a resolver.</p>
@@ -768,11 +783,15 @@
                         var otherItem = otherButton.closest('.faq-item');
                         otherItem.classList.remove('active');
                         otherButton.setAttribute('aria-expanded', 'false');
+                        var toggle = otherItem.querySelector('.faq-toggle');
+                        if (toggle) toggle.textContent = 'add';
                     });
 
                     if (!isActive) {
                         item.classList.add('active');
                         button.setAttribute('aria-expanded', 'true');
+                        var toggle = item.querySelector('.faq-toggle');
+                        if (toggle) toggle.textContent = 'remove';
                     }
                 });
             });
