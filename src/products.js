@@ -8,16 +8,17 @@
 const PRODUCTS = {
   /* TEMP — checkout de teste de suporte (R$ 0,50 Pix). Remover junto com a
    * verificação ponta a ponta. Não indexar. */
-  teste: {
+   teste: {
     id: 'teste',
     name: 'Teste de Pagamento',
-    // 50 centavos. Suporta a verificação Pix real.
-    amount: 50,
+    /* R$ 1,00 = 100 centavos — o MÍNIMO aceito pela InfinitePay para Pix
+     * (qualquer valor abaixo de R$ 1,00 é recusado pela API deles). */
+    amount: 100,
     seats: 1,
-    tagline: 'Teste • R$ 0,50',
+    tagline: 'Teste • R$ 1,00',
     features: [
+      'Valor mínimo aceito pelo InfinitePay (Pix)',
       'Apenas para verificação do fluxo de pagamento',
-      'Gera link Pix InfinitePay real',
       'Ativa a chave de licença após o pagamento'
     ],
     hidden: true
