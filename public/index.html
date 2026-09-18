@@ -404,6 +404,16 @@
             animation-play-state: paused;
         }
 
+        /* O slider de depoimentos deve animar sempre: isenta da regra global
+         * de reduced-motion do styles.css (comum em PCs com animações do
+         * Windows desativadas). O pause no hover do card continua valendo. */
+        @media (prefers-reduced-motion: reduce) {
+            .track {
+                animation-duration: 35s !important;
+                animation-iteration-count: infinite !important;
+            }
+        }
+
         .testimonial-card {
             flex: 0 0 340px;
             height: 300px;
