@@ -1,19 +1,19 @@
 {
   "name": "honest-boost-site",
-  "version": "1.0.0",
-  "description": "Honest Boost — site, license portal and Electron desktop optimizer",
+  "version": "3.0.0",
+  "description": "Honest Boost — Performance Intelligence Platform para Windows Gaming",
   "main": "desktop/main.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "init-db": "node src/create_db.js",
     "desktop": "electron desktop/main.js",
-    "check": "node --check server.js && node --check desktop/main.js && node --check desktop/preload.js && node --check public/js/hb.js && node --check public/js/dashboard.js"
+    "stats": "node stats-server.js",
+    "check": "node --check server.js && node --check desktop/main.js && node --check desktop/preload.js && node --check stats-server.js"
   },
   "engines": {
     "node": "20.x"
   },
-  "author": "",
+  "author": "Honestzin",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -30,10 +30,11 @@
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.12.0",
     "sqlite3": "^6.0.1",
-    "uuid": "^11.1.1"
+    "stripe": "^22.6.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "electron": "^44.0.0",
+    "electron": "^31.0.0",
     "nodemon": "^3.1.14"
   }
 }

@@ -8,6 +8,7 @@ yarn-error.log*
 dist/
 build/
 release/
+desktop/dist/
 *.log
 
 # Environment files (never commit real credentials)
@@ -17,18 +18,23 @@ env.env
 *.env
 !.env.example
 
+# Browser/curl cookie dumps (may contain live session cookies)
+cookies.txt
+cookies.txt.*
+*.cookie*
+
 # SQLite (removido - agora usamos PostgreSQL)
-data/*.sqlite
-data/*.sqlite-shm
-data/*.sqlite-wal
+data/**/*.sqlite
+data/**/*.sqlite-shm
+data/**/*.sqlite-wal
+data/**/*.sqlite-journal
 
 # PostgreSQL (local dev only - Railway uses DATABASE_URL)
 pgdata/
 
-# Distributable binaries (published via releases, not git)
+# Distributable binaries (published via GitHub Releases, not git)
 public/downloads/*
 !public/downloads/README.txt
-!public/downloads/*.exe
 
 # IDE files
 .vscode/

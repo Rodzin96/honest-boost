@@ -4,10 +4,10 @@ This project includes a static frontend (in `public/`) and a small Express backe
 
 - Static hosting for the site (`public/`)
 - `/api/download` endpoint with download info
-- `/api/create-checkout-session` placeholder (integrates with Stripe if `STRIPE_SECRET` is set)
+- `/api/create-checkout-session` creates a Stripe Checkout session (returns the hosted checkout URL)
 - `/api/licenses` to generate and list licenses
-- `/api/orders` to create a test order
-- `/webhook` placeholder for payment webhooks
+- `/api/orders` to fetch order + license status (success page)
+- `/webhook` verifies Stripe signatures and activates the license on `checkout.session.completed`
 
 Quick start
 
@@ -33,7 +33,7 @@ npm start
 
 Notes
 
-- To enable real Stripe integration set `STRIPE_SECRET` in `.env` and restart.
+- To enable real Stripe integration set `STRIPE_SECRET` and `PAYMENT_WEBHOOK_SECRET` in `.env`, then register `POST /webhook` in the Stripe Dashboard (event: `checkout.session.completed`).
 - Replace the placeholder download file in `public/downloads/` with your real installer binary.
 
 Admin access
@@ -51,13 +51,13 @@ After setting credentials, restart the server. The admin route uses HTTP Basic A
 Endpoints
 
 - `GET /api/download` — returns download metadata (url, filename).
-- `POST /api/create-checkout-session` — creates a Stripe checkout session if `STRIPE_SECRET` is set; otherwise returns a placeholder URL.
+- `POST /api/create-checkout-session` — creates a Stripe Checkout session; returns `{ ok, checkoutUrl, orderId }`.
 - `POST /api/licenses` — generates a new license (returns JSON with `license`).
 - `GET /api/licenses` — (admin only) lists recent licenses.
 
 Notes on deployment
 
-- For production, set `STRIPE_SECRET` and configure webhooks. Protect admin credentials and consider adding HTTPS and proper auth.
+- For production, set `STRIPE_SECRET` and `PAYMENT_WEBHOOK_SECRET`, register `POST /webhook` in the Stripe Dashboard, and keep admin credentials strong.
 
 Docker
 

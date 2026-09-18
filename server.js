@@ -13,12 +13,24 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
 
+/* Stripe is only loaded when a secret is present so local/dev boots stay
+ * dependency-light and don't make network calls. Missing STRIPE_SECRET makes
+ * checkouts fail closed with a clear 503 instead of a broken payment flow. */
+const stripe = process.env.STRIPE_SECRET ? require('stripe')(process.env.STRIPE_SECRET) : null;
+
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const HAS_EXTERNAL_DB = Boolean(process.env.DATABASE_URL);
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
 
-if (IS_PRODUCTION && SESSION_SECRET.length < 32) {
+/* A weak or missing session secret lets anyone forge auth cookies. A default
+ * 'dev-secret' is only acceptable for pure local development without a real
+ * database. Anywhere else — production, staging, or any deploy that connects
+ * to a real DATABASE_URL — we refuse to boot. Relying on NODE_ENV alone is
+ * fragile because some hosts (e.g. Railway) do not always set
+ * NODE_ENV=production. */
+if ((IS_PRODUCTION || HAS_EXTERNAL_DB) && SESSION_SECRET.length < 32) {
   throw new Error('SESSION_SECRET must be set to at least 32 characters in production.');
 }
 
@@ -49,6 +61,9 @@ function createSessionStore() {
 }
 
 /* Middleware */
+/* Stripe webhook runs before express.json so the raw body stays available
+ * for signature verification (json() would consume the stream). */
+app.post('/webhook', express.raw({ type: 'application/json' }), webhookHandler);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
@@ -58,7 +73,8 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 
-/* Session - memory store for boot, switch to PG later */
+/* Session - memory store for boot, switch to PG later. If we got here with
+ * an external DB, the guard above already ensured a strong SESSION_SECRET. */
 app.use(session({
   name: 'hb.sid',
   secret: SESSION_SECRET || 'dev-secret',
@@ -207,6 +223,24 @@ function isValidEmail(value) {
   return EMAIL_RE.test(normalizeEmail(value));
 }
 
+/* One-time receipt capability for an order. Branding a short-lived, signed
+ * HMAC cookie on the Stripe success redirect lets an anonymous buyer poll
+ * their own order/license without exposing other people's data. */
+function orderAccessToken(orderId) {
+  return crypto.createHmac('sha256', SESSION_SECRET || 'dev-secret').update(String(orderId)).digest('hex');
+}
+
+function readCookie(req, name) {
+  const raw = req.headers.cookie || '';
+  for (const part of raw.split(';')) {
+    const eq = part.indexOf('=');
+    if (eq > -1 && part.slice(0, eq).trim() === name) {
+      return decodeURIComponent(part.slice(eq + 1).trim());
+    }
+  }
+  return null;
+}
+
 function publicOrder(order, license) {
   return {
     orderId: order.order_id,
@@ -252,6 +286,81 @@ async function audit(req, action, details) {
   } catch (err) {
     console.warn('Audit log failed:', err && err.message ? err.message : err);
   }
+}
+
+/* Stripe webhook — creates the order and activates a license for the buyer's
+ * email, then (optionally) emails the key. Registered early (raw body), so it
+ * is written as a hoisted function declaration instead of using asyncRoute. */
+async function webhookHandler(req, res) {
+  try {
+    if (!stripe) return res.status(503).json({ error: 'stripe_not_configured' });
+    const sig = req.headers['stripe-signature'];
+    const secret = process.env.PAYMENT_WEBHOOK_SECRET;
+    if (!secret) return res.status(503).json({ error: 'webhook_not_configured' });
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig || '', secret);
+    } catch (err) {
+      return res.status(400).json({ error: 'invalid_signature' });
+    }
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const email = normalizeEmail(
+        (session.metadata && session.metadata.email) || session.customer_email
+      );
+      const { getProduct } = require('./src/products');
+      const product = email && session.metadata && session.metadata.product
+        ? getProduct(session.metadata.product)
+        : null;
+      if (product) {
+        await ensureDbReady();
+        const paidAt = new Date(session.paid_at ? session.paid_at * 1000 : Date.now()).toISOString();
+        await getDb().dbRun(
+          `INSERT INTO orders (order_id, email, product, amount, status, provider, paid_at, created_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+           ON CONFLICT (order_id)
+           DO UPDATE SET status = EXCLUDED.status, paid_at = EXCLUDED.paid_at, provider = EXCLUDED.provider`,
+          [session.id, email, product.id,
+           Number.isInteger(session.amount_total) ? session.amount_total : product.amount,
+           'paid', 'stripe', paidAt, paidAt]
+        );
+        const existing = await getDb().dbGet('SELECT id FROM licenses WHERE order_id = $1', [session.id]);
+        if (!existing) {
+          const license = newLicenseKey();
+          await getDb().dbRun(
+            `INSERT INTO licenses (license_key, email, product, status, order_id, activated_at, created_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+            [license, email, product.id, 'active', session.id, paidAt, paidAt]
+          );
+          await audit(req, 'payment.completed', {
+            orderId: session.id, email, product: product.id, amount: session.amount_total
+          });
+          sendLicenseEmail(email, license, product).catch(() => {});
+        }
+      }
+    }
+
+    return res.json({ received: true });
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return res.status(500).json({ error: 'webhook_error' });
+  }
+}
+
+/* Sends the license to the buyer when SMTP is configured; failures are silent
+ * because the key is also available on the success page / dashboard. */
+async function sendLicenseEmail(to, licenseKey, product) {
+  const transport = passwordResetTransport();
+  if (!transport) return;
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  if (!from) return;
+  await transport.sendMail({
+    from,
+    to,
+    subject: 'Sua licença Honest Boost chegou!',
+    text: `Olá!\n\nSua licença do plano ${product.name} está ativa.\n\nChave de licença: ${licenseKey}\n\nUse essa chave no painel para liberar o app.\n\nHonest Boost`
+  });
 }
 
 function passwordResetTransport() {
@@ -330,7 +439,9 @@ app.post('/api/login', loginLimiter, asyncRoute(async (req, res) => {
   
   const email = username.trim().toLowerCase();
   const user = await getDb().dbGet('SELECT * FROM users WHERE username = $1', [email]);
-  if (!user) return res.status(401).json({ error: 'invalid_credentials' });
+  // Accounts created via Google OAuth have no password_hash; a password login
+  // against them must fail cleanly (invalid_credentials), not crash the route.
+  if (!user || !user.password_hash) return res.status(401).json({ error: 'invalid_credentials' });
   
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'invalid_credentials' });
@@ -549,20 +660,65 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
   });
 }));
 
-/* Commerce administration. Payment creation remains deliberately disabled until
- * a provider integration can attach a provider transaction to our order id. */
+/* Commerce. Creates a Stripe Checkout session; the post-payment webhook
+ * attaches the Stripe transaction to our order id and activates the license. */
 app.post('/api/create-checkout-session', asyncRoute(async (req, res) => {
-  const { isValidProduct } = require('./src/products');
-  const email = normalizeEmail(req.body && req.body.email);
-  if (!isValidProduct(req.body && req.body.product)) return res.status(400).json({ error: 'invalid_product' });
-  if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
-  return res.status(503).json({
+  if (!stripe) return res.status(503).json({
     error: 'checkout_not_configured',
-    message: 'O checkout ainda não está configurado para vincular pagamentos a licenças com segurança.'
+    message: 'O checkout ainda não está configurado. Entre em contato com o suporte.'
   });
+  const { getProduct } = require('./src/products');
+  const email = normalizeEmail(req.body && req.body.email);
+  const product = getProduct(req.body && req.body.product);
+  if (!product) return res.status(400).json({ error: 'invalid_product' });
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
+
+  const publicBase = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      customer_email: email,
+      line_items: [{
+        quantity: 1,
+        price_data: {
+          currency: 'brl',
+          unit_amount: product.amount,
+          product_data: {
+            name: `Honest Boost — ${product.name}`,
+            description: product.tagline || undefined
+          }
+        }
+      }],
+      metadata: { email, product: product.id },
+      // Stripe replaces {CHECKOUT_SESSION_ID} with the real session id.
+      success_url: `${publicBase}/checkout/success/{CHECKOUT_SESSION_ID}`,
+      cancel_url: `${publicBase}/checkout.html?plan=${product.id}&cancelled=1`
+    });
+  } catch (err) {
+    console.error('Stripe checkout failed:', err && err.message ? err.message : err);
+    return res.status(502).json({ error: 'checkout_failed' });
+  }
+
+  return res.json({ ok: true, checkoutUrl: session.url, orderId: session.id });
 }));
 
-app.get('/api/orders/:orderId', requireAuth, asyncRoute(async (req, res) => {
+/* After a payment the buyer lands here with ?order={CHECKOUT_SESSION_ID}.
+ * Brands a short-lived signed receipt cookie so /api/orders/:orderId can be
+ * polled without requiring an account, then forwards to the success page. */
+app.get('/checkout/success/:orderId', (req, res) => {
+  const orderId = String(req.params.orderId || '').trim();
+  res.cookie('hb_order', orderAccessToken(orderId), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: IS_PRODUCTION,
+    path: '/',
+    maxAge: 15 * 60 * 1000
+  });
+  return res.redirect('/success.html?order=' + encodeURIComponent(orderId));
+});
+
+app.get('/api/orders/:orderId', asyncRoute(async (req, res) => {
   try {
     await ensureDbReady();
   } catch {
@@ -570,7 +726,10 @@ app.get('/api/orders/:orderId', requireAuth, asyncRoute(async (req, res) => {
   }
   const order = await getDb().dbGet('SELECT * FROM orders WHERE order_id = $1', [req.params.orderId]);
   if (!order) return res.status(404).json({ error: 'order_not_found' });
-  if (req.session.user.role !== 'admin' && order.email !== req.session.user.username) return res.status(403).json({ error: 'forbidden' });
+  const isAdmin = req.session && req.session.user && req.session.user.role === 'admin';
+  const isOwner = req.session && req.session.user && order.email === req.session.user.username;
+  const hasReceipt = readCookie(req, 'hb_order') === orderAccessToken(order.order_id);
+  if (!isAdmin && !isOwner && !hasReceipt) return res.status(403).json({ error: 'forbidden' });
   const license = await getDb().dbGet('SELECT * FROM licenses WHERE order_id = $1 ORDER BY created_at DESC LIMIT 1', [order.order_id]);
   return res.json(publicOrder(order, license));
 }));

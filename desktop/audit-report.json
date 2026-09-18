@@ -1,0 +1,226 @@
+{
+  "file_inventory": [
+    "main.js",
+    "preload.js",
+    "applyOptimization.js",
+    "index.html",
+    "styles.css"
+  ],
+  "optimization_functions": [
+    {
+      "name": "Desativar Aceleração do Mouse",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO COMPROVADO",
+      "notes": "Define MouseSpeed, MouseThreshold1 e MouseThreshold2 como 0. Desabilita 'Enhance Pointer Precision'. Comprovadamente melhora consistência em jogos FPS."
+    },
+    {
+      "name": "Polling Rate 1000Hz",
+      "implemented": "SIMULADA",
+      "risk_level": "BAIXO",
+      "classification": "PLACEBO",
+      "notes": "Função setPollingRate() é um wrapper vazio que apenas chama disableMouseAcceleration(). O polling rate de hardware é configurado via software do fabricante (Logitech G Hub, Razer Synapse). Nenhuma alteração real é feita."
+    },
+    {
+      "name": "Mouse Threshold Zero",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO COMPROVADO",
+      "notes": "Define MouseThreshold1 e MouseThreshold2 como 0. Redundante com disableMouseAcceleration() mas funcionalmente correto."
+    },
+    {
+      "name": "Fullscreen Optimizations Off",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Define GameDVR_FSEBehaviorMode=2 e adiciona flag de compatibilidade DISABLEFULLSCREENOPTIMIZATIONS para o próprio executável. Benefício varia conforme jogo e hardware."
+    },
+    {
+      "name": "Plano de Energia Máximo",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO COMPROVADO",
+      "notes": "Ativa plano High Performance (8c5e7fda) com fallback para Ultimate Performance (e9a42b02) e duplicação de esquema. Previne throttling de CPU."
+    },
+    {
+      "name": "Core Parking Disable",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "MÉDIO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Usa powercfg CPMINCORES/CPMAXCORES=100 com fallback para registry ValueMax=0. Windows moderno gerencia isso bem; benefício é marginal em CPUs recentes."
+    },
+    {
+      "name": "Scheduler Otimizado",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Define Win32PrioritySeparation=38 (0x26) que ativa foreground boost e quantum curto/variável. Pode melhorar prioridade do jogo em foreground."
+    },
+    {
+      "name": "Desativar Game DVR",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO COMPROVADO",
+      "notes": "Desativa AppCaptureEnabled, GameDVR_Enabled, FSEBehaviorMode=2. Libera recursos de GPU/CPU usados pela Xbox Game Bar."
+    },
+    {
+      "name": "Efeitos Visuais Leves",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Define VisualFXSetting=2 (Adjust for best Performance). Remove animações e transparências. Ganho de performance mínimo; impacto visual significativo."
+    },
+    {
+      "name": "Limpar RAM Standby",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "PLACEBO",
+      "notes": "Tenta executar EmptyStandbyList.exe (Sysinternals). Fallback PowerShell chama GC.Collect() da .NET que NÃO limpa standby list do Windows. Efeito real é nulo."
+    },
+    {
+      "name": "Rede Otimizada para Jogos",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Define autotuninglevel=normal, timestamps=disabled, MaxConnectionsPerServer=16. Benefício é situacional; timestamps OFF pode prejudicar alguns cenários."
+    },
+    {
+      "name": "DNS Cloudflare (1.1.1.1)",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Configura DNS via PowerShell com fallback hardcoded para adapter 'Ethernet'. Fallback falha em conexões Wi-Fi ou adapters com nomes diferentes."
+    },
+    {
+      "name": "QoS Throttling Off",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "PLACEBO",
+      "notes": "Define NonBestEffortLimit=0. Baseado no mito desmentido de que Windows reserva 20% da banda para QoS. Na reserva só é usada quando aplicativos QoS solicitam explicitamente."
+    },
+    {
+      "name": "Desativar Telemetria",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO COMPROVADO",
+      "notes": "Para e desabilita DiagTrack e dmwappushservice; define AllowTelemetry=0. Reduz coleta de dados de segundo plano e melhora privacidade."
+    },
+    {
+      "name": "Pausar Updates Automáticos",
+      "implemented": "IMPLEMENTADA MAS ARRISCADA",
+      "risk_level": "BAIXO",
+      "classification": "NÃO IMPLEMENTADA",
+      "notes": "Define NoAutoUpdate=0 que significa updates ATIVOS (não pausados). Código contradiz a promessa da UI. AUOptions=2 apenas notifica antes de baixar."
+    },
+    {
+      "name": "Refresh Rate Máximo",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO COMPROVADO",
+      "notes": "Usa PowerShell/C# para enumerar display settings e aplicar a maior taxa de atualização suportada. Funcional e reversível via Windows."
+    },
+    {
+      "name": "Gaming Mode: Fechar Processos",
+      "implemented": "IMPLEMENTADA MAS ARRISCADA",
+      "risk_level": "ALTO",
+      "classification": "POTENCIALMENTE PREJUDICIAL",
+      "notes": "killGamingProcesses() força termino de Chrome, Firefox, Discord, Steam, Epic Games, Battle.net, etc. com flag /F. Risco GRAVE de perda de dados não salvos, downloads interrompidos e corrupção de arquivos."
+    },
+    {
+      "name": "Limpeza de Disco (Ultra Blaster)",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "MÉDIO",
+      "classification": "POTENCIALMENTE PREJUDICIAL",
+      "notes": "Deleta arquivos de TEMP, Windows\\Temp, Prefetch e SoftwareDistribution\\Download. Limpar Prefetch causa lentidão temporária na inicialização de aplicativos."
+    },
+    {
+      "name": "Desativar Startups (Ultra Blaster)",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "MÉDIO",
+      "classification": "POTENCIALMENTE PREJUDICIAL",
+      "notes": "Remove entradas do Run registry para Discord, FACEIT, Steam, Chrome, Edge sem pedir confirmação usuário. Usuário perde controle de inicialização."
+    },
+    {
+      "name": "Otimizar Rede (Ultra Blaster)",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Duplica optimizeNetwork() e tenta desabilitar Interrupt Moderation via registry. Benefício var conforme driver de rede."
+    },
+    {
+      "name": "GPU Max Performance",
+      "implemented": "IMPLEMENTADA MAS ARRISCADA",
+      "risk_level": "MÉDIO",
+      "classification": "POTENCIALMENTE PREJUDICIAL",
+      "notes": "Escreve PowerMode=1 em HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm. Esta chave só existe em GPUs NVIDIA. Sem verificação prévia de GPU, gera erro silencioso em AMD/Intel."
+    },
+    {
+      "name": "Serviços Desnecessários (Ultra Blaster)",
+      "implemented": "IMPLEMENTADA",
+      "risk_level": "BAIXO",
+      "classification": "BENEFÍCIO DEPENDENTE",
+      "notes": "Desabilita MapsBroker, lfsvc, SharedAccess, WMPNetworkSvc. SharedAccess (Internet Connection Sharing) pode quebrar hotspot em alguns casos."
+    }
+  ],
+  "security_issues": [
+    {
+      "severity": "CRÍTICA",
+      "file": "main.js",
+      "description": "killGamingProcesses() força termino de Chrome, Firefox, Discord, Steam, Epic Games, Battle.net, Origin, Skype, Zoom, Slack com taskkill /F sem consentimento explícito. Causa perda de dados não salvos, corrupção de downloads e potencial dano a jogos online."
+    },
+    {
+      "severity": "CRÍTICA",
+      "file": "main.js",
+      "description": "setGPUMaxPerformance() escreve em HKLM\\...\\nvlddmkm sem verificar se há GPU NVIDIA presente. Em sistemas AMD/Intel a chave não existe e o erro é silencioso, enganando o usuário que a otimização foi aplicada."
+    },
+    {
+      "severity": "ALTA",
+      "file": "main.js",
+      "description": "Nenhuma verificação de privilégios de admin é feita antes de executar operações de sistema. Função isAdmin() existe mas nunca é chamada. Apenas captura erros de 'Access is denied' após falha."
+    },
+    {
+      "severity": "ALTA",
+      "file": "applyOptimization.js",
+      "description": "Comunicação via HTTP não criptografado com servidor localhost (http://localhost:3001). Sem TLS, dados podem ser interceptados via man-in-the-loop em redes compartilhadas."
+    },
+    {
+      "severity": "ALTA",
+      "file": "main.js",
+      "description": "pauseWindowsUpdates() define NoAutoUpdate=0 que significa updates ATIVOS, contradizendo a UI que promete 'Pausar Updates Automáticos'. O registro está incorreto."
+    },
+    {
+      "severity": "MÉDIA",
+      "file": "main.js",
+      "description": "setDNSCloudflare() tem fallback hardcoded para adapter 'Ethernet' que falha em conexões Wi-Fi ou adapters com nomes localizados (ex: 'Ethernet 2', 'Wi-Fi')."
+    },
+    {
+      "severity": "MÉDIA",
+      "file": "main.js",
+      "description": "cleanTempFiles() deleta Prefetch do Windows recursivamente. Isso causa lentidão temporária na inicialização de todos os aplicativos após a limpeza."
+    },
+    {
+      "severity": "BAIXA",
+      "file": "index.html",
+      "description": "Dados de licença (chave, email) são salvos em localStorage sem criptografia. Persiste entre sessões sem hash ou proteção."
+    }
+  ],
+  "dead_code": [
+    "main.js: postToStatsServer() e fetchStats() são funções no-op que retornam dados estáticos (Promise.resolve({ ok: true }) e Promise.resolve({})). Nunca conectam a um servidor real.",
+    "main.js: setPollingRate() é um wrapper que apenas chama disableMouseAcceleration(). Não realiza nenhuma configuração de polling rate.",
+    "main.js: setMouseThreshold() duplica 2 das 3 operações já realizadas por disableMouseAcceleration().",
+    "main.js: optimizeNetworkUltra() é quase duplicata de optimizeNetwork() com adição de Interrupt Moderation que pode falhar silenciosamente.",
+    "main.js: runTool() é definido mas nunca chamado em lugar algum do código.",
+    "main.js: isAdmin() é implementado mas nunca invado antes das otimizações. Apenas a verificação reativa via requireWindows() é usada.",
+    "applyOptimization.js: apiKey é aceito via --key ou STATS_API_KEY mas sem validação de formato ou rota de fallback segura."
+  ],
+  "critical_findings": [
+    "RISCO DE PERDA DE DADOS: killGamingProcesses() força fechamento de navegadores (Chrome, Firefox, Edge), mensageiros (Discord, Slack, Teams) e plataformas de jogos (Steam, Epic, Battle.net) com taskkill /F sem pedir confirmação. Usuários perdem formulários preenchidos, downloads em andamento e conexões ativas.",
+    "FUNCIONALIDADE QUEBRADA: pauseWindowsUpdates() define NoAutoUpdate=0 (updates ativos) em vez de NoAutoUpdate=1 (updates desativados). A UI promete pausar updates mas o código faz o oposto.",
+    "OTIMIZAÇÃO INEFICAZ: cleanStandbyMemory() cai no fallback PowerShell que chama GC.Collect() da .NET — isso NÃO limpa a Standby List do Windows. O efeito é nulo mas a UI reporta sucesso.",
+    "VERIFICAÇÃO DE GPU AUSENTE: setGPUMaxPerformance() escreve em caminho de registry NVIDIA (nvlddmkm) sem detectar o fabricante da GPU. Em AMD/Intel gera erro silencioso enganando o usuário.",
+    "ELEVAÇÃO DE PRIVILÉGIO AUSENTE: Nenhuma solicitação UAC é feita antes das operações. O app depende de captura de erros após falha, resultando em UX confusa quando operações HKLM ou sc config falham.",
+    "REGISTRO CONTRADITÓRIO: disableQoSThrottling() é baseado no mito desmentido de reserva de banda QoS de 20%. A reserva só é utilizada quando aplicativos QoS solicitam explicitamente.",
+    "CÓDIGO MORTO SIGNIFICATIVO: Funções como postToStatsServer, fetchStats e isAdmin() não têm efeito prático. Funções como setPollingRate e setMouseThreshold são wrappers redundantes.",
+    "RACE CONDITION EM REGISTRY: disableGameDVR() e disableFullscreenOptimizations() escrevem nas mesmas chaves de registry (GameDVR_FSEBehaviorMode) sem sincronização, podendo gerar estados inconsistentes se executadas em paralelo."
+  ]
+}
