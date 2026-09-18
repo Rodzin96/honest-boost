@@ -1,6 +1,8 @@
 /* checkout.js — order summary + checkout session creation.
  * Prices come from GET /api/products so the page can never disagree with the
- * amount the backend actually charges. */
+ * amount the backend actually charges. Payment methods map to providers: Pix
+ * → InfinitePay (infinitepay), card → Stripe (stripe). Unavailable providers
+ * are disabled based on GET /api/payment-methods. */
 (function () {
   'use strict';
 
@@ -16,12 +18,55 @@
   var payBtn = document.getElementById('payBtn');
   var emailEl = document.getElementById('email');
 
-  // Payment method cards (previously bound with inline onclick attributes).
-  document.querySelectorAll('.method-card').forEach(function (cardEl) {
+  var methodCards = Array.prototype.slice.call(document.querySelectorAll('.method-card'));
+
+  function activeProvider() {
+    for (var i = 0; i < methodCards.length; i++) {
+      if (methodCards[i].classList.contains('active')) {
+        return methodCards[i].getAttribute('data-provider') || 'stripe';
+      }
+    }
+    return 'stripe';
+  }
+
+  methodCards.forEach(function (cardEl) {
     cardEl.addEventListener('click', function () {
-      document.querySelectorAll('.method-card').forEach(function (c) { c.classList.remove('active'); });
+      if (cardEl.classList.contains('disabled')) return;
+      methodCards.forEach(function (c) {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
       cardEl.classList.add('active');
+      cardEl.setAttribute('aria-pressed', 'true');
     });
+  });
+
+  // Hide/disable methods whose provider is not configured on the backend.
+  HB.api('/api/payment-methods').then(function (out) {
+    var available = (out.res.ok && out.data) || {};
+    methodCards.forEach(function (card) {
+      var provider = card.getAttribute('data-provider');
+      if (provider && !available[provider]) {
+        card.classList.add('disabled');
+        card.setAttribute('aria-disabled', 'true');
+        card.setAttribute('tabindex', '-1');
+      }
+    });
+    var activeCard = document.querySelector('.method-card.active');
+    if (activeCard && activeCard.classList.contains('disabled')) {
+      activeCard.classList.remove('active');
+      activeCard.setAttribute('aria-pressed', 'false');
+      var fallback = methodCards.filter(function (c) { return !c.classList.contains('disabled'); })[0];
+      if (fallback) {
+        fallback.classList.add('active');
+        fallback.setAttribute('aria-pressed', 'true');
+      } else {
+        payBtn.disabled = true;
+        HB.setMessage(msgEl, 'Nenhuma forma de pagamento disponível no momento.', 'error');
+      }
+    }
+  }).catch(function () {
+    /* Keep the default selection; the backend still validates the provider. */
   });
 
   function renderProduct(product) {
@@ -61,7 +106,7 @@
     try {
       var out = await HB.api('/api/create-checkout-session', {
         method: 'POST',
-        body: { product: selectedProduct.id, email: email }
+        body: { product: selectedProduct.id, email: email, provider: activeProvider() }
       });
       if (out.res.ok && out.data && out.data.checkoutUrl) {
         // Keep the order id so success.html can poll for the license.

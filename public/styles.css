@@ -644,6 +644,8 @@ tbody tr:hover { background: color-mix(in srgb, var(--primary) 6%, transparent);
 .method-card { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 1rem; border-radius: 14px; border: 1.5px solid var(--outline-variant); background: var(--surface-2); color: var(--on-surface-variant); font-weight: 600; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease; }
 .method-card:hover { border-color: var(--primary); }
 .method-card.active { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface-2)); color: var(--primary); }
+.method-card small { display: block; font-size: 0.68rem; font-weight: 500; opacity: 0.75; margin-top: 2px; letter-spacing: normal; text-transform: none; }
+.method-card.disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 .order-summary .summary-item { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid var(--divider); color: var(--on-surface-variant); font-size: 0.95rem; }
 .order-summary .summary-item span:last-child { color: var(--on-surface); font-weight: 600; }
 .order-summary .summary-item.total { border-bottom: none; font-size: 1.35rem; font-weight: 800; color: var(--primary); }

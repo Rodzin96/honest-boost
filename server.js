@@ -18,6 +18,11 @@ const nodemailer = require('nodemailer');
  * checkouts fail closed with a clear 503 instead of a broken payment flow. */
 const stripe = process.env.STRIPE_SECRET ? require('stripe')(process.env.STRIPE_SECRET) : null;
 
+/* InfinitePay (Brazilian PSP supporting Pix with zero fee). The handle is the
+ * merchant InfiniteTag (without the leading $) from the "Checkout Integrado"
+ * config. Payment links + status checks use this same handle. */
+const INFINITEPAY_HANDLE = (process.env.INFINITEPAY_HANDLE || '').trim() || null;
+
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -696,15 +701,22 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
  * One-time (lifetime) plan: customers are linked to a Stripe Customer so the
  * account, receipts and Stripe Tax stay coherent for the same user. */
 app.post('/api/create-checkout-session', asyncRoute(async (req, res) => {
-  if (!stripe) return res.status(503).json({
-    error: 'checkout_not_configured',
-    message: 'O checkout ainda não está configurado. Entre em contato com o suporte.'
-  });
   const { getProduct } = require('./src/products');
   const email = normalizeEmail(req.body && req.body.email);
   const product = getProduct(req.body && req.body.product);
   if (!product) return res.status(400).json({ error: 'invalid_product' });
   if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
+
+  /* Two providers in parallel: Pix via InfinitePay, card via Stripe. */
+  const provider = String((req.body && req.body.provider) || 'stripe').toLowerCase();
+  if (provider === 'infinitepay' || provider === 'pix') {
+    return createInfinitePayCheckout(req, res, { email, product });
+  }
+
+  if (!stripe) return res.status(503).json({
+    error: 'checkout_not_configured',
+    message: 'O checkout ainda não está configurado. Entre em contato com o suporte.'
+  });
 
   const publicBase = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
 
@@ -768,6 +780,114 @@ app.post('/api/create-checkout-session', asyncRoute(async (req, res) => {
   }
 
   return res.json({ ok: true, checkoutUrl: session.url, orderId: session.id });
+}));
+
+/* Which payment providers are configured, so the checkout page can disable
+ * unavailable methods instead of surfacing a 503 after the customer clicks. */
+app.get('/api/payment-methods', (req, res) => {
+  res.json({ stripe: Boolean(stripe), infinitepay: Boolean(INFINITEPAY_HANDLE) });
+});
+
+/* InfinitePay checkout: record a pending order, then ask InfinitePay for a
+ * hosted payment link and hand its URL to the browser. The webhook below
+ * marks the order as paid and activates the license. */
+async function createInfinitePayCheckout(req, res, { email, product }) {
+  if (!INFINITEPAY_HANDLE) return res.status(503).json({
+    error: 'pix_not_configured',
+    message: 'O pagamento via Pix ainda não está configurado. Entre em contato com o suporte.'
+  });
+
+  const publicBase = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+  const orderId = 'hb_' + crypto.randomBytes(12).toString('hex');
+  const now = new Date().toISOString();
+
+  await ensureDbReady();
+  await getDb().dbRun(
+    `INSERT INTO orders (order_id, email, product, amount, status, provider, paid_at, created_at)
+     VALUES ($1, $2, $3, $4, 'pending', 'infinitepay', NULL, $5)`,
+    [orderId, email, product.id, product.amount, now]
+  );
+
+  let link;
+  try {
+    const { createCheckoutLink } = require('./src/infinitepay');
+    link = await createCheckoutLink({
+      handle: INFINITEPAY_HANDLE,
+      items: [{
+        quantity: 1,
+        price: product.amount,
+        description: `Honest Boost — ${product.name}`
+      }],
+      orderNsu: orderId,
+      redirectUrl: `${publicBase}/checkout/success/${orderId}`,
+      webhookUrl: `${publicBase}/webhook/infinitepay`
+    });
+  } catch (err) {
+    console.error('InfinitePay link failed:', err && err.message ? err.message : err);
+    return res.status(502).json({ error: 'checkout_failed' });
+  }
+
+  if (!link.url) return res.status(502).json({ error: 'checkout_failed' });
+  return res.json({ ok: true, checkoutUrl: link.url, orderId, provider: 'infinitepay' });
+}
+
+/* InfinitePay webhook. It carries no signature, so before granting a license
+ * we always re-confirm the payment through payment_check and match the amount
+ * against the stored pending order. Respond 2xx only after taking ownership;
+ * respond 4xx so InfinitePay retries otherwise. */
+app.post('/webhook/infinitepay', asyncRoute(async (req, res) => {
+  const body = req.body || {};
+  const orderNsu = String(body.order_nsu || '');
+  const transactionNsu = String(body.transaction_nsu || '');
+  const slug = String(body.invoice_slug || '');
+  if (!orderNsu || !transactionNsu || !slug || !INFINITEPAY_HANDLE) {
+    return res.status(400).json({ error: 'invalid_payload' });
+  }
+
+  try {
+    await ensureDbReady();
+  } catch (err) {
+    return res.status(400).json({ error: 'database_not_ready' });
+  }
+
+  const order = await getDb().dbGet('SELECT * FROM orders WHERE order_id = $1', [orderNsu]);
+  if (!order) return res.status(400).json({ error: 'order_not_found' });
+  if (order.status === 'paid') return res.json({ received: true });
+
+  let check;
+  try {
+    const { checkPayment } = require('./src/infinitepay');
+    check = await checkPayment({ handle: INFINITEPAY_HANDLE, orderNsu, transactionNsu, slug });
+  } catch (err) {
+    console.error('InfinitePay payment_check failed:', err && err.message ? err.message : err);
+    return res.status(400).json({ error: 'check_failed' });
+  }
+  if (!check.success || check.paid !== true || Number(check.amount) !== Number(order.amount)) {
+    return res.status(400).json({ error: 'payment_not_confirmed' });
+  }
+
+  const paidAt = new Date().toISOString();
+  await getDb().dbRun(
+    `UPDATE orders SET status = 'paid', paid_at = $2 WHERE order_id = $1`,
+    [orderNsu, paidAt]
+  );
+
+  const existing = await getDb().dbGet('SELECT id FROM licenses WHERE order_id = $1', [orderNsu]);
+  if (!existing) {
+    const license = newLicenseKey();
+    await getDb().dbRun(
+      `INSERT INTO licenses (license_key, email, product, status, order_id, activated_at, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [license, order.email, order.product, 'active', orderNsu, paidAt, paidAt]
+    );
+    await audit(req, 'payment.completed', {
+      orderId: orderNsu, email: order.email, product: order.product,
+      amount: order.amount, captureMethod: body.capture_method, provider: 'infinitepay'
+    });
+    sendLicenseEmail(order.email, license, require('./src/products').getProduct(order.product)).catch(() => {});
+  }
+
+  return res.json({ received: true });
 }));
 
 /* After a payment the buyer lands here with ?order={CHECKOUT_SESSION_ID}.

@@ -239,17 +239,13 @@
 
                 <p class="method-caption">Escolha como deseja pagar:</p>
                 <div class="payment-methods" role="list" aria-label="Métodos de pagamento">
-                    <button type="button" class="method-card active" role="listitem" aria-pressed="true">
-                        <span class="material-symbols-rounded">credit_card</span>
-                        Cartão
-                    </button>
-                    <button type="button" class="method-card" role="listitem" aria-pressed="false">
+                    <button type="button" class="method-card active" data-provider="infinitepay" role="listitem" aria-pressed="true">
                         <span class="material-symbols-rounded">qr_code_2</span>
-                        PIX
+                        <span>Pix<small>Via InfinitePay · na hora</small></span>
                     </button>
-                    <button type="button" class="method-card" role="listitem" aria-pressed="false">
-                        <span class="material-symbols-rounded">account_balance</span>
-                        Boleto
+                    <button type="button" class="method-card" data-provider="stripe" role="listitem" aria-pressed="false">
+                        <span class="material-symbols-rounded">credit_card</span>
+                        <span>Cartão de crédito<small>Via Stripe · pagamento seguro</small></span>
                     </button>
                 </div>
 
@@ -299,19 +295,5 @@
 
     <script src="/js/hb.js" defer></script>
     <script src="/js/checkout.js" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.method-card').forEach(function (card) {
-                card.addEventListener('click', function () {
-                    document.querySelectorAll('.method-card').forEach(function (item) {
-                        item.classList.remove('active');
-                        item.setAttribute('aria-pressed', 'false');
-                    });
-                    card.classList.add('active');
-                    card.setAttribute('aria-pressed', 'true');
-                });
-            });
-        });
-    </script>
 </body>
 </html>
