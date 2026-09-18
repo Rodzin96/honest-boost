@@ -104,4 +104,40 @@ SMTP_FROM="Honest Boost <noreply@yourdomain.com>"
 
 - After set, restart the server; the `/api/password-reset-request` endpoint will send an email with a reset link.
 
+Desktop (Electron)
+
+Build the Windows installer (NSIS):
+
+```bash
+cd desktop
+npm install
+npm run build:win
+```
+
+Auto-updates use GitHub Releases. To publish a release:
+
+1. Bump the `version` in `desktop/package.json` (this drives the update check).
+2. Build and publish:
+
+```bash
+npm run publish
+```
+
+`electron-builder --publish always` creates a GitHub Release with the installer and a `latest.yml` file that `electron-updater` reads.  
+A GitHub personal access token with `repo` scope must be available to `electron-builder` (use `GH_TOKEN` env var).
+
+Code signing (recommended)
+
+Without signing, Windows SmartScreen will flag the installer until enough users trust the binary. To remove the warning:
+
+- Obtain an Authenticode certificate from a trusted CA (e.g. DigiCert, Sectigo).
+- Build with the certificate:
+
+```bash
+set WIN_CSC_LINK=path/to/certificate.pfx
+set WIN_CSC_KEY_PASSWORD=your-password
+npm run publish
+```
+
+For CI, store the base64-encoded `.pfx` in `WIN_CSC_LINK_BASE64` and decode it before build, or use a cloud HSM / Azure Trusted Signing.
 
