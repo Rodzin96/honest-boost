@@ -90,6 +90,26 @@ app.use(session({
   }
 }));
 
+/* Legacy pages removed in the site cleanup kept as 301s so old links and
+ * search engines don't land on 404s. */
+const LEGACY_REDIRECTS = {
+  '/index-premium.html': '/',
+  '/index.hb.html': '/',
+  '/app.html': '/dashboard',
+  '/changelog.html': '/',
+  '/about-honest.html': '/',
+  '/admin-honest.html': '/admin',
+  '/contact-honest.html': '/contact.html',
+  '/privacy-honest.html': '/privacy.html',
+  '/terms-honest.html': '/terms.html',
+  '/download-honest.html': '/download.html'
+};
+app.use((req, res, next) => {
+  const target = LEGACY_REDIRECTS[req.path];
+  if (target) return res.redirect(301, target);
+  return next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* Passport + Google OAuth */
