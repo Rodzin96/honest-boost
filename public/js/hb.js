@@ -198,30 +198,93 @@
   }
 
   // --------------------------------------------------------------- download
-  /** Wire any [data-hb-download] element to the protected download endpoint. */
+  /** Resolve the protected download endpoint and start the file download. */
+  function performDownload(btn) {
+    setLoading(btn, true, 'Preparando...');
+    return api('/api/download')
+      .then(function (out) {
+        if (out.res.status === 401) {
+          window.location = (out.data && out.data.loginUrl) || '/login.html';
+          return;
+        }
+        if (!out.res.ok || !out.data || !out.data.url) throw new Error('download_failed');
+        var a = document.createElement('a');
+        a.href = out.data.url;
+        a.download = out.data.filename || '';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(function () {
+        window.alert('Não foi possível iniciar o download. Tente novamente.');
+      })
+      .finally(function () {
+        setLoading(btn, false);
+      });
+  }
+
+  /** Show the "antes de usar" warning and only start the download on confirm. */
+  function showDownloadWarning(btn) {
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Atenção antes do download');
+    overlay.innerHTML =
+      '<div class="modal">' +
+      '  <div class="modal-header">' +
+      '    <h3><span class="material-symbols-rounded">warning</span>Atenção!</h3>' +
+      '    <button type="button" class="icon-btn modal-close" aria-label="Fechar">' +
+      '      <span class="material-symbols-rounded">close</span></button>' +
+      '  </div>' +
+      '  <div class="modal-body">' +
+      '    <p style="margin-bottom:1.2rem;">Dois cuidados antes de usar o aplicativo:</p>' +
+      '    <div style="margin-bottom:1.2rem;">' +
+      '      <strong>1. Não ative todos os tweaks de uma vez.</strong>' +
+      '      <p style="color:var(--on-surface-variant);font-size:0.9rem;margin-top:0.25rem;">' +
+      '        Comece pelos recomendados e vá adaptando conforme o necessário.</p>' +
+      '    </div>' +
+      '    <div style="margin-bottom:0.4rem;">' +
+      '      <strong>2. Reinicie o computador após aplicar as otimizações.</strong>' +
+      '      <p style="color:var(--on-surface-variant);font-size:0.9rem;margin-top:0.25rem;">' +
+      '        Boa parte dos ajustes só passa a valer depois que o Windows é reiniciado.</p>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="modal-footer">' +
+      '    <button type="button" class="btn btn-filled modal-confirm">Entendi, continuar download</button>' +
+      '  </div>' +
+      '</div>';
+
+    function close() {
+      overlay.classList.remove('open');
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape') close();
+    }
+
+    overlay.querySelector('.modal-close').addEventListener('click', close);
+    overlay.querySelector('.modal-confirm').addEventListener('click', function () {
+      close();
+      performDownload(btn);
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) close();
+    });
+    document.addEventListener('keydown', onKey);
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(function () { overlay.classList.add('open'); });
+  }
+
+  /** Wire any [data-hb-download] element to the warning-gated download flow. */
   function initDownloadButtons() {
     document.querySelectorAll('[data-hb-download]').forEach(function (btn) {
-      btn.addEventListener('click', async function (e) {
+      btn.addEventListener('click', function (e) {
         e.preventDefault();
-        setLoading(btn, true, 'Preparando...');
-        try {
-          var out = await api('/api/download');
-          if (out.res.status === 401) {
-            window.location = (out.data && out.data.loginUrl) || '/login.html';
-            return;
-          }
-          if (!out.res.ok || !out.data || !out.data.url) throw new Error('download_failed');
-          var a = document.createElement('a');
-          a.href = out.data.url;
-          a.download = out.data.filename || '';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        } catch (err) {
-          window.alert('Não foi possível iniciar o download. Tente novamente.');
-        } finally {
-          setLoading(btn, false);
-        }
+        showDownloadWarning(btn);
       });
     });
   }
