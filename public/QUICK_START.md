@@ -71,11 +71,13 @@ ADMIN_USER=admin
 ADMIN_PASS=<senha forte>
 STRIPE_SECRET=sk_live_...
 PAYMENT_WEBHOOK_SECRET=whsec_...
-# Opcional: Price IDs do catalogo + Stripe Tax
-STRIPE_PRICE_BASIC=price_xxx
-STRIPE_PRICE_STARTER=price_xxx
-STRIPE_PRICE_PRO=price_xxx
-ENABLE_STRIPE_TAX=1
+# Opcional: Price IDs do catalogo (precos padrao jah embutidos em src/products.js)
+STRIPE_PRICE_BASIC=price_1UH5VZ00k72XFvlldqIARWTR
+STRIPE_PRICE_STARTER=price_1UH5VZ00k72XFvllHqh1IOlx
+STRIPE_PRICE_PRO=price_1UH5Va00k72XFvlllav1oYNv
+# Stripe Tax NAO suporta contas brasileiras ainda — manter desligado; ICMS/ISS
+# devem ser tratados externamente (nota fiscal/contador).
+# ENABLE_STRIPE_TAX=1
 PUBLIC_BASE_URL=https://seu-dominio.com
 ```
 
