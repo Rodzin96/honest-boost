@@ -16,9 +16,9 @@ Frontend estático em `public/` com design dark premium, mobile-first e sem clai
 - **dashboard.html** — Licença + status do usuário (servida em `/dashboard`)
 - **admin.html** — Painel de licenças (servida em `/admin`, Basic Auth)
 - **primeiro-uso.html** — Guia do SmartScreen/primeira execução
-- **faq-honest.html**, **help.html** — Dúvidas e suporte
+- **help.html** — Dúvidas e suporte
 - **contact.html**, **terms.html**, **privacy.html**, **refund.html** — Legal e contato
-- **planos.html**, **recursos.html** — Marketing suplementar
+- **planos.html**, **recursos.html**, **comparativo.html** — Marketing suplementar
 - **robots.txt**, **sitemap.xml** — SEO
 
 > Páginas legadas (`*-honest.html` duplicadas, `index-premium.html`, `index.hb.html`, `app.html`,

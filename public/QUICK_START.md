@@ -16,7 +16,7 @@
 | Login | http://localhost:3000/login.html | Entrar |
 | Dashboard | http://localhost:3000/dashboard | Licença e status do usuário |
 | Admin | http://localhost:3000/admin | Painel de licenças (Basic Auth) |
-| FAQ | http://localhost:3000/faq-honest.html | Perguntas frequentes |
+| Comparativo | http://localhost:3000/comparativo.html | Honest Boost vs outros serviços |
 | Contato | http://localhost:3000/contact.html | Formulário de contato |
 | Termos | http://localhost:3000/terms.html | Termos de uso |
 | Privacidade | http://localhost:3000/privacy.html | Política de privacidade (LGPD) |
