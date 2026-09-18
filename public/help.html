@@ -27,7 +27,21 @@
         .page-panel { background:var(--surface-1); border:1px solid var(--divider); border-radius:28px; padding:1.6rem; box-shadow:var(--elevation-1); }
         .support-cards { display:grid; gap:1rem; }
         .support-card { background:var(--surface-2); border:1px solid var(--divider); border-radius:20px; padding:1rem 1.1rem; }
-        .faq-question { width:100%; border:none; background:transparent; text-align:left; }
+        .faq-tabs { display:flex; justify-content:center; }
+        .faq-tab { padding:0.8rem 1.8rem; background:var(--surface-1); color:var(--on-surface-variant); font-weight:600; border:1px solid var(--divider); border-bottom:none; font-size:0.95rem; }
+        .faq-tab:first-child { border-radius:16px 16px 0 0; }
+        .faq-tab.active { background:color-mix(in srgb, var(--primary) 10%, var(--surface-1)); color:var(--primary); }
+        .faq-panel { background:var(--surface-1); border:1px solid var(--divider); border-radius:24px; padding:1.4rem; }
+        .faq-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.8rem; }
+        .faq-item { background:var(--surface); border:1px solid var(--divider); border-radius:14px; overflow:hidden; transition:.3s; }
+        .faq-item.active { border-color:color-mix(in srgb, var(--primary) 45%, transparent); }
+        .faq-question { padding:1rem 1.1rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem; cursor:pointer; font-weight:600; color:var(--on-surface); font-size:.98rem; background:none; }
+        .faq-question:hover { background:color-mix(in srgb, var(--primary) 6%, transparent); }
+        .faq-icon { font-size:1.4rem; line-height:1; color:var(--primary); transition:transform .3s; flex-shrink:0; }
+        .faq-item.active .faq-icon { transform:rotate(45deg); }
+        .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease; padding:0 1.1rem; color:var(--on-surface-variant); line-height:1.6; font-size:.92rem; }
+        .faq-item.active .faq-answer { max-height:180px; padding:0 1.1rem 1rem; }
+        @media (max-width:900px) { .faq-grid { grid-template-columns:1fr; } }
         @media (max-width:1024px) { .help-grid { grid-template-columns:1fr; } }
     </style>
 </head>
@@ -70,29 +84,28 @@
                 </aside>
 
                 <section class="page-panel">
-                    <h2 style="margin-bottom:1rem;">Perguntas frequentes</h2>
-                    <div class="faq-container">
-                        <article class="faq-item active">
-                            <button class="faq-question" type="button" aria-expanded="true">
-                                <h3>Como instalar o Honest Boost?</h3>
-                                <span class="material-symbols-rounded faq-toggle">expand_more</span>
-                            </button>
-                            <div class="faq-answer"><p>Baixe o instalador, execute com permissões adequadas e siga o fluxo orientado pela interface.</p></div>
-                        </article>
-                        <article class="faq-item">
-                            <button class="faq-question" type="button" aria-expanded="false">
-                                <h3>É seguro usar?</h3>
-                                <span class="material-symbols-rounded faq-toggle">expand_more</span>
-                            </button>
-                            <div class="faq-answer"><p>A comunicação do produto enfatiza segurança, reversibilidade e clareza sobre o que está sendo aplicado.</p></div>
-                        </article>
-                        <article class="faq-item">
-                            <button class="faq-question" type="button" aria-expanded="false">
-                                <h3>Como funcionam as versões e planos?</h3>
-                                <span class="material-symbols-rounded faq-toggle">expand_more</span>
-                            </button>
-                            <div class="faq-answer"><p>Os detalhes do catálogo são carregados dinamicamente na home e no checkout para evitar divergências de preço e oferta.</p></div>
-                        </article>
+                    <div class="faq-tabs">
+                        <div class="faq-tab active">⚡ Dúvidas frequentes</div>
+                    </div>
+                    <div class="faq-panel">
+                        <div class="faq-grid">
+                            <div class="faq-item">
+                                <div class="faq-question"><span>Como instalar o Honest Boost?</span><span class="faq-icon">+</span></div>
+                                <div class="faq-answer">Baixe o instalador, execute com permissões adequadas e siga o fluxo orientado pela interface.</div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question"><span>É seguro usar?</span><span class="faq-icon">+</span></div>
+                                <div class="faq-answer">O produto enfatiza segurança, reversibilidade e clareza sobre o que está sendo aplicado.</div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question"><span>Como funcionam as versões e planos?</span><span class="faq-icon">+</span></div>
+                                <div class="faq-answer">Os detalhes do catálogo são carregados dinamicamente na home e no checkout para evitar divergências de preço e oferta.</div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question"><span>Quanto tempo dura o teste grátis?</span><span class="faq-icon">+</span></div>
+                                <div class="faq-answer">Você tem 4 horas de teste. Após o prazo, a key para de funcionar — é necessário adquirir um plano para continuar usando.</div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -102,19 +115,9 @@
     <script src="/js/hb.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.faq-question').forEach(function (button) {
-                button.addEventListener('click', function () {
-                    var item = button.closest('.faq-item');
-                    var isActive = item.classList.contains('active');
-                    document.querySelectorAll('.faq-item').forEach(function (faq) {
-                        faq.classList.remove('active');
-                        var btn = faq.querySelector('.faq-question');
-                        if (btn) btn.setAttribute('aria-expanded', 'false');
-                    });
-                    if (!isActive) {
-                        item.classList.add('active');
-                        button.setAttribute('aria-expanded', 'true');
-                    }
+            document.querySelectorAll('.faq-question').forEach(function (question) {
+                question.addEventListener('click', function () {
+                    question.parentElement.classList.toggle('active');
                 });
             });
         });
