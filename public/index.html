@@ -396,7 +396,7 @@
             display: flex;
             gap: 1.5rem;
             width: max-content;
-            animation: scroll 35s linear infinite;
+            animation: hb-slide 35s linear infinite;
             will-change: transform;
         }
 
@@ -471,14 +471,14 @@
             letter-spacing: 0.25rem;
         }
 
-        @keyframes scroll {
+        @keyframes hb-slide {
             0% { transform: translateX(0); }
-            100% { transform: translateX(calc(-355px * 5)); }
+            100% { transform: translateX(calc((340px + 1.5rem) * -5)); }
         }
 
         @media (max-width: 768px) {
             .testimonial-card { flex: 0 0 280px; height: auto; min-height: 280px; }
-            @keyframes scroll { 100% { transform: translateX(calc(-295px * 5)); } }
+            @keyframes hb-slide { 100% { transform: translateX(calc((280px + 1.5rem) * -5)); } }
         }
     </style>
 </head>

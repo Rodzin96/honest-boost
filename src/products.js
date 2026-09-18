@@ -19,7 +19,7 @@ const PRODUCTS = {
       'Mais FPS na hora',
       'Mouse e teclado com resposta mais rápida',
       'Painel simples, sem complicação',
-      'Suporte direto no WhatsApp'
+      'Suporte direto no Discord'
     ]
   },
   /* Legado: oculto do catálogo público desde a reestruturação Básico + Pro.
@@ -53,7 +53,7 @@ const PRODUCTS = {
       'Faxina profunda completa',
       'Painel simples e direto',
       'Input lag reduzido na hora',
-      'Suporte prioritário no WhatsApp'
+      'Suporte prioritário no Discord'
     ]
   }
 };
