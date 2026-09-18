@@ -35,7 +35,7 @@
       var f = new FormData(form);
       var out = await HB.api('/api/register', {
         method: 'POST',
-        body: { username: f.get('username'), password: f.get('password'), nickname: f.get('nickname') }
+        body: { username: f.get('username'), password: f.get('password'), nickname: f.get('nickname'), confirmPassword: f.get('confirmPassword') }
       });
       if (out.res.ok && out.data && out.data.ok) {
       HB.setMessage(msgEl, 'Conta criada com sucesso! Redirecionando para login...', 'success');
