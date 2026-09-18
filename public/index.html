@@ -350,6 +350,35 @@
             padding: 0 1.1rem 1rem;
         }
 
+        /* Barra de versão no topo (estilo anúncio) */
+        .version-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            padding: 0.5rem 1rem;
+            background: var(--gradient-brand);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .version-bar:hover {
+            filter: brightness(1.08);
+        }
+
+        .version-bar .pulse-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #fff;
+            animation: pulse-dot 1.6s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
         /* Botão pulsante da versão atual */
         .version-btn {
             display: inline-flex;
@@ -502,7 +531,8 @@
                 animation-duration: 35s !important;
                 animation-iteration-count: infinite !important;
             }
-            .version-btn .pulse-dot {
+            .version-btn .pulse-dot,
+            .version-bar .pulse-dot {
                 animation-duration: 1.6s !important;
                 animation-iteration-count: infinite !important;
             }
@@ -588,6 +618,11 @@
 </head>
 <body>
     <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
+
+    <a href="#changelog" class="version-bar" aria-label="Versão 2.0 disponível — ver novidades">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        V2.0 Disponível — ver o que mudou
+    </a>
 
     <header class="app-header" id="topo">
         <div class="container header-inner">
