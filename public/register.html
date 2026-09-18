@@ -212,6 +212,12 @@
 
                     <form id="regForm" novalidate>
                         <div class="form-group">
+                            <label for="nickname">Apelido</label>
+                            <input id="nickname" name="nickname" type="text" class="input-field" placeholder="Como quer ser chamado" autocomplete="nickname" required minlength="2" maxlength="30">
+                            <div class="helper-text">Entre 2 e 30 caracteres.</div>
+                        </div>
+
+                        <div class="form-group">
                             <label for="username">Email</label>
                             <input id="username" name="username" type="email" class="input-field" placeholder="voce@exemplo.com" autocomplete="email" required>
                         </div>
