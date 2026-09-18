@@ -6,6 +6,22 @@
  * charging R$ 47. */
 
 const PRODUCTS = {
+  /* TEMP — checkout de teste de suporte (R$ 0,50 Pix). Remover junto com a
+   * verificação ponta a ponta. Não indexar. */
+  teste: {
+    id: 'teste',
+    name: 'Teste de Pagamento',
+    // 50 centavos. Suporta a verificação Pix real.
+    amount: 50,
+    seats: 1,
+    tagline: 'Teste • R$ 0,50',
+    features: [
+      'Apenas para verificação do fluxo de pagamento',
+      'Gera link Pix InfinitePay real',
+      'Ativa a chave de licença após o pagamento'
+    ],
+    hidden: true
+  },
   basic: {
     id: 'basic',
     name: 'Plano Básico',
@@ -80,7 +96,9 @@ function formatBRL(amountInCents) {
 
 /** Catalog shape exposed to the browser via GET /api/products. */
 function publicCatalog() {
-  return Object.values(PRODUCTS).map((p) => ({
+  return Object.values(PRODUCTS)
+    .filter(function (p) { return !p.hidden; })
+    .map((p) => ({
     id: p.id,
     name: p.name,
     amount: p.amount,
