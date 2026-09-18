@@ -1,0 +1,39 @@
+# Render Blueprint — deploy automático do site Honest Boost.
+# Uso: em render.com, escolha "New +" → "Blueprint" e aponte para este repositório.
+# As variáveis com `sync: false` devem ser preenchidas no Dashboard (Service → Environment)
+# na primeira vez; os segredos nunca ficam neste arquivo.
+services:
+  - type: web
+    name: honest-boost
+    runtime: node
+    plan: free
+    buildCommand: NODE_ENV=production npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_BASE_URL
+        value: https://honest-boost.onrender.com
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+      - key: STRIPE_SECRET
+        sync: false
+      - key: PAYMENT_WEBHOOK_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

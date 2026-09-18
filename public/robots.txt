@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://laudable-creation-production-e8e9.up.railway.app/sitemap.xml
+Sitemap: https://honest-boost.onrender.com/sitemap.xml

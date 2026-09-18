@@ -22,7 +22,7 @@ const { autoUpdater } = require('electron-updater');
 
 let mainWindow;
 let powerSaveBlockerId = null;
-const API_BASE_URL = (process.env.HONEST_BOOST_API_BASE_URL || 'https://laudable-creation-production-e8e9.up.railway.app').replace(/\/$/, '');
+const API_BASE_URL = (process.env.HONEST_BOOST_API_BASE_URL || 'https://honest-boost.onrender.com').replace(/\/$/, '');
 
 // ==================== Utility ====================
 function isWindows() {
