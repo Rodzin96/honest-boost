@@ -39,9 +39,9 @@
 
         .plans-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1.5rem;
-            max-width: 1100px;
+            max-width: 780px;
             margin: 0 auto;
         }
 
@@ -166,14 +166,14 @@
                     Planos e preços
                 </div>
                 <h1>Escolha o plano ideal para o seu setup</h1>
-                <p>Do básico para começar ao competitivo para quem quer cada frame. Todos incluem acesso ao app e atualizações.</p>
+                <p>Dois planos, sem mensalidade e com suporte no WhatsApp. Escolha o ideal e receba sua chave de ativação.</p>
             </div>
 
             <div class="plans-grid">
                 <div class="plan-card" data-plan="basic">
                     <div class="plan-header">
                         <div class="plan-name">Plano Básico</div>
-                        <div class="plan-tagline">1 PC • Melhor custo-benefício</div>
+                        <div class="plan-tagline">1 PC • Vale até formatar</div>
                         <div class="plan-price">
                             <span class="currency">R$</span>
                             <span class="amount">47</span>
@@ -181,43 +181,20 @@
                         </div>
                     </div>
                     <ul class="plan-features">
-                        <li><span class="material-symbols-rounded">check_circle</span> Otimização completa (CPU/RAM)</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Game Mode (boost automático)</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Mouse Acceleration Off</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Suporte por email</li>
-                        <li class="disabled"><span class="material-symbols-rounded">close</span> Polling Rate 1000Hz</li>
-                        <li class="disabled"><span class="material-symbols-rounded">close</span> Refresh Rate Boost</li>
-                        <li class="disabled"><span class="material-symbols-rounded">close</span> G-Sync / FreeSync Tuning</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Licença vinculada ao seu Windows atual</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Faxina profunda no sistema</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Mais FPS na hora</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Mouse e teclado com resposta mais rápida</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Painel simples, sem complicação</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte direto no WhatsApp</li>
                     </ul>
                     <button class="btn btn-outlined" data-select="basic">Selecionar Básico</button>
                 </div>
 
-                <div class="plan-card featured" data-plan="starter">
-                    <div class="plan-header">
-                        <div class="plan-name">Starter</div>
-                        <div class="plan-tagline">2 PCs • Para quem joga todo dia</div>
-                        <div class="plan-price">
-                            <span class="currency">R$</span>
-                            <span class="amount">67</span>
-                            <span class="period">/único</span>
-                        </div>
-                    </div>
-                    <ul class="plan-features">
-                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Plano Básico</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Polling Rate 1000Hz</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Refresh Rate Boost</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Perfis mais rápidos por jogo</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Suporte prioritário</li>
-                        <li class="disabled"><span class="material-symbols-rounded">close</span> G-Sync / FreeSync Tuning</li>
-                        <li class="disabled"><span class="material-symbols-rounded">close</span> Color Profile Calibration</li>
-                    </ul>
-                    <button class="btn btn-filled" data-select="starter">Selecionar Starter</button>
-                </div>
-
-                <div class="plan-card" data-plan="pro">
+                <div class="plan-card featured" data-plan="pro">
                     <div class="plan-header">
                         <div class="plan-name">Pro</div>
-                        <div class="plan-tagline">Até 3 PCs • Performance competitiva</div>
+                        <div class="plan-tagline">Acesso vitalício • Pagamento único</div>
                         <div class="plan-price">
                             <span class="currency">R$</span>
                             <span class="amount">97</span>
@@ -225,15 +202,15 @@
                         </div>
                     </div>
                     <ul class="plan-features">
-                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Starter</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> G-Sync / FreeSync Tuning</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Color Profile Calibration</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Suporte Discord VIP</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Atualizações antecipadas</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Otimizações avançadas de rede</li>
-                        <li><span class="material-symbols-rounded">check_circle</span> Perfis exclusivos por jogo</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Tudo do Plano Básico</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Licença vitalícia, sem mensalidade</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Otimização que permanece ativa</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Faxina profunda completa</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Painel simples e direto</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Input lag reduzido na hora</li>
+                        <li><span class="material-symbols-rounded">check_circle</span> Suporte prioritário no WhatsApp</li>
                     </ul>
-                    <button class="btn btn-outlined" data-select="pro">Selecionar Pro</button>
+                    <button class="btn btn-filled" data-select="pro">Selecionar Pro</button>
                 </div>
             </div>
 
@@ -244,63 +221,48 @@
                         <tr>
                             <th>Funcionalidade</th>
                             <th>Básico</th>
-                            <th>Starter</th>
                             <th>Pro</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Otimização CPU/RAM</td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td>Validade da licença</td>
+                            <td>Até formatar o PC</td>
+                            <td>Vitalícia</td>
+                        </tr>
+                        <tr>
+                            <td>Faxina profunda no sistema</td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                         </tr>
                         <tr>
-                            <td>Game Mode</td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mouse Accel Off</td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td>Mais FPS na hora</td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                         </tr>
                         <tr>
-                            <td>Polling Rate 1000Hz</td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td>Resposta mais rápida (input lag)</td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                         </tr>
                         <tr>
-                            <td>Refresh Rate Boost</td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td>Painel simples</td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                         </tr>
                         <tr>
-                            <td>G-Sync / FreeSync Tuning</td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
-                        </tr>
-                        <tr>
-                            <td>Color Profile Calibration</td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
+                            <td>Otimização permanente</td>
                             <td><span class="material-symbols-rounded cross-icon">close</span></td>
                             <td><span class="material-symbols-rounded check-icon">check</span></td>
                         </tr>
                         <tr>
-                            <td>Otimizações avançadas de rede</td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
-                            <td><span class="material-symbols-rounded cross-icon">close</span></td>
-                            <td><span class="material-symbols-rounded check-icon">check</span></td>
+                            <td>Suporte no WhatsApp</td>
+                            <td>Direto</td>
+                            <td>Prioritário</td>
                         </tr>
                         <tr>
                             <td>Número de PCs</td>
                             <td>1</td>
-                            <td>2</td>
                             <td>3</td>
                         </tr>
                     </tbody>

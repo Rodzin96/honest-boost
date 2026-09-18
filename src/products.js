@@ -12,20 +12,26 @@ const PRODUCTS = {
     // Amount in cents (BRL).
     amount: 4700,
     seats: 1,
-    tagline: '1 PC • Melhor custo-benefício',
+    tagline: '1 PC • Vale até formatar',
     features: [
-      'Otimização completa (CPU/RAM)',
-      'Game Mode (boost automático)',
-      'Mouse Acceleration Off',
-      'Suporte por email'
+      'Licença vinculada ao seu Windows atual',
+      'Faxina profunda no sistema',
+      'Mais FPS na hora',
+      'Mouse e teclado com resposta mais rápida',
+      'Painel simples, sem complicação',
+      'Suporte direto no WhatsApp'
     ]
   },
+  /* Legado: oculto do catálogo público desde a reestruturação Básico + Pro.
+   * Mantido para que pedidos e licenças Starter já emitidos continuem
+   * válidos (webhook, success page e ativação resolvem via getProduct). */
   starter: {
     id: 'starter',
     name: 'Starter',
     amount: 6700,
     seats: 2,
     tagline: '2 PCs • Para quem joga todo dia',
+    hidden: true,
     features: [
       'Tudo do Plano Básico',
       'Polling Rate 1000Hz',
@@ -39,12 +45,15 @@ const PRODUCTS = {
     amount: 9700,
     seats: 3,
     featured: true,
-    tagline: 'Até 3 PCs • Performance competitiva',
+    tagline: 'Acesso vitalício • Pagamento único',
     features: [
-      'Tudo do Starter',
-      'G-Sync / FreeSync Tuning',
-      'Color Profile Calibration',
-      'Suporte Discord VIP'
+      'Tudo do Plano Básico',
+      'Licença vitalícia, sem mensalidade',
+      'Otimização que permanece ativa',
+      'Faxina profunda completa',
+      'Painel simples e direto',
+      'Input lag reduzido na hora',
+      'Suporte prioritário no WhatsApp'
     ]
   }
 };
