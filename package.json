@@ -16,6 +16,8 @@
   "author": "Honestzin",
   "license": "MIT",
   "dependencies": {
+    "@neon/config": "^1.7.2",
+    "@neon/env": "^1.4.3",
     "bcryptjs": "^2.4.3",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.6",
