@@ -25,12 +25,6 @@ const CONFIG = {
     MIN_RAM: '4GB',
     MIN_DISK_SPACE: '200MB',
     
-    // Performance Metrics (averages)
-    AVG_FPS_GAIN: '+30-50',
-    AVG_LATENCY_REDUCTION: '-15-25ms',
-    AVG_TEMP_REDUCTION: '-10-20°C',
-    SATISFACTION_RATE: '98.5%',
-    
     // URLs
     PAGES: {
         HOME: '/',
@@ -78,38 +72,9 @@ const CONFIG = {
     ],
     
     // Popular Games
-    POPULAR_GAMES: [
-        { name: 'Valorant', fpsGain: '+45', latency: '-18ms' },
-        { name: 'Counter-Strike 2', fpsGain: '+38', latency: '-16ms' },
-        { name: 'Fortnite', fpsGain: '+32', latency: '-12ms' },
-        { name: 'Apex Legends', fpsGain: '+28', latency: '-10ms' },
-        { name: 'Warzone 2', fpsGain: '+25', latency: '-8ms' },
-        { name: 'Elden Ring', fpsGain: '+35', latency: '-6ms' }
-    ],
-    
-    // Testimonials
-    TESTIMONIALS: [
-        {
-            author: 'João Silva',
-            title: 'Streamer & Competitivo',
-            text: 'Ganhei +50 FPS no Valorant e meu input lag caiu drasticamente. Obrigado!',
-            verified: true
-        },
-        {
-            author: 'Maria Santos',
-            title: 'Jogadora Casual',
-            text: 'Muito fácil de usar e realmente funcionou. Estou impressionada!',
-            verified: true
-        },
-        {
-            author: 'Pedro Oliveira',
-            title: 'Técnico de PC',
-            text: 'Finalmente uma ferramenta que faz o que promete e é transparente. Recomendo!',
-            verified: true
-        }
-    ],
-    
-    // Color Palette (matches CSS variables)
+    // Removed: fabricated per-game FPS/latency claims (no benchmarks backing).
+
+    // Color palette (matches CSS variables)
     COLORS: {
         PRIMARY_BG: '#0A0E17',
         SECONDARY_BG: '#141928',

@@ -3,25 +3,14 @@
  * Coleta informações reais de hardware, Windows e gaming
  */
 const os = require('os');
-const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-
-const WMIC = 'C:\\Windows\\System32\\wbem\\wmic.exe';
-
-function wmicCmd(args) {
-  return new Promise((resolve, reject) => {
-    execFile(WMIC, args, { windowsHide: true }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(stderr || err.message));
-      resolve((stdout || '').trim());
-    });
-  });
-}
+const { cimCsv } = require('./cim');
 
 // ==================== CPU ====================
 async function getCPUInfo() {
   try {
-    const output = await wmicCmd(['cpu', 'get', 'name,numberofcores,numberoflogicalprocessors,maxclockspeed', '/format:csv']);
+    const output = await cimCsv('Win32_Processor', 'Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) return null;
     
@@ -47,7 +36,7 @@ async function getCPUInfo() {
 // ==================== GPU ====================
 async function getGPUInfo() {
   try {
-    const output = await wmicCmd(['path', 'win32_videocontroller', 'get', 'name,adapterram,driverversion', '/format:csv']);
+    const output = await cimCsv('Win32_VideoController', 'Name,AdapterRAM,DriverVersion');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const gpus = [];
     
@@ -73,7 +62,7 @@ async function getRAMInfo() {
   const free = os.freemem();
   
   try {
-    const output = await wmicCmd(['memorychip', 'get', 'capacity,speed,manufacturer', '/format:csv']);
+    const output = await cimCsv('Win32_PhysicalMemory', 'Capacity,Speed,Manufacturer');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const sticks = [];
     let totalCapacity = 0;
@@ -118,7 +107,7 @@ async function getRAMInfo() {
 // ==================== Storage ====================
 async function getStorageInfo() {
   try {
-    const output = await wmicCmd(['logicaldisk', 'get', 'deviceid,size,freespace,filesystem', '/format:csv']);
+    const output = await cimCsv('Win32_LogicalDisk', 'DeviceID,Size,FreeSpace,FileSystem', { filter: 'DriveType=3' });
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const drives = [];
     
@@ -148,7 +137,7 @@ async function getStorageInfo() {
 // ==================== Monitor ====================
 async function getMonitorInfo() {
   try {
-    const output = await wmicCmd(['path', 'win32_videocontroller', 'get', 'currentrefreshrate,currenthorizontalresolution,currentverticalresolution', '/format:csv']);
+    const output = await cimCsv('Win32_VideoController', 'CurrentRefreshRate,CurrentHorizontalResolution,CurrentVerticalResolution');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const monitors = [];
     

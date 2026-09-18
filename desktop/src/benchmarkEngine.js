@@ -2,25 +2,14 @@
  * desktop/src/benchmarkEngine.js — Motor de Benchmark
  * Mede performance real do sistema antes/depois das otimizações
  */
-const { execFile } = require('child_process');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
-
-const WMIC = 'C:\\Windows\\System32\\wbem\\wmic.exe';
+const { cimCsv } = require('./cim');
 
 let baselineData = null;
 let afterData = null;
-
-function wmicCmd(args) {
-  return new Promise((resolve, reject) => {
-    execFile(WMIC, args, { windowsHide: true }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(stderr || err.message));
-      resolve((stdout || '').trim());
-    });
-  });
-}
 
 // ==================== CPU Benchmark ====================
 async function measureCPU() {
@@ -69,7 +58,7 @@ async function measureRAM() {
 // ==================== Disk Benchmark ====================
 async function measureDisk() {
   try {
-    const output = await wmicCmd(['logicaldisk', 'where', 'DriveType=3', 'get', 'size,freespace', '/format:csv']);
+    const output = await cimCsv('Win32_LogicalDisk', 'Size,FreeSpace', { filter: 'DriveType=3' });
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     
     let totalSize = 0;
@@ -96,7 +85,7 @@ async function measureDisk() {
 // ==================== GPU Usage (basic WMI) ====================
 async function measureGPU() {
   try {
-    const output = await wmicCmd(['path', 'win32_videocontroller', 'get', 'name,adapterram', '/format:csv']);
+    const output = await cimCsv('Win32_VideoController', 'Name,AdapterRAM');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     
     if (lines.length >= 2) {

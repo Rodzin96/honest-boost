@@ -102,8 +102,6 @@ CONFIG.BRAND_NAME           // 'Honest BOOST'
 CONFIG.API_BASE_URL         // 'http://localhost:3000/api'
 CONFIG.SUPPORT_EMAIL        // 'support@honestboost.com'
 CONFIG.FEATURES             // Array de funcionalidades
-CONFIG.POPULAR_GAMES        // Array de jogos populares
-CONFIG.TESTIMONIALS         // Array de depoimentos
 CONFIG.PAGES                // Mapa de URLs do site
 ```
 

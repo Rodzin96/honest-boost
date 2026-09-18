@@ -3,8 +3,8 @@
  * NÃO usa taskkill /F — classifica processos antes de qualquer ação
  */
 const { execFile } = require('child_process');
+const { cimCsv } = require('./cim');
 
-const WMIC = 'C:\\Windows\\System32\\wbem\\wmic.exe';
 const TASKKILL = 'C:\\Windows\\System32\\taskkill.exe';
 
 // Processos que NUNCA devem ser terminados
@@ -39,18 +39,9 @@ const NEEDS_CONFIRMATION = new Set([
   'RadeonSoftware.exe', 'AMDRSServ.exe'
 ]);
 
-function wmicCmd(args) {
-  return new Promise((resolve, reject) => {
-    execFile(WMIC, args, { windowsHide: true }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(stderr || err.message));
-      resolve((stdout || '').trim());
-    });
-  });
-}
-
 async function getRunningProcesses() {
   try {
-    const output = await wmicCmd(['process', 'get', 'name,processid,workingsetsize', '/format:csv']);
+    const output = await cimCsv('Win32_Process', 'Name,ProcessId,WorkingSetSize');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const processes = [];
     

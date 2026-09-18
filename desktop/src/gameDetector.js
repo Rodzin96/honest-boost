@@ -2,12 +2,10 @@
  * desktop/src/gameDetector.js — Detecção de jogos instalados
  * Detecta Steam, Epic, Riot, Battle.net e executáveis conhecidos
  */
-const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-
-const WMIC = 'C:\\Windows\\System32\\wbem\\wmic.exe';
+const { cimCsv } = require('./cim');
 
 // Catálogo de jogos conhecidos
 const KNOWN_GAMES = [
@@ -193,18 +191,18 @@ const GAME_PROFILES = {
 
 // ==================== Detecção de processos ====================
 async function getRunningProcesses() {
-  return new Promise((resolve) => {
-    execFile(WMIC, ['process', 'get', 'name', '/format:csv'], { windowsHide: true }, (err, stdout) => {
-      if (err) return resolve([]);
-      const lines = stdout.split(/\r?\n/).filter(l => l.trim());
-      const processes = new Set();
-      for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(',');
-        if (parts.length >= 2) processes.add(parts[1].trim());
-      }
-      resolve([...processes]);
-    });
-  });
+  try {
+    const output = await cimCsv('Win32_Process', 'Name');
+    const lines = output.split(/\r?\n/).filter(l => l.trim());
+    const processes = new Set();
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',');
+      if (parts.length >= 2) processes.add(parts[1].replace(/^"|"$/g, '').trim());
+    }
+    return [...processes];
+  } catch {
+    return [];
+  }
 }
 
 // ==================== Detecção de caminhos comuns ====================

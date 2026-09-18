@@ -116,7 +116,6 @@ Em qualquer página, adicione:
 const brand = CONFIG.BRAND_NAME;           // 'Honest BOOST'
 const email = CONFIG.SUPPORT_EMAIL;        // 'support@honestboost.com'
 const features = CONFIG.FEATURES;          // Array de features
-const games = CONFIG.POPULAR_GAMES;        // Array de jogos
 ```
 
 ## 🔌 API & Backend
