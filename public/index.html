@@ -175,52 +175,10 @@
             margin-top: 1rem;
         }
 
-        .results-grid-custom,
-        .feature-grid-custom,
-        .trust-grid {
+        .feature-grid-custom {
             display: grid;
-            gap: 1.2rem;
-        }
-
-        .results-grid-custom {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-
-        .feature-grid-custom,
-        .trust-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .result-highlight {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            margin-top: 0.8rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .feature-list {
-            list-style: none;
-            margin-top: 1rem;
-            display: grid;
-            gap: 0.7rem;
-        }
-
-        .feature-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            color: var(--on-surface-variant);
-            font-size: 0.92rem;
-        }
-
-        .feature-list .material-symbols-rounded {
-            color: var(--success);
-            font-size: 18px;
-            margin-top: 1px;
-            flex-shrink: 0;
+            gap: 1.2rem;
         }
 
         .section-shell {
@@ -269,70 +227,8 @@
             min-height: 100%;
         }
 
-        .vs-shell {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: var(--surface-1);
-            border: 1px solid var(--divider);
-            border-radius: 28px;
-            padding: 2rem;
-        }
-
-        .vs-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 640px;
-        }
-
-        .vs-table th,
-        .vs-table td {
-            padding: 0.9rem 1rem;
-            text-align: center;
-            border-bottom: 1px solid var(--divider);
-        }
-
-        .vs-table th {
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .vs-table th.vs-win {
-            color: var(--primary);
-            background: color-mix(in srgb, var(--primary) 8%, transparent);
-        }
-
-        .vs-table td:first-child {
-            text-align: left;
-            color: var(--on-surface-variant);
-        }
-
-        .vs-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .vs-table .check-icon {
-            color: var(--success);
-        }
-
-        .vs-table .cross-icon {
-            color: var(--error);
-            opacity: 0.5;
-        }
-
-        .vs-note {
-            text-align: center;
-            color: var(--on-surface-variant);
-            font-size: 0.85rem;
-            margin-top: 1.2rem;
-        }
-
         @media (max-width: 1024px) {
-            .results-grid-custom {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
             .feature-grid-custom,
-            .trust-grid,
             .cta-panel {
                 grid-template-columns: 1fr;
             }
@@ -340,8 +236,7 @@
 
         @media (max-width: 768px) {
             .hero-proof,
-            .signal-grid,
-            .results-grid-custom {
+            .signal-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -376,10 +271,8 @@
 
             <nav aria-label="Navegação principal">
                 <ul class="nav-links" id="primary-navigation">
-                    <li><a href="#beneficios">Benefícios</a></li>
-                    <li><a href="#resultados">Resultados</a></li>
-                    <li><a href="#comparativo">Comparativo</a></li>
-                    <li><a href="#como-funciona">Como funciona</a></li>
+                    <li><a href="#recursos">Recursos</a></li>
+                    <li><a href="/comparativo.html">Comparativo</a></li>
                     <li><a href="#planos">Planos</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="/login.html">Entrar</a></li>
@@ -418,7 +311,7 @@
 
                     <div class="cta-group animate-up delay-3">
                         <a href="#planos" class="btn btn-filled">Quero otimizar meu PC</a>
-                        <a href="#como-funciona" class="btn btn-outlined">Ver como funciona</a>
+                        <a href="/comparativo.html" class="btn btn-outlined">Ver comparativo</a>
                     </div>
 
                     <div class="hero-proof animate-up delay-3" aria-label="Indicadores de confiança">
@@ -494,176 +387,47 @@
             </div>
         </section>
 
-        <section class="section" id="beneficios">
+        <section class="section" id="recursos">
             <div class="container">
                 <div class="section-header">
-                    <div class="eyebrow">Benefícios</div>
-                    <h2>Melhorias que o jogador percebe na prática</h2>
+                    <div class="eyebrow">Recursos</div>
+                    <h2>Otimizações essenciais para jogar com fluidez</h2>
                     <p>
-                        O foco não é apenas “mexer no Windows”. É entregar ganho real de fluidez,
-                        resposta e consistência durante a partida.
+                        O Honest Boost aplica ajustes seguros e reversíveis para liberar o potencial do seu PC
+                        e reduzir o input lag nos seus jogos competitivos.
                     </p>
                 </div>
 
                 <div class="feature-grid-custom">
                     <article class="feature-card card-hover">
                         <div class="fc-icon"><span class="material-symbols-rounded">speed</span></div>
-                        <h3>Mais estabilidade de frames</h3>
-                        <p>Reduz processos e ajustes que causam oscilações, stutter e perda de consistência.</p>
-                        <ul class="feature-list">
-                            <li><span class="material-symbols-rounded">check_circle</span><span>Otimizações de CPU, GPU e memória</span></li>
-                            <li><span class="material-symbols-rounded">check_circle</span><span>Melhora da previsibilidade em jogos competitivos</span></li>
-                        </ul>
+                        <h3>Boost de FPS</h3>
+                        <p>Ajustes de CPU, GPU e memória que liberam recursos e reduzem stutter em jogos competitivos.</p>
                     </article>
-
                     <article class="feature-card card-hover">
-                        <div class="fc-icon"><span class="material-symbols-rounded">ads_click</span></div>
-                        <h3>Resposta mais rápida</h3>
-                        <p>Configurações pensadas para reduzir input lag e tornar mouse e teclado mais responsivos.</p>
-                        <ul class="feature-list">
-                            <li><span class="material-symbols-rounded">check_circle</span><span>Ajustes em latência de entrada e sistema</span></li>
-                            <li><span class="material-symbols-rounded">check_circle</span><span>Mais controle em flicks, tracking e microajustes</span></li>
-                        </ul>
+                        <div class="fc-icon"><span class="material-symbols-rounded">sports_esports</span></div>
+                        <h3>Game mode em um clique</h3>
+                        <p>Otimizações em todos os jogos, sem CMD nem scripts arriscados.</p>
                     </article>
-
                     <article class="feature-card card-hover">
-                        <div class="fc-icon"><span class="material-symbols-rounded">shield</span></div>
-                        <h3>Seguro e reversível</h3>
-                        <p>Você ganha desempenho sem abrir mão de segurança, clareza e possibilidade de reversão.</p>
-                        <ul class="feature-list">
-                            <li><span class="material-symbols-rounded">check_circle</span><span>Fluxo simples de aplicação</span></li>
-                            <li><span class="material-symbols-rounded">check_circle</span><span>Ideal para quem quer resultado sem complicação</span></li>
-                        </ul>
+                        <div class="fc-icon"><span class="material-symbols-rounded">network_check</span></div>
+                        <h3>Redução de latência</h3>
+                        <p>Menos processos em segundo plano e menor input lag para resposta mais consistente.</p>
                     </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section comparison" id="resultados">
-            <div class="container">
-                <div class="section-header">
-                    <div class="eyebrow">O que esperar</div>
-                    <h2>Foco em resultados reais, sem promessas mágicas</h2>
-                    <p>
-                        O Honest Boost libera recursos do sistema e reduz ruído de segundo plano.
-                        O ganho em FPS varia conforme o hardware, o jogo e o estado atual do seu PC.
-                    </p>
-                </div>
-
-                <div class="results-grid-custom">
-                    <article class="card card-hover">
-                        <h3>Recursos de verdade</h3>
-                        <p>Fechamento simulado de processos pesados e ajustes de sistema que liberam CPU, RAM e disco.</p>
-                        <div class="result-highlight"><span class="material-symbols-rounded">trending_up</span>Mais estabilidade, menos gargalo</div>
+                    <article class="feature-card card-hover">
+                        <div class="fc-icon"><span class="material-symbols-rounded">undo</span></div>
+                        <h3>100% reversível</h3>
+                        <p>Cada otimização pode ser desfeita em um clique, sem risco ao sistema.</p>
                     </article>
-                    <article class="card card-hover">
-                        <h3>Resposta mais rápida</h3>
-                        <p>Ajustes de mouse, refresh rate e power plan focados em priorizar sua jogabilidade.</p>
-                        <div class="result-highlight"><span class="material-symbols-rounded">mouse</span>Mais consistência nas ações</div>
-                    </article>
-                    <article class="card card-hover">
-                        <h3>Tudo reversível</h3>
-                        <p>Cada otimização aplicada pode ser desfeita em um clique, sem risco ao sistema.</p>
-                        <div class="result-highlight"><span class="material-symbols-rounded">memory</span>Controle total no seu PC</div>
-                    </article>
-                    <article class="card card-hover">
+                    <article class="feature-card card-hover">
+                        <div class="fc-icon"><span class="material-symbols-rounded">verified_user</span></div>
                         <h3>Teste antes de pagar</h3>
-                        <p>São 4 horas de teste grátis no dashboard para você decidir com dados reais do seu PC.</p>
-                        <div class="result-highlight"><span class="material-symbols-rounded">verified_user</span>Sem cartão para testar</div>
+                        <p>4 horas de teste grátis no dashboard, sem cartão, com dados reais do seu PC.</p>
                     </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" id="comparativo">
-            <div class="container">
-                <div class="section-header">
-                    <div class="eyebrow">Comparativo</div>
-                    <h2>Honest Boost vs. outros serviços de otimização</h2>
-                    <p>
-                        Enquanto muitos cobram assinatura mensal e prometem ganhos irreais, o Honest Boost aposta em transparência: teste grátis, pagamento único e otimizações reversíveis.
-                    </p>
-                </div>
-
-                <div class="vs-shell">
-                    <table class="vs-table">
-                        <thead>
-                            <tr>
-                                <th>Funcionalidade</th>
-                                <th class="vs-win">Honest Boost</th>
-                                <th>Outros serviços</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Pagamento único, sem assinatura</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
-                            </tr>
-                            <tr>
-                                <td>Teste grátis de 4h, sem cartão</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
-                            </tr>
-                            <tr>
-                                <td>Otimizações reversíveis com um clique</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
-                            </tr>
-                            <tr>
-                                <td>Focado em jogos competitivos</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
-                            </tr>
-                            <tr>
-                                <td>Windows 10 e 11</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td>Varia</td>
-                            </tr>
-                            <tr>
-                                <td>Pagamento seguro via Stripe</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td>Varia</td>
-                            </tr>
-                            <tr>
-                                <td>Licença vitalícia por plano</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
-                            </tr>
-                            <tr>
-                                <td>Transparência sobre o ganho real de FPS (sem promessas mágicas)</td>
-                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
-                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <p class="vs-note">Comparativo baseado em posicionamento médio do mercado. Verifique sempre as condições de cada fornecedor.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" id="como-funciona">
-            <div class="container">
-                <div class="section-header">
-                    <div class="eyebrow">Como funciona</div>
-                    <h2>Um fluxo pensado para ser simples, claro e rápido</h2>
-                    <p>
-                        A proposta é remover complexidade: você escolhe o plano, acessa o app e aplica as otimizações com segurança.
-                    </p>
-                </div>
-
-                <div class="trust-grid">
-                    <article class="card card-hover">
-                        <h3>1. Escolha o plano ideal</h3>
-                        <p>Compare opções conforme profundidade das otimizações e nível de suporte desejado.</p>
-                    </article>
-                    <article class="card card-hover">
-                        <h3>2. Acesse o app</h3>
-                        <p>Faça login, visualize os recursos disponíveis e acompanhe os dados da sua licença.</p>
-                    </article>
-                    <article class="card card-hover">
-                        <h3>3. Aplique e valide</h3>
-                        <p>Ative as otimizações e perceba ganhos em FPS, resposta e consistência do sistema.</p>
+                    <article class="feature-card card-hover">
+                        <div class="fc-icon"><span class="material-symbols-rounded">support_agent</span></div>
+                        <h3>Suporte</h3>
+                        <p>Acompanhamento para escolher o plano, aplicar as otimizações e resolver dúvidas.</p>
                     </article>
                 </div>
             </div>
@@ -777,8 +541,8 @@
             <div class="footer-col">
                 <h4>Honest Boost</h4>
                 <ul>
-                    <li><a href="#beneficios">Benefícios</a></li>
-                    <li><a href="#resultados">Resultados</a></li>
+                    <li><a href="#recursos">Recursos</a></li>
+                    <li><a href="/comparativo.html">Comparativo</a></li>
                     <li><a href="#planos">Planos</a></li>
                 </ul>
             </div>
