@@ -145,54 +145,67 @@
   }
 
   // ------------------------------------------------------------------- auth
+  /** Build the logged-in chip (admin link + identity + logout). */
+  function buildAuthChip(info) {
+    var wrap = document.createElement('div');
+    wrap.className = 'auth-chip';
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.gap = '0.5rem';
+
+    if (info.user.role === 'admin') {
+      var adminLink = document.createElement('a');
+      adminLink.href = '/admin';
+      adminLink.className = 'btn btn-text';
+      adminLink.innerHTML = '<span class="material-symbols-rounded">admin_panel_settings</span> Admin';
+      wrap.appendChild(adminLink);
+    }
+
+    var who = document.createElement('span');
+    who.className = 'text-muted';
+    who.style.fontSize = '0.85rem';
+    who.textContent = info.user.nickname || info.user.username;
+    wrap.appendChild(who);
+
+    var logout = document.createElement('button');
+    logout.type = 'button';
+    logout.className = 'btn btn-outlined';
+    logout.style.padding = '0.5rem 1.1rem';
+    logout.innerHTML = '<span class="material-symbols-rounded">logout</span> Sair';
+    logout.addEventListener('click', async function () {
+      setLoading(logout, true, 'Saindo...');
+      await api('/api/logout', { method: 'POST' }).catch(function () {});
+      window.location = '/';
+    });
+    wrap.appendChild(logout);
+    return wrap;
+  }
+
   /**
-   * Reflect the session in the header: replace the "Entrar" link with the user
-   * identity plus a logout button. Previously the header always showed "Entrar"
-   * and there was no way to log out from the UI at all.
+   * Reflect the session in the header: hide login/register links and show the
+   * user identity plus a logout button. Login links appear either in the main
+   * nav or in the header actions depending on the page, so both are handled.
    */
   async function initAuthState() {
-    var slots = document.querySelectorAll('.header-actions');
-    if (!slots.length) return;
-
     var result = await api('/api/me').catch(function () { return { data: null }; });
     var info = result.data;
     if (!info || !info.authenticated) return;
 
+    var slots = document.querySelectorAll('.header-actions');
+    var links = document.querySelectorAll('.nav-links a[href$="login.html"], .nav-links a[href$="register.html"]');
+
+    if (!slots.length && !links.length) return;
+
+    links.forEach(function (a) {
+      var li = a.closest('li');
+      if (li) li.style.display = 'none';
+    });
+
     slots.forEach(function (slot) {
-      var loginLink = slot.querySelector('a[href$="login.html"]');
-      var wrap = document.createElement('div');
-      wrap.className = 'auth-chip';
-      wrap.style.display = 'flex';
-      wrap.style.alignItems = 'center';
-      wrap.style.gap = '0.5rem';
-
-      if (info.user.role === 'admin') {
-        var adminLink = document.createElement('a');
-        adminLink.href = '/admin';
-        adminLink.className = 'btn btn-text';
-        adminLink.innerHTML = '<span class="material-symbols-rounded">admin_panel_settings</span> Admin';
-        wrap.appendChild(adminLink);
-      }
-
-      var who = document.createElement('span');
-      who.className = 'text-muted';
-      who.style.fontSize = '0.85rem';
-      who.textContent = info.user.nickname || info.user.username;
-      wrap.appendChild(who);
-
-      var logout = document.createElement('button');
-      logout.type = 'button';
-      logout.className = 'btn btn-outlined';
-      logout.style.padding = '0.5rem 1.1rem';
-      logout.innerHTML = '<span class="material-symbols-rounded">logout</span> Sair';
-      logout.addEventListener('click', async function () {
-        setLoading(logout, true, 'Saindo...');
-        await api('/api/logout', { method: 'POST' }).catch(function () {});
-        window.location = '/';
-      });
-      wrap.appendChild(logout);
-
-      if (loginLink) slot.replaceChild(wrap, loginLink);
+      if (slot.querySelector('.auth-chip')) return;
+      var link = slot.querySelector('a[href$="login.html"], a[href$="register.html"]');
+      var wrap = buildAuthChip(info);
+      if (link) slot.replaceChild(wrap, link);
       else slot.appendChild(wrap);
     });
   }
