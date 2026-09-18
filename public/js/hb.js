@@ -207,7 +207,7 @@
           window.location = (out.data && out.data.loginUrl) || '/login.html';
           return;
         }
-        if (!out.res.ok || !out.data || !out.data.url) throw new Error('download_failed');
+        if (!out.res.ok || !out.data || !out.data.url) throw out;
         var a = document.createElement('a');
         a.href = out.data.url;
         a.download = out.data.filename || '';
@@ -215,8 +215,10 @@
         a.click();
         a.remove();
       })
-      .catch(function () {
-        window.alert('Não foi possível iniciar o download. Tente novamente.');
+      .catch(function (err) {
+        var data = err && err.data;
+        var fallback = 'Não foi possível iniciar o download. Tente novamente.';
+        window.alert(errorMessage(data, fallback));
       })
       .finally(function () {
         setLoading(btn, false);
