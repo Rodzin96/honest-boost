@@ -269,6 +269,63 @@
             min-height: 100%;
         }
 
+        .vs-shell {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--surface-1);
+            border: 1px solid var(--divider);
+            border-radius: 28px;
+            padding: 2rem;
+        }
+
+        .vs-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
+        }
+
+        .vs-table th,
+        .vs-table td {
+            padding: 0.9rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .vs-table th {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .vs-table th.vs-win {
+            color: var(--primary);
+            background: color-mix(in srgb, var(--primary) 8%, transparent);
+        }
+
+        .vs-table td:first-child {
+            text-align: left;
+            color: var(--on-surface-variant);
+        }
+
+        .vs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .vs-table .check-icon {
+            color: var(--success);
+        }
+
+        .vs-table .cross-icon {
+            color: var(--error);
+            opacity: 0.5;
+        }
+
+        .vs-note {
+            text-align: center;
+            color: var(--on-surface-variant);
+            font-size: 0.85rem;
+            margin-top: 1.2rem;
+        }
+
         @media (max-width: 1024px) {
             .results-grid-custom {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -321,6 +378,7 @@
                 <ul class="nav-links" id="primary-navigation">
                     <li><a href="#beneficios">Benefícios</a></li>
                     <li><a href="#resultados">Resultados</a></li>
+                    <li><a href="#comparativo">Comparativo</a></li>
                     <li><a href="#como-funciona">Como funciona</a></li>
                     <li><a href="#planos">Planos</a></li>
                     <li><a href="#faq">FAQ</a></li>
@@ -513,6 +571,73 @@
                         <p>São 4 horas de teste grátis no dashboard para você decidir com dados reais do seu PC.</p>
                         <div class="result-highlight"><span class="material-symbols-rounded">verified_user</span>Sem cartão para testar</div>
                     </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="comparativo">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Comparativo</div>
+                    <h2>Honest Boost vs. outros serviços de otimização</h2>
+                    <p>
+                        Enquanto muitos cobram assinatura mensal e prometem ganhos irreais, o Honest Boost aposta em transparência: teste grátis, pagamento único e otimizações reversíveis.
+                    </p>
+                </div>
+
+                <div class="vs-shell">
+                    <table class="vs-table">
+                        <thead>
+                            <tr>
+                                <th>Funcionalidade</th>
+                                <th class="vs-win">Honest Boost</th>
+                                <th>Outros serviços</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Pagamento único, sem assinatura</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
+                            </tr>
+                            <tr>
+                                <td>Teste grátis de 4h, sem cartão</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
+                            </tr>
+                            <tr>
+                                <td>Otimizações reversíveis com um clique</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
+                            </tr>
+                            <tr>
+                                <td>Focado em jogos competitivos</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
+                            </tr>
+                            <tr>
+                                <td>Windows 10 e 11</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td>Varia</td>
+                            </tr>
+                            <tr>
+                                <td>Pagamento seguro via Stripe</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td>Varia</td>
+                            </tr>
+                            <tr>
+                                <td>Licença vitalícia por plano</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
+                            </tr>
+                            <tr>
+                                <td>Transparência sobre o ganho real de FPS (sem promessas mágicas)</td>
+                                <td><span class="material-symbols-rounded check-icon" aria-label="Sim">check</span></td>
+                                <td><span class="material-symbols-rounded cross-icon" aria-label="Não">close</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="vs-note">Comparativo baseado em posicionamento médio do mercado. Verifique sempre as condições de cada fornecedor.</p>
                 </div>
             </div>
         </section>
