@@ -32,6 +32,15 @@ function getPool() {
       console.error('✗ DATABASE_URL looks malformed (starts with: ' + JSON.stringify(raw.slice(0, 32)) + '...). In Railway → Variables, set it to EITHER "${{Postgres.DATABASE_URL}}" OR the raw postgresql:// string — not both concatenated.');
     }
 
+    const catalog = (() => {
+      try {
+        const m = raw.match(/\/\/([^:@/]+):([^@\s]*)@([^/\s]+)\//);
+        return m ? m[1] + '@' + m[3] + ' pw:' + m[2].slice(0, 12) + '(len ' + m[2].length + ')' : 'unparsed';
+      } catch (err) {
+        return 'unparsed';
+      }
+    })();
+    console.log('[db:catalog] ' + catalog);
     pool = new Pool({
       connectionString: raw,
       ssl: resolveSslConfig(raw),
