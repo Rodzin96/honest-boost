@@ -14,7 +14,7 @@ const server = spawn('node', ['server.js'], {
 // 2. Aguardar 2s e iniciar o Electron
 setTimeout(() => {
   console.log('Iniciando Electron...');
-  const electron = spawn('npx', ['electron', '.'], {
+  const electron = spawn('npx', ['electron', '--expose-gc', '.'], {
     cwd: __dirname,
     stdio: 'inherit',
     shell: false

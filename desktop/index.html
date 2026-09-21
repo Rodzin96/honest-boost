@@ -1,1385 +1,507 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honest Boost — Performance Intelligence</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'; font-src 'self' https://fonts.gstatic.com;" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Honest Boost — Otimizador Profissional de Windows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-<!-- ==================== LOGIN SCREEN ==================== -->
-<div class="login-screen" id="login-screen">
-    <div class="login-card">
-        <div class="login-logo">
-            <div class="logo-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
-            <div class="logo-text">Honest<span>Boost</span></div>
+  <div id="modal-root"></div>
+  <div id="toast" class="toast"></div>
+  <div id="progress-overlay" class="progress-overlay hidden">
+    <div class="progress-modal">
+      <div class="progress-header">
+        <h3 id="progress-title">Executando...</h3>
+        <button id="progress-close" class="progress-close">✕</button>
+      </div>
+      <div class="progress-body">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
         </div>
-        
-        <div style="text-align:center;margin-bottom:1.5rem;">
-            <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:0.3rem;">Bem-vindo de volta</h2>
-            <p style="font-size:0.85rem;color:var(--text-muted);">Insira sua chave de licença para continuar</p>
-        </div>
-        
-        <div class="login-error" id="login-error"></div>
-        
-        <div class="form-group">
-            <label class="form-label">Chave de Licença</label>
-            <input class="form-input" id="license-input" type="text" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
-        </div>
-        
-        <button class="btn btn-filled btn-block" id="login-btn" style="width:100%;">
-            <span class="material-symbols-rounded">lock_open</span> Entrar
-        </button>
-        
-        <p style="text-align:center;margin-top:1.2rem;font-size:0.8rem;color:var(--text-muted);">
-            Não tem uma chave? <a href="https://honestboost.com.br" style="color:var(--primary);font-weight:600;">Compre agora</a>
-        </p>
+        <p id="progress-text" class="progress-text">Iniciando...</p>
+        <p id="progress-detail" class="progress-detail"></p>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- ==================== MAIN APP ==================== -->
-<div class="app-layout" id="app-layout" style="display:none;">
-    
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon"><span class="material-symbols-rounded">rocket_launch</span></div>
-            <div class="brand-text">Honest<span>Boost</span></div>
+  <div class="app-shell" id="app-shell">
+    <!-- TOP BAR -->
+    <header class="top-bar" id="top-bar">
+      <div class="top-bar-left">
+        <button id="btn-toggle-sidebar" class="icon-btn" aria-label="Alternar sidebar" title="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="logo">
+          <span class="logo-bolt">⚡</span>
+          <span class="logo-text">Honest Boost</span>
         </div>
-        
-        <nav class="sidebar-nav">
-            <div class="nav-section">Análise</div>
-            <button class="nav-item active" data-panel="scanner">
-                <span class="material-symbols-rounded">radar</span> Smart Scanner
-            </button>
-            <button class="nav-item" data-panel="recommendations">
-                <span class="material-symbols-rounded">recommend</span> Recomendações
-                <span class="nav-badge" id="rec-badge" style="display:none;">0</span>
-            </button>
-            <button class="nav-item" data-panel="benchmark">
-                <span class="material-symbols-rounded">speed</span> Benchmark
-            </button>
-            
-            <div class="nav-section">Gaming</div>
-            <button class="nav-item" data-panel="games">
-                <span class="material-symbols-rounded">sports_esports</span> Meus Jogos
-            </button>
-            <button class="nav-item" data-panel="gaming-mode">
-                <span class="material-symbols-rounded">gamepad</span> Modo Gaming
-            </button>
-            
-            <div class="nav-section">Sistema</div>
-            <button class="nav-item" data-panel="processes">
-                <span class="material-symbols-rounded">list_alt</span> Processos
-            </button>
-            <button class="nav-item" data-panel="history">
-                <span class="material-symbols-rounded">history</span> Histórico
-            </button>
-            <button class="nav-item" data-panel="recovery">
-                <span class="material-symbols-rounded">settings_backup_restore</span> Rollback
-            </button>
-            
-            <div class="nav-section">Conta</div>
-            <button class="nav-item" data-panel="perfil">
-                <span class="material-symbols-rounded">person</span> Meu Perfil
-            </button>
-            <button class="nav-item" data-panel="updates">
-                <span class="material-symbols-rounded">system_update</span> Atualizações
-            </button>
-        </nav>
-        
+      </div>
+
+      <div class="top-bar-center">
+        <div class="search-wrap">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="global-search" class="search-input" placeholder="Pesquisar otimizações, configurações..." autocomplete="off">
+          <div id="search-results" class="search-results hidden"></div>
+        </div>
+      </div>
+
+      <div class="top-bar-right">
+        <button id="btn-refresh" class="icon-btn" title="Atualizar dados" aria-label="Atualizar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
+        <button id="btn-notifications" class="icon-btn notify-btn" title="Notificações" aria-label="Notificações">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span id="notify-badge" class="notify-badge hidden">0</span>
+        </button>
+        <div class="health-score-wrap">
+          <div class="health-score" id="health-score">
+            <span class="health-value" id="health-value">—</span>
+            <span class="health-label">Saúde</span>
+          </div>
+        </div>
+        <div class="user-menu" id="user-menu">
+          <button id="btn-user-menu" class="user-btn" aria-label="Menu do usuário">
+            <div class="user-avatar" id="user-avatar">U</div>
+            <span class="user-name" id="user-name">Usuário</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          </button>
+          <div id="user-dropdown" class="user-dropdown hidden">
+            <div class="user-info">
+              <div class="user-avatar-large" id="user-avatar-large">U</div>
+              <div>
+                <p class="user-name-large" id="user-name-large">Usuário</p>
+                <p class="user-plan" id="user-plan">Plano: Trial</p>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" id="dd-profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Perfil</button>
+            <button class="dropdown-item" id="dd-settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 1 4.6 9a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82V9a1.65 1.65 0 0 1 1.51-1H9a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82V15a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 1 4.6 4.6a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82V3a1.65 1.65 0 0 1 1.51-1H9a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82"></svg> Configurações</button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item danger" id="dd-logout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Sair</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div style="display:contents;">
+      <!-- Quick Actions Sidebar -->
+      <aside class="quick-actions" id="quick-actions">
+        <div class="quick-actions-header">
+          <h3>Ações Rápidas</h3>
+          <button id="btn-close-quick" class="icon-btn" aria-label="Fechar ações rápidas">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="quick-actions-grid" id="quick-actions-grid">
+          <button class="quick-action" data-action="quick-clean">
+            <span class="quick-action-icon">🧹</span>
+            <span class="quick-action-label">Limpeza Rápida</span>
+          </button>
+          <button class="quick-action" data-action="quick-game-boost">
+            <span class="quick-action-icon">🎮</span>
+            <span class="quick-action-label">Boost para Jogos</span>
+          </button>
+          <button class="quick-action" data-action="quick-fix-windows">
+            <span class="quick-action-icon">🔧</span>
+            <span class="quick-action-label">Corrigir Windows</span>
+          </button>
+          <button class="quick-action" data-action="quick-free-ram">
+            <span class="quick-action-icon">🧠</span>
+            <span class="quick-action-label">Liberar RAM</span>
+          </button>
+          <button class="quick-action" data-action="quick-flush-dns">
+            <span class="quick-action-icon">🌐</span>
+            <span class="quick-action-label">Flush DNS</span>
+          </button>
+          <button class="quick-action" data-action="quick-restart-explorer">
+            <span class="quick-action-icon">🖥️</span>
+            <span class="quick-action-label">Reiniciar Explorer</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav" id="sidebar-nav"></nav>
         <div class="sidebar-footer">
-            <div class="user-card" id="user-card">
-                <div class="user-avatar" id="user-avatar">U</div>
-                <div class="user-info">
-                    <div class="user-name" id="user-name">Usuário</div>
-                    <div class="user-status"><span class="dot"></span> Licença Ativa</div>
-                </div>
-                <span class="material-symbols-rounded" style="color:var(--text-muted);font-size:18px;">logout</span>
-            </div>
+          <div class="sidebar-version">v2.0.0</div>
         </div>
-    </aside>
-    
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-        <div class="topbar">
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content" id="main-content">
+
+        <!-- DASHBOARD -->
+        <section id="panel-dashboard" class="panel active">
+          <header class="panel-header">
             <div>
-                <div class="topbar-title" id="page-title">Smart Scanner</div>
-                <div class="topbar-subtitle" id="page-subtitle">Análise inteligente do seu sistema</div>
+              <h1 class="panel-title">Painel</h1>
+              <p class="panel-subtitle">Visão geral do sistema em tempo real</p>
             </div>
-            <div class="topbar-actions">
-                <span class="status-chip" id="os-info">
-                    <span class="material-symbols-rounded" style="font-size:16px;">computer</span> <span>Carregando...</span>
-                </span>
-                <span class="status-chip" id="admin-badge" style="display:none;">
-                    <span class="material-symbols-rounded" style="font-size:16px;">shield</span> Admin
-                </span>
-                <button class="icon-btn" id="theme-toggle" aria-label="Alternar tema">
-                    <span class="material-symbols-rounded" id="theme-icon">dark_mode</span>
-                </button>
+            <div class="panel-actions">
+              <select id="preset-select" class="preset-select" aria-label="Preset de otimização">
+                <option value="custom">⚙️ Personalizado</option>
+                <option value="max-performance">🚀 Performance Máxima</option>
+                <option value="balanced">⚖️ Equilibrado</option>
+                <option value="streaming">📺 Streaming</option>
+                <option value="competitive">🏆 Jogos Competitivos</option>
+                <option value="laptop">💻 Notebook</option>
+              </select>
+              <button id="btn-optimize-now" class="btn-primary btn-lg">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <span>Otimizar Agora</span>
+              </button>
             </div>
-        </div>
-        
-        <div class="content-area">
-            
-            <!-- SMART SCANNER PANEL -->
-            <div class="panel active" id="panel-scanner">
-                <section class="hero-section">
-                    <div class="hero-content">
-                        <div class="hero-badge"><span class="material-symbols-rounded" style="font-size:14px;">verified</span> Performance Intelligence Platform</div>
-                        <h1 class="hero-title">Descubra o que <span>realmente</span> limita seu PC</h1>
-                        <p class="hero-desc">O Honest Boost analisa seu sistema, identifica gargalos e recomenda apenas otimizações com evidência real de benefício.</p>
-                        <div class="hero-actions">
-                            <button class="btn btn-filled" id="start-scan-btn">
-                                <span class="material-symbols-rounded">radar</span> Iniciar Análise
-                            </button>
-                        </div>
-                    </div>
-                </section>
+          </header>
 
-                <section id="scan-progress" style="display:none;">
-                    <div class="stat-card" style="text-align:center;padding:2rem;">
-                        <div class="scan-animation" style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:50%;border:3px solid var(--primary);border-top-color:transparent;animation:spin 1s linear infinite;"></div>
-                        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;" id="scan-status">Analisando hardware...</h3>
-                        <p style="color:var(--text-muted);font-size:0.85rem;" id="scan-detail">Coletando informações da CPU</p>
-                    </div>
-                </section>
-
-                <section id="scan-results" style="display:none;">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title">Análise do Sistema</h2>
-                            <p class="section-subtitle">Resumo do seu hardware e configurações</p>
-                        </div>
-                        <button class="btn btn-ghost" id="rescan-btn">
-                            <span class="material-symbols-rounded">refresh</span> Analisar novamente
-                        </button>
-                    </div>
-                    
-                    <div class="stats-grid" id="hardware-stats">
-                        <!-- Populated by JS -->
-                    </div>
-
-                    <div class="diagnostic-section" style="margin-top:1.5rem;">
-                        <h3 class="section-title" style="font-size:1.1rem;margin-bottom:1rem;">Status das Configurações</h3>
-                        <div class="diagnostic-grid" id="diagnostic-grid">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-                </section>
+          <div class="health-banner" id="health-banner">
+            <div class="health-circle" id="health-circle" style="--card-accent:var(--accent-primary);">
+              <span class="health-number" id="health-number">—</span>
+              <span class="health-suffix">/100</span>
             </div>
-            
-            <!-- RECOMMENDATIONS PANEL -->
-            <div class="panel" id="panel-recommendations">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Recomendações</h2>
-                        <p class="section-subtitle">Otimizações baseadas na análise do seu sistema</p>
-                    </div>
-                </div>
-                
-                <div id="recommendations-summary" style="margin-bottom:1.5rem;">
-                    <!-- Summary cards -->
-                </div>
-                
-                <div class="section-header">
-                    <h3 class="section-title" style="font-size:1.1rem;">Otimizações Recomendadas</h3>
-                </div>
-                <div class="opt-grid" id="recommended-opts">
-                    <!-- Populated by JS -->
-                </div>
-                
-                <div class="section-header" style="margin-top:2rem;">
-                    <h3 class="section-title" style="font-size:1.1rem;">Otimizações Não Recomendadas</h3>
-                    <p class="section-subtitle">Placebos removidos — sem evidência de benefício</p>
-                </div>
-                <div class="removed-opts-list" id="removed-opts">
-                    <!-- Populated by JS -->
-                </div>
+            <div class="health-details">
+              <h3 id="health-title">Análise de Saúde do Sistema</h3>
+              <p id="health-desc">Execute uma varredura para ver a pontuação de saúde do seu Windows e recomendações personalizadas.</p>
             </div>
-            
-            <!-- BENCHMARK PANEL -->
-            <div class="panel" id="panel-benchmark">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Benchmark</h2>
-                        <p class="section-subtitle">Meça o desempenho real do seu sistema</p>
-                    </div>
-                </div>
-                
-                <div class="benchmark-controls" style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-                    <button class="btn btn-filled" id="capture-baseline-btn">
-                        <span class="material-symbols-rounded">flag</span> Capturar Baseline
-                    </button>
-                    <button class="btn btn-ghost" id="capture-after-btn" disabled>
-                        <span class="material-symbols-rounded">check_circle</span> Capturar Após Otimização
-                    </button>
-                    <button class="btn btn-ghost" id="run-quick-bench-btn">
-                        <span class="material-symbols-rounded">timer</span> Benchmark Rápido
-                    </button>
-                </div>
-                
-                <div id="benchmark-results" style="display:none;">
-                    <div class="section-header">
-                        <h3 class="section-title" style="font-size:1.1rem;">Performance Score</h3>
-                    </div>
-                    <div class="score-display" style="text-align:center;padding:2rem;background:var(--bg-card);border-radius:18px;margin-bottom:1.5rem;">
-                        <div class="score-value" id="score-value" style="font-size:4rem;font-weight:800;background:var(--gradient-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">--</div>
-                        <div class="score-label" style="color:var(--text-muted);">Honest Performance Score</div>
-                    </div>
-                    
-                    <div class="section-header">
-                        <h3 class="section-title" style="font-size:1.1rem;">Comparação Antes/Depois</h3>
-                    </div>
-                    <div class="comparison-grid" id="comparison-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-                
-                <div id="quick-benchmark-results" style="display:none;">
-                    <div class="section-header">
-                        <h3 class="section-title" style="font-size:1.1rem;">Resultado do Benchmark Rápido</h3>
-                    </div>
-                    <div class="stats-grid" id="quick-bench-stats">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- GAMES PANEL -->
-            <div class="panel" id="panel-games">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Meus Jogos</h2>
-                        <p class="section-subtitle">Jogos detectados no seu PC</p>
-                    </div>
-                    <button class="btn btn-ghost" id="scan-games-btn">
-                        <span class="material-symbols-rounded">search</span> Detectar Jogos
-                    </button>
-                </div>
-                
-                <div id="games-scanning" style="display:none;text-align:center;padding:3rem;">
-                    <div class="scan-animation" style="width:60px;height:60px;margin:0 auto 1rem;border-radius:50%;border:3px solid var(--primary);border-top-color:transparent;animation:spin 1s linear infinite;"></div>
-                    <p style="color:var(--text-muted);">Procurando jogos instalados...</p>
-                </div>
-                
-                <div class="games-grid" id="games-grid">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-            
-            <!-- GAMING MODE PANEL -->
-            <div class="panel" id="panel-gaming-mode">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Modo Gaming</h2>
-                        <p class="section-subtitle">Otimização segura para jogos</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="max-width:600px;text-align:center;padding:3rem;">
-                    <div style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:20px;background:var(--gradient-brand);display:grid;place-items:center;box-shadow:var(--shadow-glow);">
-                        <span class="material-symbols-rounded" style="font-size:40px;color:#fff;">gamepad</span>
-                    </div>
-                    <h3 style="font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;">Pronto para jogar?</h3>
-                    <p style="color:var(--text-secondary);margin-bottom:2rem;">O Modo Gaming fecha processos não essenciais de forma segura e bloqueia sleep. Nenhum processo crítico será terminado.</p>
-                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-                        <button class="btn btn-filled" id="enable-gaming-btn" style="padding:1rem 2rem;font-size:1rem;">
-                            <span class="material-symbols-rounded">play_arrow</span> Ativar Modo Gaming
-                        </button>
-                        <button class="btn btn-ghost" id="disable-gaming-btn" style="padding:1rem 2rem;font-size:1rem;display:none;">
-                            <span class="material-symbols-rounded">stop</span> Desativar
-                        </button>
-                    </div>
-                    <div id="gaming-status" style="margin-top:1.5rem;font-size:0.9rem;color:var(--text-muted);"></div>
-                </div>
-                
-                <div class="section-header" style="margin-top:1.5rem;">
-                    <h3 class="section-title" style="font-size:1.1rem;">O que o Modo Gaming faz:</h3>
-                </div>
-                <div class="diagnostic-grid">
-                    <div class="diagnostic-card">
-                        <span class="material-symbols-rounded diagnostic-icon">check_circle</span>
-                        <div>
-                            <strong>Fecha processos seguros</strong>
-                            <p>Discord, Spotify, Chrome, Steam — apenas os não essenciais.</p>
-                        </div>
-                    </div>
-                    <div class="diagnostic-card">
-                        <span class="material-symbols-rounded diagnostic-icon">check_circle</span>
-                        <div>
-                            <strong>Bloqueia sleep</strong>
-                            <p>Impede que o PC entre em sleep durante o jogo.</p>
-                        </div>
-                    </div>
-                    <div class="diagnostic-card">
-                        <span class="material-symbols-rounded diagnostic-icon">block</span>
-                        <div>
-                            <strong>Protege processos críticos</strong>
-                            <p>Nunca fecha: System, Explorer, serviços do Windows.</p>
-                        </div>
-                    </div>
-                    <div class="diagnostic-card">
-                        <span class="material-symbols-rounded diagnostic-icon">block</span>
-                        <div>
-                            <strong>Pede confirmação</strong>
-                            <p>Pergunta antes de fechar OBS, GeForce Experience, etc.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- PROCESSES PANEL -->
-            <div class="panel" id="panel-processes">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Processos</h2>
-                        <p class="section-subtitle">Gerencie processos em execução</p>
-                    </div>
-                    <button class="btn btn-ghost" id="refresh-processes-btn">
-                        <span class="material-symbols-rounded">refresh</span> Atualizar
-                    </button>
-                </div>
-                
-                <div class="process-filters" style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
-                    <button class="filter-btn active" data-filter="safe">Seguros para fechar</button>
-                    <button class="filter-btn" data-filter="confirm">Requer confirmação</button>
-                    <button class="filter-btn" data-filter="unknown">Desconhecidos</button>
-                    <button class="filter-btn" data-filter="critical">Críticos (protegidos)</button>
-                </div>
-                
-                <div class="processes-list" id="processes-list">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-            
-            <!-- HISTORY PANEL -->
-            <div class="panel" id="panel-history">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Histórico</h2>
-                        <p class="section-subtitle">Benchmarks e otimizações anteriores</p>
-                    </div>
-                </div>
-                
-                <div class="history-list" id="history-list">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-            
-            <!-- RECOVERY PANEL -->
-            <div class="panel" id="panel-recovery">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Rollback</h2>
-                        <p class="section-subtitle">Restaurar configurações anteriores</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="max-width:600px;">
-                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:1.5rem;">
-                        <div style="width:60px;height:60px;border-radius:16px;background:var(--bg-glass);display:grid;place-items:center;border:1px solid var(--bg-glass-border);">
-                            <span class="material-symbols-rounded" style="font-size:28px;color:var(--primary);">settings_backup_restore</span>
-                        </div>
-                        <div>
-                            <div style="font-size:1.2rem;font-weight:700;" id="recovery-count">0</div>
-                            <div style="font-size:0.85rem;color:var(--text-muted);">Alterações salvas para rollback</div>
-                        </div>
-                    </div>
-                    <p style="color:var(--text-secondary);margin-bottom:1.5rem;font-size:0.9rem;">
-                        O Honest Boost salva automaticamente o estado anterior de cada valor de registry modificado. 
-                        Você pode restaurar todas as alterações a qualquer momento.
-                    </p>
-                    <button class="btn btn-filled" id="restore-all-btn" disabled>
-                        <span class="material-symbols-rounded">restore</span> Restaurar Todas as Alterações
-                    </button>
-                    <div id="recovery-status" style="margin-top:1rem;font-size:0.85rem;color:var(--text-muted);"></div>
-                </div>
-            </div>
-            
-            <!-- PERFIL PANEL -->
-            <div class="panel" id="panel-perfil">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Meu Perfil</h2>
-                        <p class="section-subtitle">Informações da licença e conta</p>
-                    </div>
-                </div>
-                <div class="stat-card" style="max-width:500px;">
-                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:1.5rem;">
-                        <div class="user-avatar" id="profile-avatar" style="width:64px;height:64px;font-size:1.5rem;border-radius:16px;">U</div>
-                        <div>
-                            <div style="font-size:1.3rem;font-weight:700;" id="profile-name">Usuário</div>
-                            <div style="font-size:0.85rem;color:var(--text-muted);" id="profile-email">email@exemplo.com</div>
-                        </div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:0.8rem;">
-                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);font-size:0.9rem;">Plano</span>
-                            <span style="font-weight:600;" id="profile-product">Pro</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);font-size:0.9rem;">Chave</span>
-                            <span style="font-weight:600;font-family:monospace;font-size:0.85rem;" id="profile-key">XXXX-XXXX</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);font-size:0.9rem;">Status</span>
-                            <span style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:4px;"><span class="dot" style="width:8px;height:8px;"></span> Ativa</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-ghost btn-block" id="logout-btn" style="margin-top:1.5rem;">
-                        <span class="material-symbols-rounded">logout</span> Sair da Conta
-                    </button>
-                </div>
-            </div>
-            
-            <!-- UPDATES PANEL -->
-            <div class="panel" id="panel-updates">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Atualizações</h2>
-                        <p class="section-subtitle">Verifique se há novas versões do app</p>
-                    </div>
-                </div>
-                <div class="stat-card" style="max-width:600px;text-align:center;padding:3rem;">
-                    <div style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:20px;background:var(--gradient-brand);display:grid;place-items:center;box-shadow:var(--shadow-glow);">
-                        <span class="material-symbols-rounded" style="font-size:40px;color:#fff;">system_update</span>
-                    </div>
-                    <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:0.5rem;" id="current-version">Honest Boost v3.0</h3>
-                    <p style="color:var(--text-secondary);margin-bottom:2rem;" id="update-status">Você está usando a versão mais recente.</p>
-                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-                        <button class="btn btn-filled" id="check-updates-btn" style="padding:0.8rem 1.6rem;">
-                            <span class="material-symbols-rounded">refresh</span> Verificar Agora
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
-    </main>
-</div>
-
-<style>
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.scan-animation {
-  border: 3px solid var(--primary);
-  border-top-color: transparent;
-  animation: spin 1s linear infinite;
-}
-
-.filter-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-default);
-  background: var(--bg-glass);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-btn.active {
-  background: var(--gradient-brand);
-  color: #fff;
-  border-color: transparent;
-}
-
-.filter-btn:hover:not(.active) {
-  background: var(--bg-card);
-  color: var(--text-primary);
-}
-
-.process-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.8rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--bg-glass-border);
-  border-radius: 12px;
-  margin-bottom: 0.5rem;
-}
-
-.process-item.critical { border-color: rgba(255, 107, 107, 0.3); }
-.process-item.safe { border-color: rgba(87, 242, 179, 0.3); }
-.process-item.confirm { border-color: rgba(255, 209, 102, 0.3); }
-
-.game-card {
-  background: var(--bg-card);
-  border: 1px solid var(--bg-glass-border);
-  border-radius: 18px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s;
-}
-
-.game-card:hover {
-  border-color: var(--border-glow);
-  transform: translateY(-4px);
-}
-
-.game-card .game-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  background: var(--gradient-brand);
-  display: grid;
-  place-items: center;
-  margin: 0 auto 1rem;
-}
-
-.removed-opt-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0.8rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--bg-glass-border);
-  border-radius: 12px;
-  margin-bottom: 0.5rem;
-  opacity: 0.7;
-}
-
-.removed-opt-item .reason {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-left: auto;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--bg-glass-border);
-  border-radius: 12px;
-  margin-bottom: 0.5rem;
-}
-
-.comparison-card {
-  background: var(--bg-card);
-  border: 1px solid var(--bg-glass-border);
-  border-radius: 14px;
-  padding: 1.2rem;
-  text-align: center;
-}
-
-.comparison-card .value {
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-
-.comparison-card .label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.3rem;
-}
-
-.comparison-card .delta {
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-top: 0.5rem;
-}
-
-.delta.positive { color: var(--success); }
-.delta.negative { color: var(--error); }
-.delta.neutral { color: var(--text-muted); }
-</style>
-
-<script>
-// ==================== STATE ====================
-let currentUser = null;
-let licenseData = null;
-let systemData = null;
-let recommendations = null;
-let currentFilter = 'safe';
-let processesData = null;
-
-const LICENSE_STORAGE_KEY = 'hb-license';
-
-// ==================== THEME ====================
-function loadTheme() {
-    const saved = localStorage.getItem('hb-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (prefersDark ? 'dark' : 'light');
-    applyTheme(theme, false);
-}
-
-function applyTheme(theme, save) {
-    document.documentElement.setAttribute('data-theme', theme);
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
-    if (save) localStorage.setItem('hb-theme', theme);
-}
-
-function initThemeToggle() {
-    const btn = document.getElementById('theme-toggle');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        applyTheme(current === 'dark' ? 'light' : 'dark', true);
-    });
-}
-
-// ==================== LOGIN ====================
-function initLogin() {
-    const btn = document.getElementById('login-btn');
-    const input = document.getElementById('license-input');
-    if (!btn || !input) return;
-    
-    btn.addEventListener('click', handleLogin);
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
-}
-
-async function handleLogin() {
-    const input = document.getElementById('license-input');
-    const errorEl = document.getElementById('login-error');
-    const btn = document.getElementById('login-btn');
-    const key = input.value.trim();
-    
-    if (!key) {
-        showLoginError('Insira sua chave de licença.');
-        return;
-    }
-    
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Verificando...';
-    
-    // Timeout global de 8s para não travar a UI
-    const timeout = setTimeout(() => {
-        showLoginError('Servidor indisponível. Entrando em modo offline...');
-        setTimeout(() => {
-            licenseData = { key, tier: 'trial', offline: true };
-            currentUser = { name: 'Usuário Offline', email: '' };
-            showApp();
-        }, 1500);
-    }, 8000);
-    
-    try {
-        if (window.hbDesktop && window.hbDesktop.authenticateWithKey) {
-            const result = await window.hbDesktop.authenticateWithKey(key);
-            clearTimeout(timeout);
-            
-            if (result.ok) {
-                licenseData = { key, tier: result.tier || 'trial', offline: result.offline || false };
-                currentUser = { 
-                    name: result.user?.nickname || result.user?.username || 'Usuário', 
-                    email: result.user?.username || '' 
-                };
-                localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
-                showApp();
-                return;
-            } else {
-                showLoginError(result.error === 'key_expired' ? 'Chave expirada. Gere uma nova no site.' : 'Chave inválida.');
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-rounded">lock_open</span> Entrar';
-                return;
-            }
-        }
-    } catch (e) {
-        clearTimeout(timeout);
-    }
-    
-    showLoginError('Não foi possível verificar a licença. Confira a key e a conexão com o servidor.');
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-rounded">lock_open</span> Entrar';
-}
-
-function showLoginError(msg) {
-    const el = document.getElementById('login-error');
-    if (el) {
-        el.textContent = msg;
-        el.classList.add('show');
-        setTimeout(() => el.classList.remove('show'), 5000);
-    }
-}
-
-function showApp() {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-layout').style.display = 'flex';
-    updateUserInfo();
-    updateOSInfo();
-    checkAdmin();
-}
-
-function logout() {
-    currentUser = null;
-    licenseData = null;
-    localStorage.removeItem(LICENSE_STORAGE_KEY);
-    document.getElementById('app-layout').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('license-input').value = '';
-}
-
-async function checkExistingSession() {
-    const saved = localStorage.getItem(LICENSE_STORAGE_KEY);
-    if (saved) {
-        try {
-            licenseData = JSON.parse(saved);
-            if (!licenseData.key) throw new Error('missing_key');
-            
-            if (window.hbDesktop && window.hbDesktop.authenticateWithKey) {
-                const result = await window.hbDesktop.authenticateWithKey(licenseData.key);
-                if (result.ok) {
-                    licenseData.tier = result.tier || 'trial';
-                    currentUser = { name: result.user?.nickname || result.user?.username || 'Usuário', email: result.user?.username || '' };
-                    localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseData));
-                    showApp();
-                    return;
-                }
-            }
-            localStorage.removeItem(LICENSE_STORAGE_KEY);
-        } catch {
-            localStorage.removeItem(LICENSE_STORAGE_KEY);
-        }
-    }
-}
-
-function updateUserInfo() {
-    if (!currentUser) return;
-    const initial = currentUser.name.charAt(0).toUpperCase();
-    document.getElementById('user-avatar').textContent = initial;
-    document.getElementById('user-name').textContent = currentUser.name;
-    document.getElementById('profile-avatar').textContent = initial;
-    document.getElementById('profile-name').textContent = currentUser.name;
-    document.getElementById('profile-email').textContent = currentUser.email;
-    document.getElementById('profile-key').textContent = licenseData?.key?.slice(0, 12) + '...' || 'XXXX-XXXX';
-}
-
-async function updateOSInfo() {
-    if (!window.hbDesktop) return;
-    try {
-        const info = await window.hbDesktop.getInfo();
-        document.getElementById('os-info').innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">computer</span> ' + info.os + ' (' + info.arch + ')';
-    } catch {}
-}
-
-async function checkAdmin() {
-    if (!window.hbDesktop) return;
-    try {
-        const info = await window.hbDesktop.getInfo();
-        if (info.admin) {
-            document.getElementById('admin-badge').style.display = 'inline-flex';
-        }
-    } catch {}
-}
-
-// ==================== NAVIGATION ====================
-function initNavigation() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const panel = item.dataset.panel;
-            navigateTo(panel);
-        });
-    });
-}
-
-function navigateTo(panelId) {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    
-    const navItem = document.querySelector(`[data-panel="${panelId}"]`);
-    const panel = document.getElementById(`panel-${panelId}`);
-    
-    if (navItem) navItem.classList.add('active');
-    if (panel) panel.classList.add('active');
-    
-    // Update topbar
-    const titles = {
-        'scanner': ['Smart Scanner', 'Análise inteligente do seu sistema'],
-        'recommendations': ['Recomendações', 'Otimizações baseadas na análise do seu sistema'],
-        'benchmark': ['Benchmark', 'Meça o desempenho real do seu sistema'],
-        'games': ['Meus Jogos', 'Jogos detectados no seu PC'],
-        'gaming-mode': ['Modo Gaming', 'Otimização segura para jogos'],
-        'processes': ['Processos', 'Gerencie processos em execução'],
-        'history': ['Histórico', 'Benchmarks e otimizações anteriores'],
-        'recovery': ['Rollback', 'Restaurar configurações anteriores'],
-        'perfil': ['Meu Perfil', 'Informações da licença e conta'],
-        'updates': ['Atualizações', 'Verifique se há novas versões do app']
-    };
-    
-    const [title, subtitle] = titles[panelId] || ['Honest Boost', ''];
-    document.getElementById('page-title').textContent = title;
-    document.getElementById('page-subtitle').textContent = subtitle;
-    
-    // Load panel data
-    if (panelId === 'recovery') loadRecoveryStatus();
-    if (panelId === 'history') loadHistory();
-    if (panelId === 'recommendations' && recommendations) renderRecommendations();
-}
-
-// ==================== SMART SCANNER ====================
-async function startScan() {
-    document.getElementById('scan-progress').style.display = 'block';
-    document.getElementById('scan-results').style.display = 'none';
-    
-    const statusEl = document.getElementById('scan-status');
-    const detailEl = document.getElementById('scan-detail');
-    
-    const steps = [
-        ['Analisando hardware...', 'Coletando informações da CPU'],
-        ['Verificando GPU...', 'Detectando placa de vídeo e drivers'],
-        ['Analisando memória...', 'Verificando uso de RAM'],
-        ['Verificando armazenamento...', 'Analisando discos e espaço livre'],
-        ['Analisando configurações...', 'Verificando Game DVR, mouse, power plan'],
-        ['Gerando recomendações...', 'Identificando oportunidades de otimização']
-    ];
-    
-    for (const [status, detail] of steps) {
-        statusEl.textContent = status;
-        detailEl.textContent = detail;
-        await new Promise(r => setTimeout(r, 600));
-    }
-    
-    try {
-        const result = await window.hbDesktop.getDiagnostic();
-        if (result.ok) {
-            systemData = result.diagnostic;
-            renderScanResults(systemData);
-            
-            // Get recommendations
-            const recResult = await window.hbDesktop.getRecommendations();
-            if (recResult.ok) {
-                recommendations = recResult.recommendations;
-                const badge = document.getElementById('rec-badge');
-                badge.textContent = recommendations.summary.total;
-                badge.style.display = 'inline';
-            }
-        }
-    } catch (e) {
-        console.error('Scan failed:', e);
-    }
-    
-    document.getElementById('scan-progress').style.display = 'none';
-    document.getElementById('scan-results').style.display = 'block';
-}
-
-function renderScanResults(data) {
-    const statsGrid = document.getElementById('hardware-stats');
-    statsGrid.innerHTML = `
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">memory</span></div>
-            <div class="stat-value">${data.cpu?.name?.split(' ').slice(0, 3).join(' ') || 'Unknown'}</div>
-            <div class="stat-label">${data.cpu?.cores || '?'} cores / ${data.cpu?.threads || '?'} threads</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">developer_board</span></div>
-            <div class="stat-value">${data.gpu?.[0]?.name?.split(' ').slice(0, 3).join(' ') || 'Unknown'}</div>
-            <div class="stat-label">${data.gpu?.[0]?.vram ? Math.round(data.gpu[0].vram / 1024 / 1024 / 1024) + 'GB VRAM' : ''}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">sd_storage</span></div>
-            <div class="stat-value">${data.ram?.totalGB || '?'} GB</div>
-            <div class="stat-label">${data.ram?.usagePercent || '?'}% em uso</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">desktop_windows</span></div>
-            <div class="stat-value">${data.monitors?.[0]?.refreshRate || 60}Hz</div>
-            <div class="stat-label">${data.monitors?.[0]?.resolution || 'Unknown'}</div>
-        </div>
-    `;
-    
-    // Diagnostic checks
-    const diagGrid = document.getElementById('diagnostic-grid');
-    const checks = [
-        {
-            id: 'power',
-            label: 'Plano de energia',
-            value: data.powerPlan?.isHighPerformance ? 'Alto desempenho' : data.powerPlan?.name || 'Desconhecido',
-            state: data.powerPlan?.isHighPerformance ? 'ready' : 'attention',
-            recommendation: data.powerPlan?.isHighPerformance ? 'Plano otimizado para gaming.' : 'Ative o plano de alto desempenho.'
-        },
-        {
-            id: 'mouse',
-            label: 'Aceleração do mouse',
-            value: data.mouseAccel?.enabled ? 'Ativada' : 'Desativada',
-            state: data.mouseAccel?.enabled ? 'attention' : 'ready',
-            recommendation: data.mouseAccel?.enabled ? 'Desative para movimento 1:1 consistente.' : 'Movimento 1:1 configurado.'
-        },
-        {
-            id: 'gamedvr',
-            label: 'Game DVR',
-            value: data.gameDVR?.enabled ? 'Ativado' : 'Desativado',
-            state: data.gameDVR?.enabled ? 'attention' : 'ready',
-            recommendation: data.gameDVR?.enabled ? 'Desative para remover overhead de gravação.' : 'Sem captura em background.'
-        }
-    ];
-    
-    diagGrid.innerHTML = checks.map(check => `
-        <div class="diagnostic-card ${check.state === 'ready' ? 'is-ready' : 'needs-attention'}">
-            <span class="material-symbols-rounded diagnostic-icon">${check.state === 'ready' ? 'check_circle' : 'warning'}</span>
-            <div>
-                <strong>${check.label}</strong>
-                <span class="diagnostic-value">${check.value}</span>
-                <p>${check.recommendation}</p>
-            </div>
-        </div>
-    `).join('');
-}
-
-// ==================== RECOMMENDATIONS ====================
-function renderRecommendations() {
-    if (!recommendations) return;
-    
-    const summary = recommendations.summary;
-    document.getElementById('recommendations-summary').innerHTML = `
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><span class="material-symbols-rounded">recommend</span></div>
-                <div class="stat-value">${summary.total}</div>
-                <div class="stat-label">Recomendações</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><span class="material-symbols-rounded">verified</span></div>
-                <div class="stat-value">${summary.highConfidence}</div>
-                <div class="stat-label">Alta Confiança</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><span class="material-symbols-rounded">help</span></div>
-                <div class="stat-value">${summary.mediumConfidence}</div>
-                <div class="stat-label">Média Confiança</div>
-            </div>
-        </div>
-    `;
-    
-    const optsGrid = document.getElementById('recommended-opts');
-    optsGrid.innerHTML = recommendations.recommendations.map(rec => `
-        <div class="opt-card" data-id="${rec.id}">
-            <div class="opt-header">
-                <div class="opt-icon"><span class="material-symbols-rounded">${getIconForCategory(rec.category)}</span></div>
-                <div class="opt-info">
-                    <div class="opt-title">${rec.name}</div>
-                    <div class="opt-category">${rec.confidence} confidence • ${rec.risk} risk</div>
-                </div>
-            </div>
-            <p class="opt-desc">${rec.description}</p>
-            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;"><strong>Por quê:</strong> ${rec.evidence}</p>
-            <div class="safety-tags">
-                <span class="safety-tag">${rec.reversible ? '✓ Reversível' : '⚠ Irreversível'}</span>
-            </div>
-            <button class="btn btn-filled apply-opt-btn" data-id="${rec.id}" style="width:100%;">
-                <span class="material-symbols-rounded">check</span> Aplicar
+            <button id="btn-run-health-scan" class="btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Executar Varredura</span>
             </button>
-        </div>
-    `).join('');
-    
-    // Add event listeners
-    document.querySelectorAll('.apply-opt-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Aplicando...';
-            try {
-                const result = await window.hbDesktop.applyOptimization(id);
-                if (result.ok) {
-                    btn.innerHTML = '<span class="material-symbols-rounded">check_circle</span> Aplicado';
-                    btn.parentElement.classList.add('applied');
-                } else {
-                    btn.innerHTML = '<span class="material-symbols-rounded">error</span> Falhou';
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                btn.innerHTML = '<span class="material-symbols-rounded">error</span> Erro';
-                btn.disabled = false;
-            }
-        });
-    });
-    
-    // Removed optimizations
-    const removedList = document.getElementById('removed-opts');
-    if (recommendations.notRecommended) {
-        removedList.innerHTML = recommendations.notRemoved.map(opt => `
-            <div class="removed-opt-item">
-                <span class="material-symbols-rounded" style="color:var(--text-muted);">block</span>
-                <span>${opt.id}</span>
-                <span class="reason">${opt.reason}</span>
-            </div>
-        `).join('');
-    }
-}
+          </div>
 
-function getIconForCategory(category) {
-    const icons = {
-        'input': 'mouse',
-        'gaming': 'sports_esports',
-        'power': 'battery_charging_full',
-        'performance': 'speed',
-        'privacy': 'privacy_tip',
-        'maintenance': 'cleaning_services'
-    };
-    return icons[category] || 'tune';
-}
+          <div class="stats-grid" id="stats-grid"></div>
 
-// ==================== BENCHMARK ====================
-async function captureBaseline() {
-    const btn = document.getElementById('capture-baseline-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Capturando...';
-    
-    try {
-        const result = await window.hbDesktop.captureBaseline();
-        if (result.ok) {
-            document.getElementById('capture-after-btn').disabled = false;
-            btn.innerHTML = '<span class="material-symbols-rounded">check</span> Baseline Capturado';
-        }
-    } catch (e) {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-rounded">flag</span> Capturar Baseline';
-    }
-}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h2 style="font-size:14px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Gráficos em Tempo Real</h2>
+            <div class="stats-legend" id="stats-legend"></div>
+          </div>
+          <div class="charts-grid" id="charts-grid"></div>
 
-async function captureAfter() {
-    const btn = document.getElementById('capture-after-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Capturando...';
-    
-    try {
-        const result = await window.hbDesktop.captureAfter();
-        if (result.ok) {
-            const comparison = await window.hbDesktop.getComparison();
-            if (comparison.ok && comparison.data) {
-                renderComparison(comparison.data);
-            }
-            btn.innerHTML = '<span class="material-symbols-rounded">check</span> Capturado';
-        }
-    } catch (e) {
-        btn.disabled = false;
-    }
-}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:8px;">
+            <h2 style="font-size:14px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Informações do Sistema</h2>
+          </div>
+          <div class="system-info-grid" id="system-info-grid"></div>
+        </section>
 
-function renderComparison(data) {
-    document.getElementById('benchmark-results').style.display = 'block';
-    document.getElementById('score-value').textContent = data.score.after;
-    
-    const grid = document.getElementById('comparison-grid');
-    grid.innerHTML = `
-        <div class="comparison-card">
-            <div class="value">${data.cpu.before}% → ${data.cpu.after}%</div>
-            <div class="label">CPU Usage</div>
-            <div class="delta ${data.cpu.delta < 0 ? 'positive' : data.cpu.delta > 0 ? 'negative' : 'neutral'}">${data.cpu.delta > 0 ? '+' : ''}${data.cpu.delta}%</div>
-        </div>
-        <div class="comparison-card">
-            <div class="value">${data.ram.before}% → ${data.ram.after}%</div>
-            <div class="label">RAM Usage</div>
-            <div class="delta ${data.ram.delta < 0 ? 'positive' : data.ram.delta > 0 ? 'negative' : 'neutral'}">${data.ram.delta > 0 ? '+' : ''}${data.ram.delta}%</div>
-        </div>
-        <div class="comparison-card">
-            <div class="value">${data.network.before}ms → ${data.network.after}ms</div>
-            <div class="label">Network Ping</div>
-            <div class="delta ${data.network.delta < 0 ? 'positive' : data.network.delta > 0 ? 'negative' : 'neutral'}">${data.network.delta > 0 ? '+' : ''}${data.network.delta}ms</div>
-        </div>
-        <div class="comparison-card">
-            <div class="value">${data.score.before} → ${data.score.after}</div>
-            <div class="label">Performance Score</div>
-            <div class="delta ${data.score.delta > 0 ? 'positive' : data.score.delta < 0 ? 'negative' : 'neutral'}">${data.score.delta > 0 ? '+' : ''}${data.score.delta}</div>
-        </div>
-    `;
-}
-
-async function runQuickBenchmark() {
-    const btn = document.getElementById('run-quick-bench-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Executando...';
-    
-    try {
-        const result = await window.hbDesktop.runBenchmark();
-        if (result.ok) {
-            renderQuickBenchmark(result.data);
-        }
-    } catch (e) {}
-    
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-rounded">timer</span> Benchmark Rápido';
-}
-
-function renderQuickBenchmark(data) {
-    document.getElementById('quick-benchmark-results').style.display = 'block';
-    const stats = document.getElementById('quick-bench-stats');
-    stats.innerHTML = `
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">memory</span></div>
-            <div class="stat-value">${data.cpu.usagePercent}%</div>
-            <div class="stat-label">CPU Usage</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">sd_storage</span></div>
-            <div class="stat-value">${data.ram.usagePercent}%</div>
-            <div class="stat-label">RAM Usage (${data.ram.usedGB}/${data.ram.totalGB} GB)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">wifi</span></div>
-            <div class="stat-value">${data.network.ping}ms</div>
-            <div class="stat-label">Ping (1.1.1.1)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><span class="material-symbols-rounded">storage</span></div>
-            <div class="stat-value">${data.disk.freeGB} GB</div>
-            <div class="stat-label">Espaço Livre</div>
-        </div>
-    `;
-}
-
-// ==================== GAMES ====================
-async function scanGames() {
-    document.getElementById('games-scanning').style.display = 'block';
-    document.getElementById('games-grid').innerHTML = '';
-    
-    try {
-        const result = await window.hbDesktop.scanGames();
-        if (result.ok) {
-            renderGames(result.games);
-        }
-    } catch (e) {}
-    
-    document.getElementById('games-scanning').style.display = 'none';
-}
-
-function renderGames(games) {
-    const grid = document.getElementById('games-grid');
-    if (games.length === 0) {
-        grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum jogo detectado. Certifique-se de que estão instalados nos caminhos padrão.</p>';
-        return;
-    }
-    
-    grid.innerHTML = games.map(game => `
-        <div class="game-card">
-            <div class="game-icon"><span class="material-symbols-rounded">sports_esports</span></div>
-            <h4 style="font-weight:700;margin-bottom:0.3rem;">${game.name}</h4>
-            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">${game.publisher}</p>
-            <span class="status-chip" style="background:var(--success-bg);color:var(--success);padding:0.3rem 0.8rem;border-radius:999px;font-size:0.75rem;font-weight:600;">
-                ${game.isRunning ? 'Em execução' : 'Instalado'}
-            </span>
-            <button class="btn btn-ghost" style="width:100%;margin-top:1rem;" onclick="loadGameProfile('${game.id}')">
-                <span class="material-symbols-rounded">tune</span> Ver Perfil
-            </button>
-        </div>
-    `).join('');
-}
-
-async function loadGameProfile(gameId) {
-    try {
-        const result = await window.hbDesktop.getGameProfile(gameId);
-        if (result.ok) {
-            alert(`Perfil: ${result.profile.name}\n\n${result.profile.description}\n\nOtimizações: ${result.profile.optimizations.join(', ')}\n\nNotas: ${result.profile.notes}`);
-        }
-    } catch (e) {}
-}
-
-// ==================== GAMING MODE ====================
-async function enableGamingMode() {
-    const btn = document.getElementById('enable-gaming-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Ativando...';
-    
-    try {
-        const result = await window.hbDesktop.enableGamingMode();
-        if (result.ok) {
-            btn.style.display = 'none';
-            document.getElementById('disable-gaming-btn').style.display = 'inline-flex';
-            document.getElementById('gaming-status').textContent = `${result.results.length} processos seguros fechados.`;
-        }
-    } catch (e) {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-rounded">play_arrow</span> Ativar Modo Gaming';
-    }
-}
-
-async function disableGamingMode() {
-    const btn = document.getElementById('disable-gaming-btn');
-    btn.disabled = true;
-    
-    try {
-        const result = await window.hbDesktop.disableGamingMode();
-        if (result.ok) {
-            btn.style.display = 'none';
-            document.getElementById('enable-gaming-btn').style.display = 'inline-flex';
-            document.getElementById('enable-gaming-btn').disabled = false;
-            document.getElementById('enable-gaming-btn').innerHTML = '<span class="material-symbols-rounded">play_arrow</span> Ativar Modo Gaming';
-            document.getElementById('gaming-status').textContent = 'Modo gaming desativado.';
-        }
-    } catch (e) {}
-}
-
-// ==================== PROCESSES ====================
-async function loadProcesses() {
-    try {
-        const result = await window.hbDesktop.getProcessClassification();
-        if (result.ok) {
-            processesData = result.processes;
-            renderProcesses();
-        }
-    } catch (e) {}
-}
-
-function renderProcesses() {
-    if (!processesData) return;
-    
-    const list = document.getElementById('processes-list');
-    let items = [];
-    
-    switch (currentFilter) {
-        case 'safe': items = processesData.safe; break;
-        case 'confirm': items = processesData.confirm; break;
-        case 'unknown': items = processesData.unknown; break;
-        case 'critical': items = processesData.critical; break;
-    }
-    
-    if (items.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum processo nesta categoria.</p>';
-        return;
-    }
-    
-    list.innerHTML = items.map(proc => `
-        <div class="process-item ${proc.classification.toLowerCase()}">
+        <!-- OTIMIZAÇÕES -->
+        <section id="panel-optimizations" class="panel">
+          <header class="panel-header">
             <div>
-                <strong>${proc.name}</strong>
-                <span style="font-size:0.8rem;color:var(--text-muted);margin-left:0.5rem;">PID: ${proc.pid}</span>
-                <span style="font-size:0.8rem;color:var(--text-muted);margin-left:0.5rem;">${Math.round(proc.workingSet / 1024 / 1024)} MB</span>
+              <h1 class="panel-title">Otimizações</h1>
+              <p class="panel-subtitle">Aplique otimizações por categoria</p>
             </div>
-            ${proc.classification === 'SAFE' ? `<button class="btn btn-ghost terminate-btn" data-pid="${proc.pid}" data-name="${proc.name}" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Fechar</button>` : ''}
-            ${proc.classification === 'CONFIRM' ? `<button class="btn btn-ghost confirm-btn" data-pid="${proc.pid}" data-name="${proc.name}" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Fechar (confirmar)</button>` : ''}
-        </div>
-    `).join('');
-    
-    // Add event listeners
-    document.querySelectorAll('.terminate-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const pid = parseInt(btn.dataset.pid);
-            const name = btn.dataset.name;
-            try {
-                const result = await window.hbDesktop.terminateProcess(pid, name);
-                if (result.ok && result.result.ok) {
-                    btn.parentElement.parentElement.remove();
-                }
-            } catch (e) {}
-        });
-    });
-}
+            <div class="panel-actions">
+              <button id="btn-apply-selected-opt" class="btn-primary" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <span>Aplicar Selecionadas</span>
+              </button>
+              <button id="btn-apply-recommended" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <span>Recomendadas</span>
+              </button>
+            </div>
+          </header>
+          <div class="tabs-bar" id="opt-tabs-bar"></div>
+          <div id="opt-content"></div>
+        </section>
 
-// ==================== RECOVERY ====================
-async function loadRecoveryStatus() {
-    try {
-        const result = await window.hbDesktop.getRecoveryStatus();
-        if (result) {
-            document.getElementById('recovery-count').textContent = result.count;
-            const btn = document.getElementById('restore-all-btn');
-            btn.disabled = result.count === 0;
-        }
-    } catch (e) {}
-}
+        <!-- LIMPEZA -->
+        <section id="panel-cleaning" class="panel">
+          <header class="panel-header">
+            <div>
+              <h1 class="panel-title">Limpeza do Sistema</h1>
+              <p class="panel-subtitle">Remova arquivos desnecessários e libere espaço</p>
+            </div>
+            <div class="panel-actions">
+              <div class="space-recovered" id="space-recovered" style="display:none;">
+                <span class="space-label">Espaço recuperável:</span>
+                <span id="space-value">—</span>
+              </div>
+              <button id="btn-clean-selected" class="btn-primary btn-lg" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 21 5 21 5 5 16 5 16 1 21 6 21 21"></polyline></svg>
+                <span>Limpar Selecionados</span>
+              </button>
+            </div>
+          </header>
+          <div class="tabs-bar" id="clean-tabs-bar"></div>
+          <div id="clean-content"></div>
+        </section>
 
-async function restoreAll() {
-    if (!confirm('Restaurar TODAS as alterações de registry salvas pelo Honest Boost?')) return;
-    
-    const btn = document.getElementById('restore-all-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Restaurando...';
-    
-    try {
-        const result = await window.hbDesktop.restoreRegistry();
-        if (result.ok) {
-            document.getElementById('recovery-status').textContent = `${result.restored} alteração(ões) restaurada(s).`;
-            document.getElementById('recovery-count').textContent = '0';
-        } else {
-            document.getElementById('recovery-status').textContent = `${result.restored} restauradas; ${result.failures.length} falharam.`;
-        }
-    } catch (e) {
-        document.getElementById('recovery-status').textContent = 'Erro ao restaurar.';
-    }
-    
-    btn.innerHTML = '<span class="material-symbols-rounded">restore</span> Restaurar Todas as Alterações';
-}
+        <!-- RESTAURAÇÃO -->
+        <section id="panel-restoration" class="panel">
+          <header class="panel-header">
+            <div>
+              <h1 class="panel-title">Restauração & Backup</h1>
+              <p class="panel-subtitle">Gerencie pontos de restauração e backups do Honest Boost</p>
+            </div>
+          </header>
+          <div class="tabs-bar" id="restore-tabs-bar">
+            <button class="tab-btn active" data-tab="sys-restore">Sistema Windows</button>
+            <button class="tab-btn" data-tab="togs-backup">Backup Honest Boost</button>
+          </div>
+          <div id="restore-content"></div>
+        </section>
 
-// ==================== HISTORY ====================
-async function loadHistory() {
-    try {
-        const result = await window.hbDesktop.getBenchmarkHistory();
-        const list = document.getElementById('history-list');
-        
-        if (result.ok && result.data.length > 0) {
-            list.innerHTML = result.data.map(entry => `
-                <div class="history-item">
-                    <span class="material-symbols-rounded" style="color:var(--primary);">history</span>
-                    <div>
-                        <strong>${entry.type || 'Benchmark'}</strong>
-                        <div style="font-size:0.8rem;color:var(--text-muted);">${new Date(entry.timestamp).toLocaleString('pt-BR')}</div>
-                    </div>
+        <!-- APPS STORE -->
+        <section id="panel-apps" class="panel">
+          <header class="panel-header">
+            <div>
+              <h1 class="panel-title">Loja de Apps</h1>
+              <p class="panel-subtitle">Instale, atualize e gerencie utilitários essenciais</p>
+            </div>
+            <div class="panel-actions">
+              <input type="text" id="app-search" class="search-input" placeholder="Buscar apps..." style="width:280px;">
+            </div>
+          </header>
+          <div class="tabs-bar" id="apps-tabs-bar"></div>
+          <div class="apps-grid" id="apps-grid"></div>
+        </section>
+
+        <!-- CONFIGURAÇÕES -->
+        <section id="panel-settings" class="panel">
+          <header class="panel-header">
+            <div>
+              <h1 class="panel-title">Configurações</h1>
+              <p class="panel-subtitle">Personalize o Honest Boost</p>
+            </div>
+            <div class="panel-actions">
+              <button id="btn-reset-settings" class="btn-ghost btn-sm">Resetar Padrões</button>
+            </div>
+          </header>
+          <div class="tabs-bar" id="settings-tabs-bar">
+            <button class="tab-btn active" data-tab="general">Geral</button>
+            <button class="tab-btn" data-tab="appearance">Aparência</button>
+            <button class="tab-btn" data-tab="performance">Performance</button>
+            <button class="tab-btn" data-tab="advanced">Avançado</button>
+            <button class="tab-btn" data-tab="about">Sobre</button>
+          </div>
+          <div id="settings-content">
+            <!-- GERAL -->
+            <div class="tab-panel settings-tab active" id="tab-general">
+              <div class="settings-group">
+                <h3 class="settings-group-title">Inicialização</h3>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-autostart">
+                  <span class="setting-label">Abrir com o Windows</span>
+                </label>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-minimize-tray">
+                  <span class="setting-label">Minimizar na bandeja do sistema</span>
+                </label>
+              </div>
+              <div class="settings-group">
+                <h3 class="settings-group-title">Atualização</h3>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-auto-update">
+                  <span class="setting-label">Atualização automática</span>
+                </label>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-check-version">
+                  <span class="setting-label">Verificar nova versão na inicialização</span>
+                </label>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-auto-backup">
+                  <span class="setting-label">Backup automático das configurações</span>
+                </label>
+                <div class="setting-action-row">
+                  <button id="btn-backup-settings" class="btn btn-secondary btn-sm">Criar Backup Manual</button>
+                  <button id="btn-restore-backup" class="btn btn-ghost btn-sm">Restaurar Backup</button>
                 </div>
-            `).join('');
-        } else {
-            list.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum histórico ainda.</p>';
-        }
-    } catch (e) {}
-}
+              </div>
+            </div>
+            <!-- APARÊNCIA -->
+            <div class="tab-panel settings-tab" id="tab-appearance">
+              <div class="settings-group">
+                <h3 class="settings-group-title">Tema</h3>
+                <div class="theme-options" id="theme-options">
+                  <label class="theme-option selected" data-theme="dark">
+                    <input type="radio" name="theme" value="dark" checked>
+                    <span class="theme-option-indicator"></span>
+                    <span class="theme-option-label">Escuro</span>
+                  </label>
+                  <label class="theme-option" data-theme="light">
+                    <input type="radio" name="theme" value="light">
+                    <span class="theme-option-indicator"></span>
+                    <span class="theme-option-label">Claro</span>
+                  </label>
+                  <label class="theme-option" data-theme="auto">
+                    <input type="radio" name="theme" value="auto">
+                    <span class="theme-option-indicator auto"></span>
+                    <span class="theme-option-label">Automático</span>
+                  </label>
+                </div>
+              </div>
+              <div class="settings-group">
+                <h3 class="settings-group-title">Idioma</h3>
+                <select id="setting-language" class="select-input">
+                  <option value="pt-BR">Português (Brasil)</option>
+                  <option value="en-US">English</option>
+                  <option value="es-ES">Español</option>
+                </select>
+              </div>
+            </div>
+            <!-- PERFORMANCE -->
+            <div class="tab-panel settings-tab" id="tab-performance">
+              <div class="settings-group">
+                <h3 class="settings-group-title">Exibição</h3>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-animations">
+                  <span class="setting-label">Animações do aplicativo</span>
+                </label>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-gpu-accel">
+                  <span class="setting-label">Aceleração por GPU (gráficos)</span>
+                </label>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-logs">
+                  <span class="setting-label">Salvar logs de operações</span>
+                </label>
+              </div>
+              <div class="settings-group">
+                <h3 class="settings-group-title">Logs</h3>
+                <div class="setting-action-row">
+                  <button id="btn-view-logs" class="btn btn-secondary btn-sm">Ver Logs</button>
+                  <button id="btn-clear-logs" class="btn btn-ghost btn-sm">Limpar Logs</button>
+                </div>
+              </div>
+            </div>
+            <!-- AVANÇADO -->
+            <div class="tab-panel settings-tab" id="tab-advanced">
+              <div class="settings-group">
+                <h3 class="settings-group-title">Modos Especiais</h3>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-safe-mode">
+                  <span class="setting-label">Modo Seguro</span>
+                  <span class="setting-description">Desativa otimizações agressivas</span>
+                </label>
+                <label class="setting-option">
+                  <input type="checkbox" id="setting-dev-mode">
+                  <span class="setting-label">Modo Desenvolvedor</span>
+                  <span class="setting-description">Exibe informações de debug</span>
+                </label>
+              </div>
+              <div class="settings-group">
+                <h3 class="settings-group-title">Dados</h3>
+                <div class="setting-action-row">
+                  <button id="btn-clear-all-data" class="btn btn-danger btn-sm">Limpar Todos os Dados Locais</button>
+                </div>
+              </div>
+            </div>
+            <!-- SOBRE -->
+            <div class="tab-panel settings-tab" id="tab-about">
+              <div class="about-section">
+                <div class="about-logo">
+                  <div class="about-logo-icon">⚡</div>
+                  <div class="about-logo-text">Honest Boost</div>
+                </div>
+                <div class="about-version" id="about-version">Versão 2.0.0 — Honest Boost</div>
+                <p class="about-desc">Software completo de otimização para Windows.</p>
+                <div class="about-copyright" id="about-copyright">© 2025 Honest Boost. Todos os direitos reservados.</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-// ==================== UPDATES ====================
-async function checkUpdates() {
-    const btn = document.getElementById('check-updates-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded">progress_activity</span> Verificando...';
-    
-    try {
-        await window.hbDesktop.checkForUpdates();
-        document.getElementById('update-status').textContent = 'Você está usando a versão mais recente.';
-    } catch (e) {}
-    
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-rounded">refresh</span> Verificar Agora';
-}
+        <!-- AUTENTICAÇÃO -->
+        <section id="panel-auth" class="panel">
+          <header class="panel-header">
+            <div>
+              <h1 class="panel-title">Autenticação</h1>
+              <p class="panel-subtitle">Gerencie sua licença e perfil</p>
+            </div>
+          </header>
+          <div id="auth-content">
+            <!-- Estado: logado -->
+            <div class="auth-panel auth-logged-in hidden">
+              <div class="auth-card">
+                <div class="auth-profile-header">
+                  <div class="profile-avatar" id="profile-avatar">U</div>
+                  <div class="profile-info">
+                    <div class="profile-name" id="profile-name">Usuário</div>
+                    <div class="profile-plan" id="profile-plan">Plano: Pro</div>
+                  </div>
+                </div>
+                <div class="auth-section-divider">Detalhes da Licença</div>
+                <div class="license-grid">
+                  <div class="license-field">
+                    <div class="license-label">ID da Licença</div>
+                    <div class="license-value" id="license-id">—</div>
+                  </div>
+                  <div class="license-field">
+                    <div class="license-label">Plano</div>
+                    <div class="license-value" id="license-plan">Pro</div>
+                  </div>
+                  <div class="license-field">
+                    <div class="license-label">Dias Restantes</div>
+                    <div class="license-value" id="license-days">—</div>
+                  </div>
+                  <div class="license-field">
+                    <div class="license-label">Data de Expiração</div>
+                    <div class="license-value" id="license-expiry">—</div>
+                  </div>
+                  <div class="license-field">
+                    <div class="license-label">Máquinas Ativadas</div>
+                    <div class="license-value" id="license-machines">—</div>
+                  </div>
+                </div>
+                <div class="auth-actions">
+                  <button id="btn-copy-license" class="btn btn-secondary">Copiar ID</button>
+                  <button id="btn-change-license" class="btn btn-ghost">Trocar Licença</button>
+                  <button id="btn-renew-license" class="btn btn-primary">Renovar</button>
+                  <button id="btn-disconnect" class="btn btn-danger">Desconectar</button>
+                </div>
+              </div>
+            </div>
+            <!-- Estado: deslogado -->
+            <div class="auth-panel auth-logged-out">
+              <div class="auth-card">
+                <div class="auth-login-header">
+                  <div class="auth-logo-large">⚡</div>
+                  <h2 class="auth-title">Honest Boost</h2>
+                  <p class="auth-subtitle">Insira sua chave de licença para ativar</p>
+                </div>
+                <form class="auth-form" id="auth-form">
+                  <div class="auth-form-group">
+                    <label class="auth-label" for="auth-key">Chave de Licença</label>
+                    <input type="text" class="text-input" id="auth-key" placeholder="Ex: HONEST-XXXXX-XXXXX" autocomplete="off">
+                  </div>
+                  <div class="auth-error hidden" id="auth-error"></div>
+                  <button type="submit" class="btn btn-primary btn-lg auth-submit-btn">Ativar Licença</button>
+                </form>
+                <div class="auth-divider">ou</div>
+                <button id="btn-trial" class="btn btn-secondary btn-lg auth-trial-btn">Ativar Trial Gratuito (7 dias)</button>
+                <p class="auth-note">A versão trial permite uso completo por 7 dias. Para uso permanente, compre uma licença.</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-// ==================== INIT ====================
-document.addEventListener('DOMContentLoaded', () => {
-    loadTheme();
-    initThemeToggle();
-    initLogin();
-    initNavigation();
-    
-    // Scanner
-    document.getElementById('start-scan-btn')?.addEventListener('click', startScan);
-    document.getElementById('rescan-btn')?.addEventListener('click', startScan);
-    
-    // Benchmark
-    document.getElementById('capture-baseline-btn')?.addEventListener('click', captureBaseline);
-    document.getElementById('capture-after-btn')?.addEventListener('click', captureAfter);
-    document.getElementById('run-quick-bench-btn')?.addEventListener('click', runQuickBenchmark);
-    
-    // Games
-    document.getElementById('scan-games-btn')?.addEventListener('click', scanGames);
-    
-    // Gaming mode
-    document.getElementById('enable-gaming-btn')?.addEventListener('click', enableGamingMode);
-    document.getElementById('disable-gaming-btn')?.addEventListener('click', disableGamingMode);
-    
-    // Processes
-    document.getElementById('refresh-processes-btn')?.addEventListener('click', loadProcesses);
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = btn.dataset.filter;
-            renderProcesses();
-        });
-    });
-    
-    // Recovery
-    document.getElementById('restore-all-btn')?.addEventListener('click', restoreAll);
-    
-    // Updates
-    document.getElementById('check-updates-btn')?.addEventListener('click', checkUpdates);
-    
-    // Logout
-    document.getElementById('logout-btn')?.addEventListener('click', logout);
-    
-    // Check existing session
-    checkExistingSession();
-});
-</script>
+        <!-- HISTORY -->
+        <section id="panel-history" class="panel hidden">
+          <header class="panel-header">
+            <div>
+              <h1 class="panel-title">Histórico de Operações</h1>
+              <p class="panel-subtitle">Todas as execuções realizadas</p>
+            </div>
+            <div class="panel-actions">
+              <button id="btn-clear-history" class="btn-danger">Limpar Histórico</button>
+            </div>
+          </header>
+          <div class="history-list" id="history-list"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Notifications panel -->
+  <div id="notifications-panel" class="notifications-panel hidden"></div>
+
+  <script src="renderer.js"></script>
 </body>
 </html>
