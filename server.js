@@ -403,11 +403,16 @@ app.get('/health', async (req, res) => {
   // Touches the database on purpose: with Neon's scale-to-zero, a periodic
   // health ping (e.g. a cron keepalive) keeps the compute warm, and the db
   // flag lets us see connection health without failing Render's check.
+  // Orçamento curto (3s): o health check interno do Render tem timeout por
+  // tentativa — esperar o Neon acordar (até 20s) aqui já derrubou deploys
+  // com "Timed out waiting for internal health check".
   let db = false;
   try {
     const { getPool } = require('./src/db');
-    await getPool().query('SELECT 1');
-    db = true;
+    await Promise.race([
+      getPool().query('SELECT 1').then(() => { db = true; }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('health-db-slow')), 3000)),
+    ]);
   } catch (err) {
     /* temporary — Neon may be waking up; still report ok to keep the check green */
   }

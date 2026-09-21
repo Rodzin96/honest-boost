@@ -15,8 +15,10 @@ services:
         value: production
       - key: PUBLIC_BASE_URL
         value: https://honest-boost.onrender.com
-      - key: PORT
-        value: 3000
+      # NUNCA fixar PORT aqui: o Render injeta a porta automaticamente e o
+      # health check interno mira nela. Com PORT=3000 fixo o deploy morria com
+      # "Timed out waiting for internal health check ... :3000/health".
+      # O server.js já usa process.env.PORT com fallback 3000 para dev local.
       - key: DATABASE_URL
         sync: false
       - key: SESSION_SECRET
