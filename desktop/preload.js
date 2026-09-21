@@ -11,6 +11,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 const hbDesktop = {
   // ===== App =====
   getInfo: () => ipcRenderer.invoke('app:info'),
+  isAdmin: () => ipcRenderer.invoke('app:is-admin'),
+  restartAsAdmin: () => ipcRenderer.invoke('app:restart-admin'),
+  openPlans: () => ipcRenderer.invoke('app:open-plans'),
   checkForUpdates: () => ipcRenderer.invoke('app:check-updates'),
   authenticateWithKey: (key) => ipcRenderer.invoke('app:auth', key),
   logout: () => ipcRenderer.invoke('app:logout'),
@@ -57,7 +60,14 @@ const hbDesktop = {
   restoreBackup: () => ipcRenderer.invoke('recovery:restore-backup'),
 
   // ===== Jogos =====
-  scanGames: () => ipcRenderer.invoke('games:scan')
+  scanGames: () => ipcRenderer.invoke('games:scan'),
+
+  // ===== Loja de Apps (instalação real via winget) =====
+  installApp: (key) => ipcRenderer.invoke('apps:install', key),
+  uninstallApp: (key) => ipcRenderer.invoke('apps:uninstall', key),
+  upgradeApp: (key) => ipcRenderer.invoke('apps:upgrade', key),
+  getAppsStatus: () => ipcRenderer.invoke('apps:status'),
+  openAppPage: (key) => ipcRenderer.invoke('apps:open-page', key)
 };
 
 contextBridge.exposeInMainWorld('hbDesktop', hbDesktop);

@@ -43,18 +43,13 @@ function cpuUsage() {
   return Math.min(100, Math.max(0, usage));
 }
 
-// Carga média do sistema (1/5/15 min)
+// Carga média do sistema — via cache da coleta lenta.
+// (A versão anterior chamava cimCsv, que é async, de forma sync: o .split
+// estourava, caía no catch e ainda gerava um powershell inútil por chamada.)
 function loadAverage() {
-  if (IS_WIN) {
-    try {
-      const out = cimCsv('Win32_OperatingSystem', 'LoadPercentage');
-      const lines = out.split(/\r?\n/).filter(l => l.trim());
-      if (lines.length < 2) return null;
-      const m = lines[1].match(/LoadPercentage="?([^",]+)"?$/);
-      return m ? parseInt(m[1], 10) : null;
-    } catch { return null; }
-  }
-  return os.loadavg ? os.loadavg()[0] : null;
+  if (_slow.load !== null && _slow.load !== undefined) return _slow.load;
+  if (!IS_WIN && os.loadavg) return os.loadavg()[0];
+  return null;
 }
 
 // ============================================================
@@ -120,112 +115,37 @@ function diskIO() {
 let _netPrev = null;
 
 function networkIO() {
-  if (!_netPrev) {
-    const ifs = Object.values(os.networkInterfaces());
-    let rx = 0, tx = 0;
-    for (const iface of ifs) {
-      for (const addr of iface) {
-        rx += addr ? (addr.receiveBytes || 0) : 0;
-        tx += addr ? (addr.transmitBytes || 0) : 0;
-      }
-    }
-    _netPrev = { rx, tx, ts: Date.now() };
-    return { rxMBps: 0, txMBps: 0 };
-  }
-
-  const ifs = Object.values(os.networkInterfaces());
-  let rx = 0, tx = 0;
-  for (const iface of ifs) {
-    for (const addr of iface) {
-      rx += addr ? (addr.receiveBytes || 0) : 0;
-      tx += addr ? (addr.transmitBytes || 0) : 0;
-    }
-  }
-
-  const now = Date.now();
-  const dt = (now - _netPrev.ts) / 1000 || 1;
-  const rxMBps = (rx - _netPrev.rx) / 1_048_576 / dt;
-  const txMBps = (tx - _netPrev.tx) / 1_048_576 / dt;
-  _netPrev = { rx, tx, ts: now };
-  return {
-    rxMBps: Math.max(0, rxMBps),
-    txMBps: Math.max(0, txMBps),
-  };
+  // Via cache da coleta lenta (PDH/adaptador).
+  // (A versão anterior lia receiveBytes de os.networkInterfaces, campo que não
+  // existe no Node → sempre 0,0.)
+  if (!IS_WIN) return { rxMBps: 0, txMBps: 0 };
+  _kickSlow();
+  return { rxMBps: _slow.net.rxMBps, txMBps: _slow.net.txMBps };
 }
 
 // ============================================================
-// GPU (via CIM — NVIDIA/AMD/Intel)
+// GPU / temperatura / espaço — via cache da coleta lenta em background.
+// (As versões anteriores chamavam cimCsv, que é async, de forma sync: sempre
+// caíam no catch → GPU 'Desconhecida', disco [] ("não detectado") — além de
+// gerar powershells inúteis a cada chamada. O cache resolve os dois.)
 function gpuStats() {
   if (!IS_WIN) return { name: 'Desconhecida', vram: 0, usage: 0, temperature: null, memoryUsed: 0 };
-
-  try {
-    const out = cimCsv('Win32_VideoController', 'Name,DriverVersion,AdapterRAM');
-    const lines = out.split(/\r?\n/).filter(l => l.trim());
-    const nameM = lines[1]?.match(/Name="?([^",]+)"?$/);
-    const vramM = lines[1]?.match(/AdapterRAM="?([0-9,]+)"?$/);
-    const rawVRAM = vramM ? parseInt(vramM[1].replace(/,/g, ''), 10) : 0;
-    const name = nameM ? nameM[1].trim() : 'Desconhecida';
-    return { name, vram: rawVRAM, usage: 0, temperature: null, memoryUsed: 0 };
-  } catch {
-    return { name: 'Desconhecida', vram: 0, usage: 0, temperature: null, memoryUsed: 0 };
-  }
+  _kickSlow();
+  return { ..._slow.gpu };
 }
 
-// Temperatura das GPUs (via CIM MSAcpi_ThermalZoneTemperature)
 function gpuTemperature() {
   if (!IS_WIN) return null;
-  try {
-    const out = cimCsv('MSAcpi_ThermalZoneTemperature', 'CurrentTemperature');
-    const lines = out.split(/\r?\n/).filter(l => l.trim());
-    if (lines.length < 2) return null;
-    const m = lines[1].match(/CurrentTemperature="?([0-9]+)"?$/);
-    const kelvin = m ? parseInt(m[1], 10) : 0;
-    const celsius = (kelvin / 10) - 273;
-    return Math.max(0, Math.round(celsius));
-  } catch {
-    return null;
-  }
+  _kickSlow();
+  return _slow.gpuTemp;
 }
 
-// ============================================================
-// Espaço em disco (por unidade)
 function diskSpace() {
   if (!IS_WIN) {
     return [{ name: 'disk', total: os.totalmem(), free: os.freemem(), type: 'N/A' }];
   }
-  try {
-    const out = cimCsv('Win32_LogicalDisk', 'DeviceID,Size,FreeSpace,VolumeName', { filter: 'DriveType=3' });
-    const lines = out.split(/\r?\n/).filter(l => l.trim());
-    const drives = [];
-    if (lines.length < 2) return drives;
-    const header = lines[0].split(',');
-    const get = (line) => {
-      const parts = line.split(',');
-      return {
-        DeviceID: parts[0]?.replace(/^"|"$/g, '').trim() || '',
-        Size: parts[1]?.replace(/^"|"$/g, '').trim() || '0',
-        FreeSpace: parts[2]?.replace(/^"|"$/g, '').trim() || '0',
-        VolumeName: parts[3]?.replace(/^"|"$/g, '').trim() || '',
-      };
-    };
-    for (let i = 1; i < lines.length; i++) {
-      const d = get(lines[i]);
-      const total = parseInt(d.Size.replace(/,/g, ''), 10) || 0;
-      const free = parseInt(d.FreeSpace.replace(/,/g, ''), 10) || 0;
-      if (total > 0) {
-        drives.push({
-          device: d.DeviceID,
-          size: total,
-          free,
-          label: d.VolumeName,
-          type: 'SSD',
-        });
-      }
-    }
-    return drives;
-  } catch {
-    return [];
-  }
+  _kickSlow();
+  return _slow.space.slice();
 }
 
 // ============================================================
@@ -281,25 +201,296 @@ function windowsStatus() {
 }
 
 // ============================================================
+// Camada LENTA assíncrona — coleta pesada SEM bloquear o event loop
+// ------------------------------------------------------------
+// Diagnóstico: systemSnapshot() rodava a cada 1.5s no IPC e cada chamada
+// disparava ~7 processos filhos (typeperf sync ~1s, tasklist, reg×2, sc,
+// + 4× powershell via CIM), a maioria SYNC (execSync trava o main process
+// e congela cliques/IPC/janela). Resultado: navegação engasgada.
+// Correção: snapshot rápido (só syscalls baratas, <5ms) + coleta lenta em
+// background assíncrona (execFile, paralela) a cada 6s com cache.
+// O contrato do snapshot (chaves/formatos) permanece idêntico.
+// ============================================================
+const _POWERSHELL = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+
+function _runAsync(exe, args, timeout = 12000) {
+  return new Promise((resolve) => {
+    execFile(exe, args, { windowsHide: true, timeout, maxBuffer: 4 * 1024 * 1024 }, (err, stdout) => {
+      resolve(err ? '' : String(stdout || ''));
+    });
+  });
+}
+function _psAsync(script, timeout = 15000) {
+  return _runAsync(_POWERSHELL, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', script], timeout);
+}
+function _cimScript(className, properties, filter) {
+  const propList = Array.isArray(properties) ? properties.join(',') : String(properties);
+  let s = `Get-CimInstance ${className}`;
+  if (filter) s += ` -Filter "${String(filter).replace(/"/g, "'")}"`;
+  return `${s} | Select-Object @{n='Node';e={$env:COMPUTERNAME}},${propList} | ConvertTo-Csv -NoTypeInformation`;
+}
+// CSV com respeito a aspas (valores CIM podem conter vírgulas, ex: "C:, volume").
+// Retorna { header: string[], rows: string[][] } com cabeçalho normalizado.
+function _csvParse(text) {
+  const rows = [];
+  for (const line of String(text).split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+        else cur += ch;
+      } else if (ch === '"') inQ = true;
+      else if (ch === ',') { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  }
+  if (!rows.length) return { header: [], rows: [] };
+  return { header: rows[0].map(h => h.replace(/^"|"$/g, '').trim()), rows: rows.slice(1) };
+}
+function _col(parsed, row, name) {
+  const i = parsed.header.indexOf(name);
+  return i >= 0 ? (row[i] ?? '').replace(/^"|"$/g, '').trim() : '';
+}
+// typeperf com múltiplos contadores retorna 1 linha de cabeçalho + 1 de dados,
+// com N colunas citadas ("..." , "..."). O parse antigo filtrava linhas por nome
+// e lia a 1ª coluna citada — que no cabeçalho é o caminho do contador (NaN → 0).
+// Aqui o parse é por índice do cabeçalho: correto para disco, rede e GPU.
+function _pdhFields(line) {
+  const cols = [];
+  const re = /"([^"]*)"/g;
+  let m;
+  while ((m = re.exec(line)) !== null) cols.push(m[1]);
+  return cols;
+}
+function _parseTypeperf(out) {
+  const res = { diskRead: 0, diskWrite: 0, netRx: 0, netTx: 0, gpuSum: 0, hasDisk: false, hasNet: false, hasGpu: false };
+  try {
+    const lines = String(out).split(/\r?\n/).filter((l) => l.trim());
+    if (!lines.length) return res;
+    const hdr = _pdhFields(lines[0]);
+    if (hdr.length < 2) return res;
+    let data = null;
+    for (let i = lines.length - 1; i >= 1; i--) {
+      const cols = _pdhFields(lines[i]);
+      if (cols.length === hdr.length) { data = cols; break; }
+    }
+    if (!data) return res;
+    const num = (s) => { const v = parseFloat(s); return isNaN(v) ? 0 : v; };
+    for (let i = 1; i < hdr.length; i++) {
+      const h = hdr[i];
+      const v = num(data[i]);
+      if (h.includes('Disk Read Bytes/sec')) { res.diskRead = v; res.hasDisk = true; }
+      else if (h.includes('Disk Write Bytes/sec')) { res.diskWrite = v; res.hasDisk = true; }
+      else if (h.includes('Bytes Received/sec')) {
+        if (!/loopback|isatap|teredo|pseudo/i.test(h)) { res.netRx += v; res.hasNet = true; }
+      }
+      else if (h.includes('Bytes Sent/sec')) {
+        if (!/loopback|isatap|teredo|pseudo/i.test(h)) { res.netTx += v; res.hasNet = true; }
+      }
+      else if (h.includes('Utilization Percentage')) { res.gpuSum += v; res.hasGpu = true; }
+    }
+  } catch {}
+  return res;
+}
+
+// Cache da coleta lenta (valores iniciais = mesmos fallbacks das funções sync)
+const _slow = {
+  load: null,
+  diskIO: { readMBps: 0, writeMBps: 0 },
+  space: [],
+  net: { rxMBps: 0, txMBps: 0, _rx: 0, _tx: 0, _ts: 0 },
+  gpu: { name: 'Desconhecida', vram: 0, usage: 0, usageOk: false, temperature: null, memoryUsed: 0 },
+  gpuTemp: null,
+  processes: { count: 0 },
+  startup: [],
+  windows: { state: 'desconhecido', 보안: 'N/A' },
+};
+let _slowInFlight = false;
+let _slowLastOk = 0;
+
+async function _refreshSlow() {
+  if (_slowInFlight || !IS_WIN) return;
+  _slowInFlight = true;
+  try {
+    const [tasklist, regHKCU, regHKLM, scOut, typeperf, smi, cimOS, cimGPU, cimTemp, cimDisk, netStats] = await Promise.all([
+      _runAsync(path.join(SYS_ROOT, 'System32', 'tasklist.exe'), ['/FO', 'CSV', '/NH']),
+      _runAsync(path.join(SYS_ROOT, 'System32', 'reg.exe'), ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run', '/S', '/FO', 'LIST']),
+      _runAsync(path.join(SYS_ROOT, 'System32', 'reg.exe'), ['query', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run', '/S', '/FO', 'LIST']),
+      _runAsync(path.join(SYS_ROOT, 'System32', 'sc.exe'), ['query', 'WinDefend']),
+      _runAsync(path.join(SYS_ROOT, 'System32', 'typeperf.exe'), ['-sc', '1', '\\PhysicalDisk(_Total)\\Disk Read Bytes/sec', '\\PhysicalDisk(_Total)\\Disk Write Bytes/sec', '\\Network Interface(*)\\Bytes Received/sec', '\\Network Interface(*)\\Bytes Sent/sec', '\\GPU Engine(*)\\Utilization Percentage'], 20000),
+      _runAsync('nvidia-smi', ['--query-gpu=temperature.gpu,utilization.gpu', '--format=csv,noheader,nounits'], 8000),
+      _psAsync(_cimScript('Win32_OperatingSystem', 'LoadPercentage')),
+      _psAsync(_cimScript('Win32_VideoController', 'Name,DriverVersion,AdapterRAM')),
+      _psAsync(_cimScript('MSAcpi_ThermalZoneTemperature', 'CurrentTemperature')),
+      _psAsync(_cimScript('Win32_LogicalDisk', 'DeviceID,Size,FreeSpace,VolumeName', 'DriveType=3')),
+      _psAsync(`Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Get-NetAdapterStatistics -ErrorAction SilentlyContinue | Select-Object ReceivedBytes,SentBytes | ConvertTo-Csv -NoTypeInformation`),
+    ]);
+
+    // Processos
+    const procLines = tasklist.trim().split('\n').filter(Boolean);
+    if (procLines.length) _slow.processes = { count: procLines.length };
+
+    // Startup (mesmo parsing da versão sync)
+    try {
+      const seen = new Set();
+      const items = [];
+      for (const out of [regHKCU, regHKLM]) {
+        for (const l of String(out).split('\n')) {
+          const m = l.match(/^REG_SZ\s+(.+)/i);
+          if (m && !seen.has(m[1])) { seen.add(m[1]); items.push(m[1]); }
+        }
+      }
+      // Fallback: formato LIST "nome    REG_SZ    dado"
+      if (!items.length) {
+        for (const out of [regHKCU, regHKLM]) {
+          for (const l of String(out).split('\n')) {
+            const m = l.match(/^\s{2,}\S.*REG_SZ\s+(.+)\s*$/);
+            if (m && !seen.has(m[1].trim())) { seen.add(m[1].trim()); items.push(m[1].trim()); }
+          }
+        }
+      }
+      if (items.length) _slow.startup = items.slice(0, 20);
+    } catch {}
+
+    // Defender
+    if (scOut) _slow.windows = { state: scOut.includes('RUNNING') ? 'ativo' : 'parado', 보안: scOut.includes('RUNNING') ? 'Ativado' : 'Desativado' };
+
+    // Disco / rede / uso GPU via PDH (typeperf já retorna taxas por segundo).
+    // nvidia-smi (quando existe) é mais preciso para temp e uso da GPU.
+    const pdh = _parseTypeperf(typeperf);
+    if (pdh.hasDisk) {
+      _slow.diskIO = { readMBps: Math.max(0, pdh.diskRead / 1048576), writeMBps: Math.max(0, pdh.diskWrite / 1048576) };
+    }
+    let smiTemp = null, smiUtil = null;
+    try {
+      const parts = String(smi).split('\n')[0].replace(/"/g, '').split(',');
+      const t = parseFloat(parts[0]), u = parseFloat(parts[1]);
+      if (!isNaN(t) && t > 0 && t < 120) smiTemp = Math.round(t);
+      if (!isNaN(u) && u >= 0 && u <= 100) smiUtil = u;
+    } catch {}
+    if (smiTemp !== null) _slow.gpuTemp = smiTemp;
+    _slow.gpu.usage = smiUtil !== null ? smiUtil : Math.max(0, Math.min(100, pdh.gpuSum));
+    _slow.gpu.usageOk = smiUtil !== null || pdh.hasGpu;
+    if (pdh.hasNet) {
+      _slow.net.rxMBps = Math.max(0, pdh.netRx / 1048576);
+      _slow.net.txMBps = Math.max(0, pdh.netTx / 1048576);
+    }
+
+    // CPU load (CIM, async de verdade — busca por nome da coluna,
+    // pois a 1ª coluna é "Node" e o nome da GPU pode conter vírgulas)
+    try {
+      const p = _csvParse(cimOS);
+      if (p.rows.length) {
+        const v = parseInt(_col(p, p.rows[0], 'LoadPercentage'), 10);
+        if (!isNaN(v)) _slow.load = v;
+      }
+    } catch {}
+
+    // GPU (preserva uso/usageOk medidos acima)
+    try {
+      const p = _csvParse(cimGPU);
+      if (p.rows.length) {
+        const name = _col(p, p.rows[0], 'Name');
+        const rawVRAM = parseInt(_col(p, p.rows[0], 'AdapterRAM').replace(/,/g, ''), 10) || 0;
+        if (name) _slow.gpu = { name, vram: rawVRAM, usage: _slow.gpu.usage, usageOk: _slow.gpu.usageOk, temperature: null, memoryUsed: 0 };
+      }
+    } catch {}
+    // Temperatura: nvidia-smi já aplicada acima quando existe; CIM é fallback
+    // (MSAcpi_ThermalZoneTemperature nem sempre existe / nem sempre é a GPU)
+    if (smiTemp === null) {
+      try {
+        const p = _csvParse(cimTemp);
+        if (p.rows.length) {
+          const k = parseInt(_col(p, p.rows[0], 'CurrentTemperature'), 10);
+          if (!isNaN(k) && k > 0) _slow.gpuTemp = Math.max(0, Math.round((k / 10) - 273));
+        }
+      } catch {}
+    }
+
+    // Espaço em disco (colunas por nome: Node vem primeiro!)
+    try {
+      const p = _csvParse(cimDisk);
+      const drives = [];
+      for (const row of p.rows) {
+        const device = _col(p, row, 'DeviceID');
+        const total = parseInt(_col(p, row, 'Size').replace(/,/g, ''), 10) || 0;
+        const free = parseInt(_col(p, row, 'FreeSpace').replace(/,/g, ''), 10) || 0;
+        if (device && total > 0) {
+          drives.push({ device, size: total, free, label: _col(p, row, 'VolumeName'), type: 'SSD' });
+        }
+      }
+      if (drives.length) _slow.space = drives;
+    } catch {}
+
+    // Rede: typeperf (PDH) é a fonte primária; estatísticas do adaptador
+    // (cumulativas) são fallback quando o PDH não retorna interfaces.
+    // (A versão sync antiga lia receiveBytes de os.networkInterfaces, que não
+    // existe no Node → sempre 0.)
+    if (!pdh.hasNet) {
+      try {
+        let rx = 0, tx = 0;
+        for (const l of String(netStats).split('\n').slice(1)) {
+          const m = l.replace(/"/g, '').split(',');
+          if (m.length >= 2) { rx += parseInt(m[0], 10) || 0; tx += parseInt(m[1], 10) || 0; }
+        }
+        const now = Date.now();
+        if (_slow.net._ts && (rx || tx)) {
+          const dt = (now - _slow.net._ts) / 1000 || 1;
+          if (dt > 1 && rx >= _slow.net._rx && tx >= _slow.net._tx) {
+            _slow.net.rxMBps = Math.max(0, (rx - _slow.net._rx) / 1048576 / dt);
+            _slow.net.txMBps = Math.max(0, (tx - _slow.net._tx) / 1048576 / dt);
+          }
+        }
+        if (rx || tx) { _slow.net._rx = rx; _slow.net._tx = tx; _slow.net._ts = now; }
+      } catch {}
+    }
+
+    _slowLastOk = Date.now();
+  } finally {
+    _slowInFlight = false;
+  }
+}
+
+const SLOW_INTERVAL_MS = 6000;
+let _slowTimer = null;
+function _kickSlow() {
+  if (!IS_WIN) return;
+  const stale = Date.now() - _slowLastOk > SLOW_INTERVAL_MS;
+  if (stale && !_slowInFlight) _refreshSlow();
+  if (!_slowTimer) _slowTimer = setInterval(() => { if (!_slowInFlight) _refreshSlow(); }, SLOW_INTERVAL_MS);
+}
+// Aquece o cache no boot (fire-and-forget, sem bloquear)
+setImmediate(_kickSlow);
+
+// ============================================================
 // Snapshot completo (para dashboard)
+// FAST: só syscalls baratas (<5ms, zero spawn) — roda a cada 1.5s no IPC.
+// SLOW: vem do cache atualizado em background a cada 6s.
 // ============================================================
 function systemSnapshot() {
+  _kickSlow();
+  const cpus = os.cpus();
   return {
     timestamp: Date.now(),
     cpu: {
       usage: cpuUsage(),
-      load: loadAverage(),
-      cores: os.cpus().length,
-      model: os.cpus()[0]?.model || 'N/A',
+      load: _slow.load,
+      cores: cpus.length,
+      model: cpus[0]?.model || 'N/A',
     },
     ram: ramStats(),
     disk: {
-      io: diskIO(),
-      space: diskSpace(),
+      io: { readMBps: _slow.diskIO.readMBps, writeMBps: _slow.diskIO.writeMBps },
+      space: _slow.space,
     },
-    network: networkIO(),
-    gpu: gpuStats(),
-    gpuTemp: gpuTemperature(),
+    network: { rxMBps: _slow.net.rxMBps, txMBps: _slow.net.txMBps },
+    gpu: { ..._slow.gpu },
+    gpuTemp: _slow.gpuTemp,
     os: {
       platform: process.platform,
       arch: os.arch(),
@@ -308,9 +499,9 @@ function systemSnapshot() {
       type: os.type(),
       release: os.release(),
     },
-    processes: processCount(),
-    startup: startupApps(),
-    windows: windowsStatus(),
+    processes: { ..._slow.processes },
+    startup: _slow.startup.slice(),
+    windows: { ..._slow.windows },
     freemem: os.freemem(),
     totalmem: os.totalmem(),
   };

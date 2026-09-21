@@ -165,7 +165,15 @@
     who.className = 'text-muted';
     who.style.fontSize = '0.85rem';
     who.textContent = info.user.nickname || info.user.username;
+    who.title = 'Logado como ' + (info.user.nickname || info.user.username);
     wrap.appendChild(who);
+
+    var profile = document.createElement('a');
+    profile.href = '/dashboard';
+    profile.className = 'btn btn-text';
+    profile.title = 'Meu perfil — gerenciar chaves e licenças';
+    profile.innerHTML = '<span class="material-symbols-rounded">person</span> Meu perfil';
+    wrap.appendChild(profile);
 
     var logout = document.createElement('button');
     logout.type = 'button';

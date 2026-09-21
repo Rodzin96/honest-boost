@@ -2,506 +2,318 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'; font-src 'self' https://fonts.gstatic.com;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://honest-boost.onrender.com" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Honest Boost — Otimizador Profissional de Windows</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="ambient" aria-hidden="true"><div class="ambient-orb orb-a"></div><div class="ambient-orb orb-b"></div><div class="ambient-orb orb-c"></div><div class="ambient-grid"></div></div>
   <div id="modal-root"></div>
-  <div id="toast" class="toast"></div>
-  <div id="progress-overlay" class="progress-overlay hidden">
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="tooltip" class="tooltip hidden" role="tooltip"></div>
+
+  <div id="progress-overlay" class="progress-overlay hidden" role="dialog" aria-modal="true" aria-label="Progresso da operação">
     <div class="progress-modal">
-      <div class="progress-header">
-        <h3 id="progress-title">Executando...</h3>
-        <button id="progress-close" class="progress-close">✕</button>
-      </div>
+      <div class="progress-header"><div class="progress-title-wrap"><span class="progress-pulse"></span><h3 id="progress-title">Executando...</h3></div><button id="progress-close" class="progress-close" aria-label="Fechar">✕</button></div>
       <div class="progress-body">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar" id="progress-bar"></div>
-        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div><div class="progress-shine"></div></div>
         <p id="progress-text" class="progress-text">Iniciando...</p>
         <p id="progress-detail" class="progress-detail"></p>
       </div>
     </div>
   </div>
 
-  <div class="app-shell" id="app-shell">
-    <!-- TOP BAR -->
+  <div class="app-shell sidebar-collapsed" id="app-shell">
     <header class="top-bar" id="top-bar">
       <div class="top-bar-left">
-        <button id="btn-toggle-sidebar" class="icon-btn" aria-label="Alternar sidebar" title="Menu">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-        <div class="logo">
-          <span class="logo-bolt">⚡</span>
-          <span class="logo-text">Honest Boost</span>
-        </div>
+        <button id="btn-toggle-sidebar" class="icon-btn" aria-label="Alternar sidebar" title="Expandir / recolher menu" data-tip="Menu (Ctrl+B)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+        <div class="logo" title="Honest Boost"><span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" fill="#F59E0B" stroke="#FBBF24" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="logo-text">Honest <em>Boost</em></span><span class="logo-badge">PRO</span></div>
       </div>
-
       <div class="top-bar-center">
         <div class="search-wrap">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="global-search" class="search-input" placeholder="Pesquisar otimizações, configurações..." autocomplete="off">
-          <div id="search-results" class="search-results hidden"></div>
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.2" y2="16.2"/></svg>
+          <input type="text" id="global-search" class="search-input" placeholder="Pesquisar otimizações, apps, comandos…  ( Ctrl+K )" autocomplete="off" aria-label="Pesquisa inteligente">
+          <kbd class="search-kbd">Ctrl K</kbd>
+          <div id="search-results" class="search-results hidden" role="listbox"></div>
         </div>
       </div>
-
       <div class="top-bar-right">
-        <button id="btn-refresh" class="icon-btn" title="Atualizar dados" aria-label="Atualizar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-        </button>
-        <button id="btn-notifications" class="icon-btn notify-btn" title="Notificações" aria-label="Notificações">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          <span id="notify-badge" class="notify-badge hidden">0</span>
-        </button>
-        <div class="health-score-wrap">
-          <div class="health-score" id="health-score">
-            <span class="health-value" id="health-value">—</span>
-            <span class="health-label">Saúde</span>
-          </div>
+        <div class="sys-indicators" id="sys-indicators" role="status" aria-label="Indicadores em tempo real">
+          <div class="sys-indicator cpu" data-tip="Uso de CPU em tempo real" title="CPU"><span class="indicator-dot"></span><span class="indicator-ico">CPU</span><span id="indicator-cpu">0%</span></div>
+          <div class="sys-indicator ram" data-tip="Uso de memória RAM" title="RAM"><span class="indicator-dot"></span><span class="indicator-ico">RAM</span><span id="indicator-ram">0%</span></div>
+          <div class="sys-indicator gpu" data-tip="Uso de GPU" title="GPU"><span class="indicator-dot"></span><span class="indicator-ico">GPU</span><span id="indicator-gpu">0%</span></div>
+          <div class="sys-indicator net" data-tip="Throughput de rede (download)" title="Rede"><span class="indicator-dot"></span><span class="indicator-ico">NET</span><span id="indicator-net">0.0</span></div>
+          <div class="sys-indicator ssd" data-tip="Espaço livre em C:" title="SSD"><span class="indicator-dot"></span><span class="indicator-ico">SSD</span><span id="indicator-ssd">—</span></div>
+          <div class="sys-indicator temp" data-tip="Temperatura da GPU" title="Temperatura"><span class="indicator-dot"></span><span class="indicator-ico">TEMP</span><span id="indicator-temp">—</span></div>
         </div>
+        <div class="status-pill" id="system-status" data-tip="Status geral do sistema" title="Status do sistema"><span class="status-dot"></span><span id="system-status-text">Online</span></div>
+        <button id="btn-refresh" class="icon-btn glow" title="Atualizar dados do sistema" aria-label="Atualizar" data-tip="Atualizar dados (F5)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+        <button id="btn-notifications" class="icon-btn notify-btn" title="Notificações" aria-label="Notificações" data-tip="Notificações"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span id="notify-badge" class="notify-badge hidden">0</span></button>
+        <div class="health-score-wrap" data-tip="Pontuação de saúde do Windows" title="Saúde do sistema"><div class="health-score" id="health-score-top"><svg class="health-ring" width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="var(--border-subtle)" stroke-width="3"/><circle id="health-ring-top" cx="15" cy="15" r="12" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" transform="rotate(-90 15 15)"/></svg><div class="health-score-text"><span class="health-value" id="health-value-top">—</span><span class="health-label">Saúde</span></div></div></div>
         <div class="user-menu" id="user-menu">
-          <button id="btn-user-menu" class="user-btn" aria-label="Menu do usuário">
-            <div class="user-avatar" id="user-avatar">U</div>
-            <span class="user-name" id="user-name">Usuário</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-          </button>
-          <div id="user-dropdown" class="user-dropdown hidden">
-            <div class="user-info">
-              <div class="user-avatar-large" id="user-avatar-large">U</div>
-              <div>
-                <p class="user-name-large" id="user-name-large">Usuário</p>
-                <p class="user-plan" id="user-plan">Plano: Trial</p>
-              </div>
-            </div>
+          <button id="btn-user-menu" class="user-btn" aria-label="Menu do usuário" aria-haspopup="menu"><div class="user-avatar" id="user-avatar">?</div><span class="user-name" id="user-name">Sem licença</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div id="user-dropdown" class="user-dropdown hidden" role="menu">
+            <div class="user-info"><div class="user-avatar-large" id="user-avatar-large">?</div><div><p class="user-name-large" id="user-name-large">Sem licença</p><p class="user-plan" id="user-plan">Ative sua chave</p></div></div>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item" id="dd-profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Perfil</button>
-            <button class="dropdown-item" id="dd-settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 1 4.6 9a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82V9a1.65 1.65 0 0 1 1.51-1H9a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82V15a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 1 4.6 4.6a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82V3a1.65 1.65 0 0 1 1.51-1H9a1.65 1.65 0 0 1 1.82-.33l.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 1-.33 1.82"></svg> Configurações</button>
+            <button class="dropdown-item" id="dd-profile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Perfil</button>
+            <button class="dropdown-item" id="dd-settings"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Configurações</button>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item danger" id="dd-logout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Sair</button>
+            <button class="dropdown-item danger" id="dd-logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button>
           </div>
         </div>
       </div>
     </header>
 
-    <div style="display:contents;">
-      <!-- Quick Actions Sidebar -->
-      <aside class="quick-actions" id="quick-actions">
-        <div class="quick-actions-header">
-          <h3>Ações Rápidas</h3>
-          <button id="btn-close-quick" class="icon-btn" aria-label="Fechar ações rápidas">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-        <div class="quick-actions-grid" id="quick-actions-grid">
-          <button class="quick-action" data-action="quick-clean">
-            <span class="quick-action-icon">🧹</span>
-            <span class="quick-action-label">Limpeza Rápida</span>
-          </button>
-          <button class="quick-action" data-action="quick-game-boost">
-            <span class="quick-action-icon">🎮</span>
-            <span class="quick-action-label">Boost para Jogos</span>
-          </button>
-          <button class="quick-action" data-action="quick-fix-windows">
-            <span class="quick-action-icon">🔧</span>
-            <span class="quick-action-label">Corrigir Windows</span>
-          </button>
-          <button class="quick-action" data-action="quick-free-ram">
-            <span class="quick-action-icon">🧠</span>
-            <span class="quick-action-label">Liberar RAM</span>
-          </button>
-          <button class="quick-action" data-action="quick-flush-dns">
-            <span class="quick-action-icon">🌐</span>
-            <span class="quick-action-label">Flush DNS</span>
-          </button>
-          <button class="quick-action" data-action="quick-restart-explorer">
-            <span class="quick-action-icon">🖥️</span>
-            <span class="quick-action-label">Reiniciar Explorer</span>
-          </button>
-        </div>
-      </aside>
-
-      <!-- Sidebar -->
-      <aside class="sidebar" id="sidebar">
+    <div class="shell-body">
+      <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
         <nav class="sidebar-nav" id="sidebar-nav"></nav>
         <div class="sidebar-footer">
-          <div class="sidebar-version">v2.0.0</div>
+          <div class="sidebar-card">
+            <div class="sidebar-card-glow"></div>
+            <p class="sidebar-card-title">Performance +<span id="sidebar-fps">—</span></p>
+            <p class="sidebar-card-sub">Boost estimado de FPS</p>
+            <button class="btn btn-primary btn-sm sidebar-boost" id="btn-sidebar-boost"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Boost</button>
+          </div>
+          <div class="sidebar-meta"><span class="sidebar-version">v2.0.0 • PRO</span><span class="update-dot" id="update-dot" title="Atualização automática ativa"></span></div>
         </div>
       </aside>
 
-      <!-- Main Content -->
-      <main class="main-content" id="main-content">
+      <aside class="quick-actions hidden" id="quick-actions" aria-label="Ações rápidas">
+        <div class="quick-actions-header"><h3>Ações Rápidas</h3><button id="btn-close-quick" class="icon-btn icon-btn-sm" aria-label="Fechar ações rápidas"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <div class="quick-actions-grid" id="quick-actions-grid">
+          <button class="quick-action" data-action="quick-clean"><span class="quick-action-icon">🧹</span><span class="quick-action-label">Limpeza Rápida</span></button>
+          <button class="quick-action" data-action="quick-game-boost"><span class="quick-action-icon">🎮</span><span class="quick-action-label">Boost para Jogos</span></button>
+          <button class="quick-action" data-action="quick-fix-windows"><span class="quick-action-icon">🔧</span><span class="quick-action-label">Corrigir Windows</span></button>
+          <button class="quick-action" data-action="quick-free-ram"><span class="quick-action-icon">🧠</span><span class="quick-action-label">Liberar RAM</span></button>
+          <button class="quick-action" data-action="quick-flush-dns"><span class="quick-action-icon">🌐</span><span class="quick-action-label">Flush DNS</span></button>
+          <button class="quick-action" data-action="quick-restart-explorer"><span class="quick-action-icon">🖥️</span><span class="quick-action-label">Reiniciar Explorer</span></button>
+        </div>
+      </aside>
 
-        <!-- DASHBOARD -->
+      <main class="main-content" id="main-content">
+        <!-- ================= DASHBOARD ================= -->
         <section id="panel-dashboard" class="panel active">
           <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Painel</h1>
-              <p class="panel-subtitle">Visão geral do sistema em tempo real</p>
-            </div>
+            <div class="panel-title-wrap"><p class="eyebrow"><span class="live-dot"></span> Centro de controle • tempo real</p><h1 class="panel-title">Painel de Controle</h1><p class="panel-subtitle">Visão geral do sistema, saúde e ações inteligentes</p></div>
             <div class="panel-actions">
-              <select id="preset-select" class="preset-select" aria-label="Preset de otimização">
-                <option value="custom">⚙️ Personalizado</option>
-                <option value="max-performance">🚀 Performance Máxima</option>
-                <option value="balanced">⚖️ Equilibrado</option>
-                <option value="streaming">📺 Streaming</option>
-                <option value="competitive">🏆 Jogos Competitivos</option>
-                <option value="laptop">💻 Notebook</option>
-              </select>
-              <button id="btn-optimize-now" class="btn-primary btn-lg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                <span>Otimizar Agora</span>
-              </button>
+              <div class="select-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><select id="preset-select" class="preset-select" aria-label="Preset de otimização"><option value="custom">⚙️ Personalizado</option><option value="max-performance">🚀 Performance Máxima</option><option value="balanced">⚖️ Equilibrado</option><option value="streaming">📺 Streaming</option><option value="competitive">🏆 Jogos Competitivos</option><option value="laptop">💻 Notebook</option></select></div>
+              <button id="btn-optimize-now" class="btn btn-primary btn-lg btn-glow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Otimizar Agora</span><span class="btn-shine"></span></button>
             </div>
           </header>
 
-          <div class="health-banner" id="health-banner">
-            <div class="health-circle" id="health-circle" style="--card-accent:var(--accent-primary);">
-              <span class="health-number" id="health-number">—</span>
-              <span class="health-suffix">/100</span>
+          <div class="health-banner card" id="health-banner">
+            <div class="health-ring-wrap"><svg class="health-big-ring" width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/><circle id="health-ring-main" cx="52" cy="52" r="44" fill="none" stroke="url(#hg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="276.5" stroke-dashoffset="276.5" transform="rotate(-90 52 52)"/><defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#22C55E"/></linearGradient></defs></svg><div class="health-circle" id="health-circle"><span class="health-number" id="health-number">—</span><span class="health-suffix">/100</span></div></div>
+            <div class="health-details"><div class="health-top-row"><h3 id="health-title">Análise de Saúde do Sistema</h3><span class="pill" id="health-pill">Aguardando varredura</span></div><p id="health-desc">Execute uma varredura para ver a pontuação de saúde do seu Windows.</p><div class="health-checks" id="health-checks"></div></div>
+            <div class="health-cta"><button id="btn-run-health-scan" class="btn btn-primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.2" y2="16.2"/></svg><span>Executar Varredura</span></button><p class="health-hint">Varredura local • ~5s • sem envio de dados</p></div>
+          </div>
+
+          <div class="section-head"><h2>Ações rápidas</h2><button class="link-btn" id="btn-all-quick">Ver todas →</button></div>
+          <div class="qa-grid" id="qa-grid">
+            <button class="qa-card" data-action="quick-boost" data-tip="Aplica o preset recomendado instantly"><span class="qa-ico blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="qa-label">Boost</span><span class="qa-sub">1 clique</span></button>
+            <button class="qa-card" data-action="quick-clean" data-tip="Limpa temporários e cache"><span class="qa-ico green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span><span class="qa-label">Limpeza</span><span class="qa-sub">~2 GB</span></button>
+            <button class="qa-card" data-action="quick-flush-dns" data-tip="Limpa cache DNS e renova rede"><span class="qa-ico cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z"/></svg></span><span class="qa-label">DNS</span><span class="qa-sub">Rede</span></button>
+            <button class="qa-card" data-action="quick-game-boost" data-tip="Modo competitivo: latência mínima"><span class="qa-ico violet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><line x1="15" y1="12" x2="15.01" y2="12"/><line x1="18" y1="10" x2="18.01" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59l-.7 5.6a2 2 0 0 0 3.47 1.7L7 14.5h10l1.53 1.39a2 2 0 0 0 3.47-1.7l-.7-5.6A4 4 0 0 0 17.32 5z"/></svg></span><span class="qa-label">Game Mode</span><span class="qa-sub">FPS+</span></button>
+            <button class="qa-card" data-action="goto-apps" data-tip="Abrir loja de apps"><span class="qa-ico amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="qa-label">Apps</span><span class="qa-sub">Loja</span></button>
+            <button class="qa-card" data-action="goto-security" data-tip="Ver status do Defender"><span class="qa-ico red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/></svg></span><span class="qa-label">Defender</span><span class="qa-sub" id="qa-defender-sub">Ativo</span></button>
+            <button class="qa-card" data-action="quick-benchmark" data-tip="Benchmark rápido de CPU/RAM/Disco"><span class="qa-ico blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span class="qa-label">Benchmark</span><span class="qa-sub" id="qa-bench-sub">Score —</span></button>
+            <button class="qa-card" data-action="goto-restore" data-tip="Criar ponto de restauração"><span class="qa-ico green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><polyline points="3 3 3 8 8 8"/></svg></span><span class="qa-label">Restaurar</span><span class="qa-sub">Backup</span></button>
+          </div>
+
+          <div class="section-head"><h2>Performance em tempo real</h2><div class="stats-legend" id="stats-legend"><div class="stats-legend-item"><div class="stats-legend-dot" style="background:var(--accent-primary);"></div>CPU</div><div class="stats-legend-item"><div class="stats-legend-dot" style="background:var(--cyan);"></div>RAM</div><div class="stats-legend-item"><div class="stats-legend-dot" style="background:var(--green);"></div>Disco</div></div></div>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-card card" data-type="cpu"><div class="stat-top"><div class="stat-card-icon blue">🖥️</div><span class="stat-trend" id="stat-cpu-trend">—</span></div><div class="stat-card-label">Uso da CPU</div><div class="stat-card-value"><span id="stat-cpu-val">0.0</span><span class="stat-card-unit">%</span></div><div class="stat-card-sub" id="stat-cpu-sub">Aguardando dados...</div><div class="stat-card-bar"><div class="stat-card-bar-fill" id="stat-cpu-bar" style="width:0%;background:var(--accent-primary);"></div></div></div>
+            <div class="stat-card card" data-type="gpu"><div class="stat-top"><div class="stat-card-icon violet">🎮</div><span class="stat-trend" id="stat-gpu-trend">—</span></div><div class="stat-card-label">Uso da GPU</div><div class="stat-card-value"><span id="stat-gpu-val">0.0</span><span class="stat-card-unit">%</span></div><div class="stat-card-sub" id="stat-gpu-sub">Aguardando dados...</div><div class="stat-card-bar"><div class="stat-card-bar-fill" id="stat-gpu-bar" style="width:0%;background:var(--purple);"></div></div></div>
+            <div class="stat-card card" data-type="ram"><div class="stat-top"><div class="stat-card-icon cyan">🧠</div><span class="stat-trend" id="stat-ram-trend">—</span></div><div class="stat-card-label">Uso da RAM</div><div class="stat-card-value"><span id="stat-ram-val">0.0</span><span class="stat-card-unit">%</span></div><div class="stat-card-sub" id="stat-ram-sub">Aguardando dados...</div><div class="stat-card-bar"><div class="stat-card-bar-fill" id="stat-ram-bar" style="width:0%;background:var(--cyan);"></div></div></div>
+            <div class="stat-card card" data-type="ssd"><div class="stat-top"><div class="stat-card-icon green">💾</div><span class="stat-trend">C:</span></div><div class="stat-card-label">Disco (C:)</div><div class="stat-card-value"><span id="stat-ssd-val">—</span><span class="stat-card-unit">GB livres</span></div><div class="stat-card-sub" id="stat-ssd-sub">Aguardando dados...</div><div class="stat-card-bar"><div class="stat-card-bar-fill" id="stat-ssd-bar" style="width:0%;background:var(--green);"></div></div></div>
+            <div class="stat-card card" data-type="network"><div class="stat-top"><div class="stat-card-icon amber">🌐</div><span class="stat-trend" id="stat-net-trend">↓↑</span></div><div class="stat-card-label">Throughput de Rede</div><div class="stat-card-value"><span id="stat-net-val">↓0.0</span><span class="stat-card-unit"> MB/s</span></div><div class="stat-card-sub" id="stat-net-sub">↑0.0 MB/s</div><div class="stat-card-bar"><div class="stat-card-bar-fill" id="stat-net-bar" style="width:0%;background:var(--amber);"></div></div></div>
+            <div class="stat-card card" data-type="temperature"><div class="stat-top"><div class="stat-card-icon red">🌡️</div><span class="stat-trend" id="stat-temp-trend">GPU</span></div><div class="stat-card-label">Temperatura GPU</div><div class="stat-card-value" id="stat-temp-val" style="color:var(--text-muted);">N/A</div><div class="stat-card-sub" id="stat-temp-sub">Aguardando dados...</div><div class="stat-card-bar"><div class="stat-card-bar-fill" id="stat-temp-bar" style="width:0%;background:var(--text-muted);"></div></div></div>
+          </div>
+
+          <div class="section-head"><h2>Gráficos em tempo real</h2><span class="section-hint">Atualização automática • 1.5s</span></div>
+          <div class="charts-grid" id="charts-grid">
+            <div class="chart-card card" data-chart="cpu"><div class="chart-card-header"><span class="chart-card-title"><span class="chart-dot" style="background:var(--accent-primary)"></span>CPU</span><span class="chart-card-value" id="chart-cpu-val">0%</span></div><div class="chart-canvas-wrap"><canvas class="chart-canvas" id="chart-cpu"></canvas></div></div>
+            <div class="chart-card card" data-chart="ram"><div class="chart-card-header"><span class="chart-card-title"><span class="chart-dot" style="background:var(--cyan)"></span>RAM</span><span class="chart-card-value" id="chart-ram-val">0%</span></div><div class="chart-canvas-wrap"><canvas class="chart-canvas" id="chart-ram"></canvas></div></div>
+            <div class="chart-card card" data-chart="disk"><div class="chart-card-header"><span class="chart-card-title"><span class="chart-dot" style="background:var(--green)"></span>Disco I/O</span><span class="chart-card-value" id="chart-disk-val">0 MB/s</span></div><div class="chart-canvas-wrap"><canvas class="chart-canvas" id="chart-disk"></canvas></div></div>
+          </div>
+
+          <div class="dash-cols">
+            <div class="dash-col">
+              <div class="section-head"><h2>Recomendações inteligentes</h2><span class="count-pill" id="rec-count">0</span></div>
+              <div class="rec-list card" id="rec-list"><div class="empty-state"><div class="empty-state-icon">✨</div><div class="empty-state-title">Execute uma varredura</div><div class="empty-state-desc">Recomendações personalizadas aparecem aqui.</div></div></div>
+              <div class="section-head" style="margin-top:20px"><h2>Últimas otimizações</h2><button class="link-btn" data-goto="history">Ver histórico →</button></div>
+              <div class="recent-list card" id="recent-list"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Nenhuma operação ainda</div><div class="empty-state-desc">Suas ações aparecerão aqui.</div></div></div>
             </div>
-            <div class="health-details">
-              <h3 id="health-title">Análise de Saúde do Sistema</h3>
-              <p id="health-desc">Execute uma varredura para ver a pontuação de saúde do seu Windows e recomendações personalizadas.</p>
+            <div class="dash-col">
+              <div class="section-head"><h2>Informações do sistema</h2></div>
+              <div class="system-info-grid" id="system-info-grid">
+                <div class="sys-info-card card"><div class="sys-info-label">Status do Windows</div><div class="sys-info-value" id="sys-info-state">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Tempo Ligado</div><div class="sys-info-value" id="sys-info-uptime">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Processos Ativos</div><div class="sys-info-value" id="sys-info-processes">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Apps de Inicialização</div><div class="sys-info-value" id="sys-info-startup">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Espaço Livre (C:)</div><div class="sys-info-value" id="sys-info-freespace">—</div></div>
+                <div class="sys-info-card card highlight"><div class="sys-info-label">Est. FPS Boost</div><div class="sys-info-value" id="sys-info-fps" style="color:var(--green);">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Hostname</div><div class="sys-info-value" id="sys-info-hostname">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Arquitetura</div><div class="sys-info-value" id="sys-info-arch">—</div></div>
+                <div class="sys-info-card card"><div class="sys-info-label">Sistema Operacional</div><div class="sys-info-value" id="sys-info-os">—</div></div>
+              </div>
+              <div class="bench-card card" id="bench-card"><div class="bench-head"><div><h3>Benchmark rápido</h3><p>CPU • RAM • Disco I/O em ~8s</p></div><button class="btn btn-secondary btn-sm" id="btn-benchmark">Executar</button></div><div class="bench-result" id="bench-result"><span class="bench-score" id="bench-score">—</span><div class="bench-bars"><div class="bench-row"><span>CPU</span><div class="bench-bar"><div id="bench-cpu" style="width:0%"></div></div></div><div class="bench-row"><span>RAM</span><div class="bench-bar"><div id="bench-ram" style="width:0%"></div></div></div><div class="bench-row"><span>Disco</span><div class="bench-bar"><div id="bench-disk" style="width:0%"></div></div></div></div></div></div>
             </div>
-            <button id="btn-run-health-scan" class="btn-primary">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <span>Executar Varredura</span>
-            </button>
           </div>
-
-          <div class="stats-grid" id="stats-grid"></div>
-
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <h2 style="font-size:14px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Gráficos em Tempo Real</h2>
-            <div class="stats-legend" id="stats-legend"></div>
-          </div>
-          <div class="charts-grid" id="charts-grid"></div>
-
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:8px;">
-            <h2 style="font-size:14px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Informações do Sistema</h2>
-          </div>
-          <div class="system-info-grid" id="system-info-grid"></div>
         </section>
 
         <!-- OTIMIZAÇÕES -->
         <section id="panel-optimizations" class="panel">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Otimizações</h1>
-              <p class="panel-subtitle">Aplique otimizações por categoria</p>
-            </div>
-            <div class="panel-actions">
-              <button id="btn-apply-selected-opt" class="btn-primary" disabled>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                <span>Aplicar Selecionadas</span>
-              </button>
-              <button id="btn-apply-recommended" class="btn-secondary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                <span>Recomendadas</span>
-              </button>
-            </div>
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Ajuste fino do Windows</p><h1 class="panel-title">Otimizações</h1><p class="panel-subtitle">Aplique otimizações por categoria — <span id="opt-count">0</span> disponíveis</p></div>
+            <div class="panel-actions"><button id="btn-apply-selected-opt" class="btn btn-primary" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Aplicar Selecionadas</span></button><button id="btn-apply-recommended" class="btn btn-secondary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Recomendadas</span></button><button id="btn-restart-admin" class="btn btn-ghost btn-sm" data-tip="Reinicia o app como administrador (necessário p/ 11 otimizações)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/></svg><span>Admin</span></button></div>
           </header>
-          <div class="tabs-bar" id="opt-tabs-bar"></div>
+          <div class="toolbar"><div class="tabs-bar" id="opt-tabs-bar"></div><input id="opt-search" class="text-input toolbar-search" placeholder="Filtrar otimizações…" aria-label="Filtrar otimizações"></div>
           <div id="opt-content"></div>
+        </section>
+
+        <!-- PERFORMANCE -->
+        <section id="panel-performance" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Latência • FPS • Responsividade</p><h1 class="panel-title">Performance</h1><p class="panel-subtitle">Presets e ajustes de alto impacto para jogos</p></div>
+            <div class="panel-actions"><button class="btn btn-primary btn-lg btn-glow" id="btn-perf-boost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Boost de Performance</span><span class="btn-shine"></span></button></div></header>
+          <div class="preset-grid" id="preset-grid"></div>
+          <div class="section-head"><h2>Métricas ao vivo</h2></div>
+          <div class="perf-live-grid"><div class="perf-live-card card"><span class="perf-live-label">CPU Load</span><span class="perf-live-val" id="perf-cpu">—</span><div class="perf-live-bar"><div id="perf-cpu-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">RAM</span><span class="perf-live-val" id="perf-ram">—</span><div class="perf-live-bar"><div id="perf-ram-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">GPU</span><span class="perf-live-val" id="perf-gpu">—</span><div class="perf-live-bar"><div id="perf-gpu-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">FPS Boost est.</span><span class="perf-live-val green" id="perf-fps">—</span><div class="perf-live-bar"><div id="perf-fps-bar"></div></div></div></div>
         </section>
 
         <!-- LIMPEZA -->
         <section id="panel-cleaning" class="panel">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Limpeza do Sistema</h1>
-              <p class="panel-subtitle">Remova arquivos desnecessários e libere espaço</p>
-            </div>
-            <div class="panel-actions">
-              <div class="space-recovered" id="space-recovered" style="display:none;">
-                <span class="space-label">Espaço recuperável:</span>
-                <span id="space-value">—</span>
-              </div>
-              <button id="btn-clean-selected" class="btn-primary btn-lg" disabled>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 21 5 21 5 5 16 5 16 1 21 6 21 21"></polyline></svg>
-                <span>Limpar Selecionados</span>
-              </button>
-            </div>
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Espaço • Cache • Temporários</p><h1 class="panel-title">Limpeza do Sistema</h1><p class="panel-subtitle">Remova arquivos desnecessários e libere espaço</p></div>
+            <div class="panel-actions"><div class="space-recovered" id="space-recovered" style="display:none;"><span class="space-label">Recuperável:</span><span id="space-value">—</span></div><button id="btn-clean-selected" class="btn btn-primary btn-lg" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span>Limpar Selecionados</span></button></div>
           </header>
           <div class="tabs-bar" id="clean-tabs-bar"></div>
           <div id="clean-content"></div>
         </section>
 
-        <!-- RESTAURAÇÃO -->
-        <section id="panel-restoration" class="panel">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Restauração & Backup</h1>
-              <p class="panel-subtitle">Gerencie pontos de restauração e backups do Honest Boost</p>
-            </div>
-          </header>
-          <div class="tabs-bar" id="restore-tabs-bar">
-            <button class="tab-btn active" data-tab="sys-restore">Sistema Windows</button>
-            <button class="tab-btn" data-tab="togs-backup">Backup Honest Boost</button>
-          </div>
-          <div id="restore-content"></div>
+        <!-- MONITOR -->
+        <section id="panel-monitor" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Telemetria em tempo real</p><h1 class="panel-title">Monitor</h1><p class="panel-subtitle">Processos, inicialização e uso do Windows</p></div>
+            <div class="panel-actions"><button class="btn btn-secondary" id="btn-monitor-refresh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>Atualizar</span></button></div></header>
+          <div class="monitor-grid"><div class="monitor-card card"><div class="monitor-head"><h3>Processos ativos</h3><span class="count-pill" id="mon-proc-count">—</span></div><p class="monitor-sub" id="mon-proc-sub">—</p><div class="monitor-bar"><div id="mon-proc-bar"></div></div></div><div class="monitor-card card"><div class="monitor-head"><h3>Inicialização</h3><span class="count-pill" id="mon-start-count">—</span></div><div class="startup-list" id="mon-startup"></div></div><div class="monitor-card card"><div class="monitor-head"><h3>Uso do Windows</h3><span class="pill" id="mon-win-pill">—</span></div><div class="monitor-kv"><div><span>Hostname</span><strong id="mon-host">—</strong></div><div><span>Uptime</span><strong id="mon-uptime">—</strong></div><div><span>SO</span><strong id="mon-os">—</strong></div><div><span>Arquitetura</span><strong id="mon-arch">—</strong></div></div></div></div>
         </section>
 
-        <!-- APPS STORE -->
+        <!-- APPS -->
         <section id="panel-apps" class="panel">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Loja de Apps</h1>
-              <p class="panel-subtitle">Instale, atualize e gerencie utilitários essenciais</p>
-            </div>
-            <div class="panel-actions">
-              <input type="text" id="app-search" class="search-input" placeholder="Buscar apps..." style="width:280px;">
-            </div>
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Essenciais • Drivers • Runtimes</p><h1 class="panel-title">Loja de Apps</h1><p class="panel-subtitle">Instale, atualize e gerencie utilitários essenciais</p></div>
+            <div class="panel-actions"><input type="text" id="app-search" class="text-input" placeholder="Buscar apps..." style="width:240px;" aria-label="Buscar apps"></div>
           </header>
           <div class="tabs-bar" id="apps-tabs-bar"></div>
           <div class="apps-grid" id="apps-grid"></div>
         </section>
 
+        <!-- SERVIÇOS -->
+        <section id="panel-services" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Serviços do Windows</p><h1 class="panel-title">Serviços</h1><p class="panel-subtitle">Estado dos serviços essenciais e proteção</p></div></header>
+          <div class="services-grid" id="services-grid"></div>
+        </section>
+
+        <!-- INTERNET -->
+        <section id="panel-internet" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Rede • DNS • Latência</p><h1 class="panel-title">Internet</h1><p class="panel-subtitle">Diagnóstico de rede e otimizações de conexão</p></div>
+            <div class="panel-actions"><button class="btn btn-primary" id="btn-dns-flush"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg><span>Flush DNS</span></button><button class="btn btn-secondary" id="btn-net-boost"><span>Otimizar Rede</span></button></div></header>
+          <div class="net-grid"><div class="net-card card"><span class="net-label">Download</span><span class="net-val" id="net-down">—</span><span class="net-sub" id="net-down-sub">MB/s em tempo real</span></div><div class="net-card card"><span class="net-label">Upload</span><span class="net-val" id="net-up">—</span><span class="net-sub">MB/s em tempo real</span></div><div class="net-card card"><span class="net-label">Total I/O Disco</span><span class="net-val" id="net-disk">—</span><span class="net-sub">MB/s leitura + escrita</span></div><div class="net-card card"><span class="net-label">Status DNS</span><span class="net-val green" id="net-dns">OK</span><span class="net-sub">Cache operacional</span></div></div>
+          <div class="section-head"><h2>Otimizações de rede</h2></div>
+          <div id="net-opt-list" class="opt-grid"></div>
+        </section>
+
+        <!-- SEGURANÇA -->
+        <section id="panel-security" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Defender • Backup • Integridade</p><h1 class="panel-title">Segurança</h1><p class="panel-subtitle">Proteção e reversão segura de cada alteração</p></div></header>
+          <div class="sec-grid"><div class="sec-card card" id="sec-defender"><div class="sec-ico">🛡️</div><div><h3>Windows Defender</h3><p id="sec-defender-sub">Verificando…</p></div><span class="pill" id="sec-defender-pill">—</span></div><div class="sec-card card"><div class="sec-ico">📦</div><div><h3>Backup automático</h3><p>Cada otimização gera snapshot do registro.</p></div><button class="btn btn-secondary btn-sm" data-goto="restoration">Gerenciar</button></div><div class="sec-card card"><div class="sec-ico">🔧</div><div><h3>Reparo do sistema</h3><p>SFC / DISM e correção de arquivos.</p></div><button class="btn btn-secondary btn-sm" id="btn-sec-repair">Reparar</button></div></div>
+        </section>
+
+        <!-- RESTAURAÇÃO -->
+        <section id="panel-restoration" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Pontos • Snapshots • Rollback</p><h1 class="panel-title">Restauração &amp; Backup</h1><p class="panel-subtitle">Gerencie pontos de restauração e backups</p></div></header>
+          <div class="tabs-bar" id="restore-tabs-bar"><button class="tab-btn active" data-tab="sys-restore">Sistema Windows</button><button class="tab-btn" data-tab="togs-backup">Backup Honest Boost</button></div>
+          <div id="restore-content">
+            <div class="tab-panel tab-panel-restore active" id="tab-sys-restore">
+              <div class="restore-header"><h3 class="mini-title">Pontos de Restauração do Windows</h3><button id="btn-create-restore" class="btn btn-secondary btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Criar Ponto</button></div>
+              <div class="restore-list" id="restore-list"></div>
+            </div>
+            <div class="tab-panel tab-panel-restore" id="tab-togs-backup">
+              <h3 class="mini-title" style="margin-bottom:12px;">Backups do Honest Boost</h3>
+              <div class="backup-list" id="togs-backup-list"></div>
+              <div class="restore-actions"><button id="btn-backup-togs" class="btn btn-secondary btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Criar Backup</button><button id="btn-restore-togs" class="btn btn-ghost btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><polyline points="3 3 3 8 8 8"/></svg> Restaurar Backup</button></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HISTÓRICO -->
+        <section id="panel-history" class="panel">
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Auditoria completa</p><h1 class="panel-title">Histórico de Operações</h1><p class="panel-subtitle">Todas as execuções realizadas — <span id="history-count">0</span></p></div>
+            <div class="panel-actions"><input id="history-search" class="text-input" placeholder="Filtrar histórico…" style="width:220px" aria-label="Filtrar histórico"><button id="btn-clear-history" class="btn btn-danger">Limpar Histórico</button></div>
+          </header>
+          <div class="history-list" id="history-list"></div>
+        </section>
+
         <!-- CONFIGURAÇÕES -->
         <section id="panel-settings" class="panel">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Configurações</h1>
-              <p class="panel-subtitle">Personalize o Honest Boost</p>
-            </div>
-            <div class="panel-actions">
-              <button id="btn-reset-settings" class="btn-ghost btn-sm">Resetar Padrões</button>
-            </div>
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Preferências do app</p><h1 class="panel-title">Configurações</h1><p class="panel-subtitle">Personalize o Honest Boost</p></div>
+            <div class="panel-actions"><button id="btn-reset-settings" class="btn btn-ghost btn-sm">Resetar Padrões</button></div>
           </header>
-          <div class="tabs-bar" id="settings-tabs-bar">
-            <button class="tab-btn active" data-tab="general">Geral</button>
-            <button class="tab-btn" data-tab="appearance">Aparência</button>
-            <button class="tab-btn" data-tab="performance">Performance</button>
-            <button class="tab-btn" data-tab="advanced">Avançado</button>
-            <button class="tab-btn" data-tab="about">Sobre</button>
-          </div>
+          <div class="tabs-bar" id="settings-tabs-bar"><button class="tab-btn active" data-tab="general">Geral</button><button class="tab-btn" data-tab="appearance">Aparência</button><button class="tab-btn" data-tab="performance">Performance</button><button class="tab-btn" data-tab="advanced">Avançado</button><button class="tab-btn" data-tab="about">Sobre</button></div>
           <div id="settings-content">
-            <!-- GERAL -->
-            <div class="tab-panel settings-tab active" id="tab-general">
-              <div class="settings-group">
-                <h3 class="settings-group-title">Inicialização</h3>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-autostart">
-                  <span class="setting-label">Abrir com o Windows</span>
-                </label>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-minimize-tray">
-                  <span class="setting-label">Minimizar na bandeja do sistema</span>
-                </label>
-              </div>
-              <div class="settings-group">
-                <h3 class="settings-group-title">Atualização</h3>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-auto-update">
-                  <span class="setting-label">Atualização automática</span>
-                </label>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-check-version">
-                  <span class="setting-label">Verificar nova versão na inicialização</span>
-                </label>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-auto-backup">
-                  <span class="setting-label">Backup automático das configurações</span>
-                </label>
-                <div class="setting-action-row">
-                  <button id="btn-backup-settings" class="btn btn-secondary btn-sm">Criar Backup Manual</button>
-                  <button id="btn-restore-backup" class="btn btn-ghost btn-sm">Restaurar Backup</button>
-                </div>
-              </div>
+            <div class="settings-tab active card" id="tab-general">
+              <div class="settings-section"><h3>Inicialização</h3><div class="settings-group"><label class="switch-row"><span class="setting-label">Abrir com o Windows</span><span class="switch"><input type="checkbox" id="setting-autostart"><span class="slider"></span></span></label><label class="switch-row"><span class="setting-label">Minimizar na bandeja do sistema</span><span class="switch"><input type="checkbox" id="setting-minimize-tray"><span class="slider"></span></span></label></div></div>
+              <div class="divider"></div>
+              <div class="settings-section"><h3>Atualização automática</h3><div class="settings-group"><label class="switch-row"><span class="setting-label">Atualização automática</span><span class="switch"><input type="checkbox" id="setting-auto-update" checked><span class="slider"></span></span></label><label class="switch-row"><span class="setting-label">Verificar nova versão na inicialização</span><span class="switch"><input type="checkbox" id="setting-check-version" checked><span class="slider"></span></span></label><label class="switch-row"><span class="setting-label">Backup automático das configurações</span><span class="switch"><input type="checkbox" id="setting-auto-backup" checked><span class="slider"></span></span></label><div class="setting-action-row"><button id="btn-backup-settings" class="btn btn-secondary btn-sm">Criar Backup Manual</button><button id="btn-restore-backup" class="btn btn-ghost btn-sm">Restaurar Backup</button></div></div></div>
             </div>
-            <!-- APARÊNCIA -->
-            <div class="tab-panel settings-tab" id="tab-appearance">
-              <div class="settings-group">
-                <h3 class="settings-group-title">Tema</h3>
-                <div class="theme-options" id="theme-options">
-                  <label class="theme-option selected" data-theme="dark">
-                    <input type="radio" name="theme" value="dark" checked>
-                    <span class="theme-option-indicator"></span>
-                    <span class="theme-option-label">Escuro</span>
-                  </label>
-                  <label class="theme-option" data-theme="light">
-                    <input type="radio" name="theme" value="light">
-                    <span class="theme-option-indicator"></span>
-                    <span class="theme-option-label">Claro</span>
-                  </label>
-                  <label class="theme-option" data-theme="auto">
-                    <input type="radio" name="theme" value="auto">
-                    <span class="theme-option-indicator auto"></span>
-                    <span class="theme-option-label">Automático</span>
-                  </label>
-                </div>
-              </div>
-              <div class="settings-group">
-                <h3 class="settings-group-title">Idioma</h3>
-                <select id="setting-language" class="select-input">
-                  <option value="pt-BR">Português (Brasil)</option>
-                  <option value="en-US">English</option>
-                  <option value="es-ES">Español</option>
-                </select>
-              </div>
+            <div class="settings-tab card" id="tab-appearance">
+              <div class="settings-section"><h3>Tema</h3><div class="theme-options" id="theme-options"><label class="theme-option selected" data-theme="dark"><input type="radio" name="theme" value="dark" checked><span class="theme-swatch dark"></span><span class="theme-option-label">Escuro</span></label><label class="theme-option" data-theme="light"><input type="radio" name="theme" value="light"><span class="theme-swatch light"></span><span class="theme-option-label">Claro</span></label><label class="theme-option" data-theme="auto"><input type="radio" name="theme" value="auto"><span class="theme-swatch auto"></span><span class="theme-option-label">Automático</span></label></div></div>
+              <div class="divider"></div>
+              <div class="settings-section"><h3>Idioma</h3><select id="setting-language" class="select-input"><option value="pt-BR">Português (Brasil)</option><option value="en-US">English</option><option value="es-ES">Español</option></select></div>
             </div>
-            <!-- PERFORMANCE -->
-            <div class="tab-panel settings-tab" id="tab-performance">
-              <div class="settings-group">
-                <h3 class="settings-group-title">Exibição</h3>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-animations">
-                  <span class="setting-label">Animações do aplicativo</span>
-                </label>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-gpu-accel">
-                  <span class="setting-label">Aceleração por GPU (gráficos)</span>
-                </label>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-logs">
-                  <span class="setting-label">Salvar logs de operações</span>
-                </label>
-              </div>
-              <div class="settings-group">
-                <h3 class="settings-group-title">Logs</h3>
-                <div class="setting-action-row">
-                  <button id="btn-view-logs" class="btn btn-secondary btn-sm">Ver Logs</button>
-                  <button id="btn-clear-logs" class="btn btn-ghost btn-sm">Limpar Logs</button>
-                </div>
-              </div>
+            <div class="settings-tab card" id="tab-performance">
+              <div class="settings-section"><h3>Exibição</h3><div class="settings-group"><label class="switch-row"><span class="setting-label">Animações do aplicativo</span><span class="switch"><input type="checkbox" id="setting-animations" checked><span class="slider"></span></span></label><label class="switch-row"><span class="setting-label">Aceleração por GPU (gráficos)</span><span class="switch"><input type="checkbox" id="setting-gpu-accel" checked><span class="slider"></span></span></label><label class="switch-row"><span class="setting-label">Salvar logs de operações</span><span class="switch"><input type="checkbox" id="setting-logs"><span class="slider"></span></span></label></div></div>
+              <div class="divider"></div>
+              <div class="settings-section"><h3>Logs</h3><div class="setting-action-row"><button id="btn-view-logs" class="btn btn-secondary btn-sm">Ver Logs</button><button id="btn-clear-logs" class="btn btn-ghost btn-sm">Limpar Logs</button></div></div>
             </div>
-            <!-- AVANÇADO -->
-            <div class="tab-panel settings-tab" id="tab-advanced">
-              <div class="settings-group">
-                <h3 class="settings-group-title">Modos Especiais</h3>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-safe-mode">
-                  <span class="setting-label">Modo Seguro</span>
-                  <span class="setting-description">Desativa otimizações agressivas</span>
-                </label>
-                <label class="setting-option">
-                  <input type="checkbox" id="setting-dev-mode">
-                  <span class="setting-label">Modo Desenvolvedor</span>
-                  <span class="setting-description">Exibe informações de debug</span>
-                </label>
-              </div>
-              <div class="settings-group">
-                <h3 class="settings-group-title">Dados</h3>
-                <div class="setting-action-row">
-                  <button id="btn-clear-all-data" class="btn btn-danger btn-sm">Limpar Todos os Dados Locais</button>
-                </div>
-              </div>
+            <div class="settings-tab card" id="tab-advanced">
+              <div class="settings-section"><h3>Modos Especiais</h3><div class="settings-group"><label class="switch-row"><span class="setting-label">Modo Seguro <small>Desativa otimizações agressivas</small></span><span class="switch"><input type="checkbox" id="setting-safe-mode"><span class="slider"></span></span></label><label class="switch-row"><span class="setting-label">Modo Desenvolvedor <small>Exibe informações de debug</small></span><span class="switch"><input type="checkbox" id="setting-dev-mode"><span class="slider"></span></span></label></div></div>
+              <div class="divider"></div>
+              <div class="settings-section"><h3>Dados</h3><div class="setting-action-row"><button id="btn-clear-all-data" class="btn btn-danger btn-sm">Limpar Todos os Dados Locais</button></div></div>
             </div>
-            <!-- SOBRE -->
-            <div class="tab-panel settings-tab" id="tab-about">
-              <div class="about-section">
-                <div class="about-logo">
-                  <div class="about-logo-icon">⚡</div>
-                  <div class="about-logo-text">Honest Boost</div>
-                </div>
-                <div class="about-version" id="about-version">Versão 2.0.0 — Honest Boost</div>
-                <p class="about-desc">Software completo de otimização para Windows.</p>
-                <div class="about-copyright" id="about-copyright">© 2025 Honest Boost. Todos os direitos reservados.</div>
-              </div>
+            <div class="settings-tab card" id="tab-about">
+              <div class="about-hero"><span class="about-bolt">⚡</span><div><h2>Honest Boost</h2><p id="about-version">Versão 2.0.0 — Performance Intelligence Platform</p></div></div>
+              <p class="about-desc">Software completo de otimização para Windows. Presets validados, rollback seguro e telemetria local.</p>
+              <div class="about-grid"><div><span>Engine</span><strong>v3.1 validado</strong></div><div><span>Canal</span><strong>Stable • auto-update</strong></div><div><span>Licença</span><strong id="about-copyright">© 2025 Honest Boost</strong></div></div>
             </div>
           </div>
         </section>
 
         <!-- AUTENTICAÇÃO -->
         <section id="panel-auth" class="panel">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Autenticação</h1>
-              <p class="panel-subtitle">Gerencie sua licença e perfil</p>
-            </div>
-          </header>
+          <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Licença • Trial • PRO</p><h1 class="panel-title">Autenticação</h1><p class="panel-subtitle">Gerencie sua licença e perfil</p></div></header>
           <div id="auth-content">
-            <!-- Estado: logado -->
-            <div class="auth-panel auth-logged-in hidden">
-              <div class="auth-card">
-                <div class="auth-profile-header">
-                  <div class="profile-avatar" id="profile-avatar">U</div>
-                  <div class="profile-info">
-                    <div class="profile-name" id="profile-name">Usuário</div>
-                    <div class="profile-plan" id="profile-plan">Plano: Pro</div>
-                  </div>
-                </div>
+            <div class="auth-panel auth-logged-in hidden" id="auth-logged-in">
+              <div class="auth-card card"><div class="auth-profile-header"><div class="profile-avatar" id="profile-avatar">U</div><div class="profile-info"><div class="profile-name" id="profile-name">Usuário</div><div class="profile-plan" id="profile-plan">Plano: Pro</div></div><span class="pill green">Ativo</span></div>
                 <div class="auth-section-divider">Detalhes da Licença</div>
-                <div class="license-grid">
-                  <div class="license-field">
-                    <div class="license-label">ID da Licença</div>
-                    <div class="license-value" id="license-id">—</div>
-                  </div>
-                  <div class="license-field">
-                    <div class="license-label">Plano</div>
-                    <div class="license-value" id="license-plan">Pro</div>
-                  </div>
-                  <div class="license-field">
-                    <div class="license-label">Dias Restantes</div>
-                    <div class="license-value" id="license-days">—</div>
-                  </div>
-                  <div class="license-field">
-                    <div class="license-label">Data de Expiração</div>
-                    <div class="license-value" id="license-expiry">—</div>
-                  </div>
-                  <div class="license-field">
-                    <div class="license-label">Máquinas Ativadas</div>
-                    <div class="license-value" id="license-machines">—</div>
-                  </div>
-                </div>
-                <div class="auth-actions">
-                  <button id="btn-copy-license" class="btn btn-secondary">Copiar ID</button>
-                  <button id="btn-change-license" class="btn btn-ghost">Trocar Licença</button>
-                  <button id="btn-renew-license" class="btn btn-primary">Renovar</button>
-                  <button id="btn-disconnect" class="btn btn-danger">Desconectar</button>
-                </div>
+                <div class="license-grid"><div class="license-field"><div class="license-label">ID da Licença</div><div class="license-value" id="license-id">—</div></div><div class="license-field"><div class="license-label">Plano</div><div class="license-value" id="license-plan">Pro</div></div><div class="license-field"><div class="license-label">Dias Restantes</div><div class="license-value" id="license-days">—</div></div><div class="license-field"><div class="license-label">Data de Expiração</div><div class="license-value" id="license-expiry">—</div></div><div class="license-field"><div class="license-label">Máquinas Ativadas</div><div class="license-value" id="license-machines">—</div></div><div class="license-field"><div class="license-label">Status</div><div class="license-value" id="license-status">Ativo</div></div></div>
+                <div class="auth-actions"><button id="btn-copy-license" class="btn btn-secondary">Copiar ID</button><button id="btn-change-license" class="btn btn-ghost">Trocar Licença</button><button id="btn-renew-license" class="btn btn-primary">Renovar</button><button id="btn-disconnect" class="btn btn-danger">Desconectar</button></div>
               </div>
             </div>
-            <!-- Estado: deslogado -->
-            <div class="auth-panel auth-logged-out">
-              <div class="auth-card">
-                <div class="auth-login-header">
-                  <div class="auth-logo-large">⚡</div>
-                  <h2 class="auth-title">Honest Boost</h2>
-                  <p class="auth-subtitle">Insira sua chave de licença para ativar</p>
-                </div>
-                <form class="auth-form" id="auth-form">
-                  <div class="auth-form-group">
-                    <label class="auth-label" for="auth-key">Chave de Licença</label>
-                    <input type="text" class="text-input" id="auth-key" placeholder="Ex: HONEST-XXXXX-XXXXX" autocomplete="off">
-                  </div>
-                  <div class="auth-error hidden" id="auth-error"></div>
-                  <button type="submit" class="btn btn-primary btn-lg auth-submit-btn">Ativar Licença</button>
-                </form>
-                <div class="auth-divider">ou</div>
-                <button id="btn-trial" class="btn btn-secondary btn-lg auth-trial-btn">Ativar Trial Gratuito (7 dias)</button>
-                <p class="auth-note">A versão trial permite uso completo por 7 dias. Para uso permanente, compre uma licença.</p>
+            <div class="auth-panel auth-logged-out" id="auth-logged-out">
+              <div class="auth-card card"><div class="auth-hero"><div class="auth-logo-large">⚡</div><h2 class="auth-title">Honest Boost</h2><p class="auth-subtitle">Insira sua chave de licença para ativar</p></div>
+                <form class="auth-form" id="auth-form"><div class="auth-form-group"><label class="auth-label" for="auth-key">Chave de Licença</label><input type="text" class="text-input" id="auth-key" placeholder="Ex: hb_a1b2c3…" autocomplete="off"></div><div class="auth-error hidden" id="auth-error"></div><button type="submit" class="btn btn-primary btn-lg auth-submit-btn btn-glow">Ativar Licença<span class="btn-shine"></span></button></form>
+                <div class="auth-divider"><span>ou</span></div>
+                <button id="btn-buy" class="btn btn-secondary btn-lg" style="width:100%;justify-content:center;">Ver Planos e Comprar Licença</button>
+                <p class="auth-note">Pagamento único, sem mensalidade. Após a compra você recebe a chave por e-mail.</p>
               </div>
             </div>
           </div>
         </section>
-
-        <!-- HISTORY -->
-        <section id="panel-history" class="panel hidden">
-          <header class="panel-header">
-            <div>
-              <h1 class="panel-title">Histórico de Operações</h1>
-              <p class="panel-subtitle">Todas as execuções realizadas</p>
-            </div>
-            <div class="panel-actions">
-              <button id="btn-clear-history" class="btn-danger">Limpar Histórico</button>
-            </div>
-          </header>
-          <div class="history-list" id="history-list"></div>
-        </section>
-
       </main>
     </div>
   </div>
-
-  <!-- Notifications panel -->
-  <div id="notifications-panel" class="notifications-panel hidden"></div>
-
+  <div id="notifications-panel" class="notifications-panel hidden" role="log" aria-label="Notificações"></div>
   <script src="renderer.js"></script>
 </body>
 </html>
