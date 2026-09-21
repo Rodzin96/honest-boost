@@ -607,13 +607,15 @@ app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   }
   
   const userId = req.session.user.id;
+  const isAdminUser = req.session.user.role === 'admin';
   const entitlement = await accountEntitlement(req.session.user.username);
-  if (!entitlement.license) {
+  if (!entitlement.license && !isAdminUser) {
     return res.status(403).json({ error: 'license_required' });
   }
-  const keyType = entitlement.keyType;
-  const maxActive = entitlement.maxActiveKeys;
-  const ttlMs = entitlement.keyTtlMs;
+  // Admin sem licença própria: pode gerar keys de suporte/teste (1 ano, teto 10).
+  const keyType = entitlement.keyType || (isAdminUser ? 'premium' : null);
+  const maxActive = entitlement.maxActiveKeys || (isAdminUser ? 10 : 0);
+  const ttlMs = entitlement.keyTtlMs || (isAdminUser ? 365 * 24 * 60 * 60 * 1000 : 0);
 
   const activeKeys = await getDb().dbGet(
     'SELECT COUNT(*)::int AS count FROM api_keys WHERE user_id = $1 AND status = $2 AND expires_at > $3',
@@ -643,6 +645,7 @@ app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   if (!dbReady) return res.json({ ok: true, keys: [] });
   
   const userId = req.session.user.id;
+  const isAdminUser = req.session.user.role === 'admin';
   const entitlement = await accountEntitlement(req.session.user.username);
   const keys = await getDb().dbAll(
     'SELECT id, key_prefix, created_at, expires_at, last_used_at, status, key_type FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
@@ -651,9 +654,9 @@ app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   return res.json({
     ok: true,
     keys,
-    tier: entitlement.tier,
+    tier: isAdminUser && entitlement.tier === 'trial' ? 'admin' : entitlement.tier,
     keyType: entitlement.keyType,
-    maxActive: entitlement.maxActiveKeys,
+    maxActive: entitlement.maxActiveKeys || (isAdminUser ? 10 : 0),
     license: entitlement.license ? {
       product: entitlement.license.product,
       status: entitlement.license.status,

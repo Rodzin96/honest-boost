@@ -234,7 +234,7 @@
     try {
       const result = await api('/api/keys');
       if (result.ok) {
-        hasLicense = !!result.license;
+        hasLicense = !!result.license || (currentUser && currentUser.role === 'admin');
         if (Number(result.maxActive) > 0) maxActiveKeys = Number(result.maxActive);
         updateGenerateButton();
         keys = (result.keys || []).map(normalizeKey);
