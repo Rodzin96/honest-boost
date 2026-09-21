@@ -41,3 +41,35 @@
       '<p>Não foi possível carregar os planos. <a href="/checkout.html">Ir para o checkout</a>.</p></div>';
   });
 })();
+
+/* Galeria de capturas reais do app (hero). Troca a imagem principal com fade. */
+(function () {
+  'use strict';
+  function init() {
+    var main = document.getElementById('hero-shot');
+    var caption = document.getElementById('hero-shot-caption');
+    var thumbs = document.querySelectorAll('.shot-thumb');
+    if (!main || !thumbs.length) return;
+    // Precarrega as capturas para a troca ser instantânea.
+    thumbs.forEach(function (t) { var im = new Image(); im.src = t.dataset.src; });
+    thumbs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        if (t.classList.contains('active')) return;
+        thumbs.forEach(function (x) { x.classList.remove('active'); x.setAttribute('aria-selected', 'false'); });
+        t.classList.add('active');
+        t.setAttribute('aria-selected', 'true');
+        main.classList.add('fading');
+        var swap = function () {
+          main.src = t.dataset.src;
+          main.alt = t.dataset.alt || main.alt;
+          if (caption) caption.textContent = t.dataset.caption || '';
+          main.classList.remove('fading');
+        };
+        if (main.complete) setTimeout(swap, 160);
+        else { main.onload = swap; setTimeout(swap, 600); }
+      });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();

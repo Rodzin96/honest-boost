@@ -23,14 +23,28 @@
   ],
   "screenshots": [
     {
-      "src": "/logo.svg",
-      "sizes": "540x720",
-      "type": "image/svg+xml",
-      "form_factor": "narrow"
+      "src": "/assets/app-dashboard.png",
+      "sizes": "1164x761",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Painel de controle do Honest Boost"
+    },
+    {
+      "src": "/assets/app-optimizations.png",
+      "sizes": "1164x761",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Otimizações do Honest Boost"
+    },
+    {
+      "src": "/assets/app-cleaning.png",
+      "sizes": "1164x761",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Limpeza do Honest Boost"
     }
   ],
   "categories": ["utilities", "productivity"],
-  "screenshots": [],
   "shortcuts": [
     {
       "name": "Download",

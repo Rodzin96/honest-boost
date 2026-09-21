@@ -496,6 +496,31 @@ tbody tr:hover { background: color-mix(in srgb, var(--primary) 6%, transparent);
 .visual-top .dots span:nth-child(3) { background: #6bcf7f; }
 .visual-title { color: var(--on-surface-variant); font-size: 0.85rem; font-weight: 600; }
 
+/* ---------- Capturas reais do app ---------- */
+.shot-main { margin: 0; position: relative; z-index: 1; }
+.shot-main img {
+  display: block; width: 100%; height: auto;
+  border-radius: 16px; border: 1px solid var(--divider);
+  box-shadow: var(--elevation-3);
+  transition: opacity 0.25s ease;
+}
+.shot-main img.fading { opacity: 0.25; }
+.shot-main figcaption {
+  margin-top: 0.7rem; font-size: 0.85rem; text-align: center;
+  color: var(--on-surface-variant); font-weight: 500;
+}
+.shot-thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-top: 1rem; position: relative; z-index: 1; }
+.shot-thumb {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  background: transparent; border: 1px solid var(--divider); border-radius: 12px;
+  padding: 0.45rem; cursor: pointer; color: var(--on-surface-variant);
+  font-size: 0.78rem; font-weight: 600; font-family: inherit;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.shot-thumb img { width: 100%; height: auto; border-radius: 8px; display: block; }
+.shot-thumb:hover { transform: translateY(-2px); }
+.shot-thumb.active { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); color: var(--on-surface); }
+
 .fps-meters { display: grid; gap: 1.2rem; position: relative; z-index: 1; }
 .meter-label { display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.86rem; color: var(--on-surface-variant); }
 .meter-label strong { color: var(--primary); }
