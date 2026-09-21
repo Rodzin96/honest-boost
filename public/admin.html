@@ -59,6 +59,31 @@
             <section class="admin-panel">
                 <div class="section-header">
                     <div>
+                        <h2 class="section-title">Emitir licença</h2>
+                        <p class="section-subtitle">Cria uma licença ativa (HB-…) que já entra direto no app. O cliente usa o email da compra para gerenciar dispositivos.</p>
+                    </div>
+                </div>
+                <form id="issue-form" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem;">
+                    <label style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem;">Email do cliente
+                        <input id="issue-email" type="email" required placeholder="cliente@email.com" class="input-field" style="min-width:240px;">
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem;">Plano
+                        <select id="issue-product" class="input-field">
+                            <option value="basic">Básico (1 PC)</option>
+                            <option value="pro" selected>Pro (3 PCs)</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-filled" id="issue-btn">
+                        <span class="material-symbols-rounded">add_card</span>
+                        Emitir licença
+                    </button>
+                </form>
+                <div id="issue-result" aria-live="polite" style="margin-bottom:1rem;"></div>
+            </section>
+
+            <section class="admin-panel">
+                <div class="section-header">
+                    <div>
                         <h2 class="section-title">Licenças</h2>
                         <p class="section-subtitle">Lista atual de licenças retornadas pela API administrativa disponível.</p>
                     </div>
@@ -136,6 +161,37 @@
                     list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro de conexão ao carregar licenças.</div>';
                 });
         }
+
+        document.getElementById('issue-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var email = document.getElementById('issue-email').value.trim();
+            var product = document.getElementById('issue-product').value;
+            var result = document.getElementById('issue-result');
+            var btn = document.getElementById('issue-btn');
+            if (!email) return;
+            btn.disabled = true;
+            result.innerHTML = '<p class="text-muted">Emitindo licença...</p>';
+            fetch('/api/licenses', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, product: product })
+            })
+                .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
+                .then(function (out) {
+                    if (out.status === 201 && out.data && out.data.ok) {
+                        result.innerHTML = '<p><span class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">check_circle</span> Licença emitida: <code style="font-family:Courier New,monospace;">' + escapeHtml(out.data.license) + '</code></p>';
+                        document.getElementById('issue-email').value = '';
+                        load();
+                    } else {
+                        result.innerHTML = '<p class="text-muted">Falha: ' + escapeHtml((out.data && out.data.error) || ('HTTP ' + out.status)) + '</p>';
+                    }
+                })
+                .catch(function () {
+                    result.innerHTML = '<p class="text-muted">Erro de conexão. Tente novamente.</p>';
+                })
+                .finally(function () { btn.disabled = false; });
+        });
 
         document.addEventListener('DOMContentLoaded', function () {
             load();
