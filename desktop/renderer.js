@@ -874,7 +874,7 @@ const CLEAN_GROUPS = [
       { id: 'prefetch', title: 'Prefetch', desc: 'Arquivos de prefetch do Windows', size: '50–200 MB' },
       { id: 'wu-cache', title: 'Windows Update', desc: 'Cache de instaladores do WU', size: '1–10 GB' },
       { id: 'thumbnails', title: 'Miniaturas', desc: 'Cache de thumbnails do Explorador', size: '50–500 MB' },
-      { id: 'error-logs', title: 'Logs de Erro', desc: 'Logs de aplicativos e sistema', size: '10–100 MB' },
+      { id: 'error-logs', title: 'Logs de Erro ⚠️', desc: 'Apaga logs do sistema, inclusive Segurança (irreversível)', size: '10–100 MB', dangerous: true },
       { id: 'dns-cache', title: 'Cache DNS', desc: 'Limpar cache de DNS do Windows', size: 'Pequeno' },
       { id: 'clipboard', title: 'Clipboard', desc: 'Histórico da área de transferência', size: 'Variável' },
       { id: 'recycle-bin', title: 'Lixeira ⚠️', desc: 'Esvaziar a lixeira do Windows (irreversível)', size: 'Variável', dangerous: true },
@@ -884,13 +884,12 @@ const CLEAN_GROUPS = [
     id: 'browsers', label: 'Navegadores', icon: '🌐',
     items: [
       { id: 'chrome-cache', title: 'Chrome — Cache', desc: 'Cache de páginas e assets', size: 'Variável' },
-      { id: 'chrome-cookies', title: 'Chrome — Cookies', desc: 'Cookies e dados de site', size: 'Variável' },
-      { id: 'chrome-history', title: 'Chrome — Histórico', desc: 'Histórico de navegação', size: 'Variável' },
-      { id: 'chrome-downloads', title: 'Chrome — Downloads', desc: 'Lista de downloads', size: 'Pequeno' },
+      { id: 'chrome-cookies', title: 'Chrome — Cookies ⚠️', desc: 'Desloga você de TODOS os sites (irreversível)', size: 'Variável', dangerous: true },
+      { id: 'chrome-history', title: 'Chrome — Histórico ⚠️', desc: 'Apaga o histórico de navegação (irreversível)', size: 'Variável', dangerous: true },
       { id: 'edge-cache', title: 'Edge — Cache', desc: 'Cache do Microsoft Edge', size: 'Variável' },
-      { id: 'edge-cookies', title: 'Edge — Cookies', desc: 'Cookies e dados de site', size: 'Variável' },
+      { id: 'edge-cookies', title: 'Edge — Cookies ⚠️', desc: 'Desloga você de TODOS os sites (irreversível)', size: 'Variável', dangerous: true },
       { id: 'firefox-cache', title: 'Firefox — Cache', desc: 'Cache do Mozilla Firefox', size: 'Variável' },
-      { id: 'firefox-cookies', title: 'Firefox — Cookies', desc: 'Cookies e dados de site', size: 'Variável' },
+      { id: 'firefox-cookies', title: 'Firefox — Cookies ⚠️', desc: 'Desloga você de TODOS os sites (irreversível)', size: 'Variável', dangerous: true },
       { id: 'opera-cache', title: 'Opera — Cache', desc: 'Cache do Opera', size: 'Variável' },
       { id: 'brave-cache', title: 'Brave — Cache', desc: 'Cache do Brave Browser', size: 'Variável' },
     ]
@@ -903,17 +902,17 @@ const CLEAN_GROUPS = [
       { id: 'epic-cache', title: 'Epic — Cache', desc: 'Arquivos temp do Epic Games', size: '500 MB – 1 GB' },
       { id: 'battlecache', title: 'Battle.net — Cache', desc: 'Cache do launcher Battle.net', size: '100–500 MB' },
       { id: 'adobe-cache', title: 'Adobe — Cache', desc: 'Cache do Creative Cloud', size: '500 MB – 2 GB' },
-      { id: 'office-cache', title: 'Office — Cache', desc: 'Cache de auto.save e temp', size: '100–500 MB' },
+      { id: 'office-cache', title: 'Office — Cache ⚠️', desc: 'Pode conter rascunhos não sincronizados (irreversível)', size: '100–500 MB', dangerous: true },
     ]
   },
   {
     id: 'advanced', label: 'Avançado', icon: '⚙️',
     items: [
-      { id: 'winsxs', title: 'WinSxS', desc: 'Component Store (pode economizar GBs)', size: '2–10 GB', admin: true },
+      { id: 'winsxs', title: 'WinSxS ⚠️', desc: 'IRREVERSÍVEL: impede desinstalar updates do Windows', size: '2–10 GB', admin: true, dangerous: true },
       { id: 'component-store', title: 'Component Store', desc: 'Sistema de componentes do Windows', size: '1–5 GB', admin: true },
       { id: 'user-temp', title: 'Temp do Usuário', desc: 'Todas as pastas temp do usuário', size: 'Variável' },
       { id: 'system-temp', title: 'Temp do Sistema', desc: 'Temp do Windows e arquivos de programa', size: '1–5 GB', admin: true },
-      { id: 'msi-cache', title: 'MSI Cache', desc: 'Arquivos de instalação MSI', size: '50–500 MB', admin: true },
+      { id: 'msi-cache', title: 'MSI Cache', desc: 'Pacotes MSI temporários (pasta Temp)', size: '50–500 MB', admin: true },
       { id: 'delivery-opt', title: 'Delivery Optimization', desc: 'Cache de distribuição do WU', size: '100 MB – 2 GB', admin: true },
       { id: 'directx-shader', title: 'DirectX Shader Cache', desc: 'Shader cache do DirectX', size: '100 MB – 2 GB' },
       { id: 'nvidia-cache', title: 'NVIDIA Cache', desc: 'Cache e logs da Control Panel', size: '50–500 MB' },
@@ -925,7 +924,7 @@ const CLEAN_GROUPS = [
 const CLEAN_SIZE_MAP = {
   'temp-files': 5e9, 'prefetch': 1e8, 'wu-cache': 5e9, 'thumbnails': 3e8,
   'error-logs': 5e7, 'dns-cache': 1e6, 'clipboard': 1e7, 'recycle-bin': 1e9,
-  'chrome-cache': 5e8, 'chrome-cookies': 1e8, 'chrome-history': 1e8, 'chrome-downloads': 1e7,
+  'chrome-cache': 5e8, 'chrome-cookies': 1e8, 'chrome-history': 1e8,
   'edge-cache': 5e8, 'edge-cookies': 1e8,
   'firefox-cache': 5e8, 'firefox-cookies': 1e8,
   'opera-cache': 5e8, 'brave-cache': 5e8,
@@ -1104,7 +1103,24 @@ function estimateGroupSpace(groupId) {
   return total;
 }
 
+function cleanItemMeta(id) {
+  for (const g of CLEAN_GROUPS) {
+    const found = g.items.find(i => i.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+function confirmDangerous(ids) {
+  const dangerous = ids.map(cleanItemMeta).filter(m => m && m.dangerous);
+  if (!dangerous.length) return true;
+  const names = dangerous.map(m => '• ' + m.title.replace(/ ⚠️/g, '')).join('\n');
+  return confirm(
+    `ATENÇÃO — ${dangerous.length} item(ns) irreversível(eis):\n\n${names}\n\nEsta ação NÃO pode ser desfeita. Continuar?`
+  );
+}
+
 async function doCleanItem(id) {
+  if (!confirmDangerous([id])) return;
   try {
     const res = await window.hbDesktop.cleanItem(id);
     if (!res.ok) throw new Error(res.error || 'Falha');
@@ -1117,6 +1133,7 @@ async function doCleanItem(id) {
 async function doCleanSelected() {
   if (state.selectedClean.size === 0) { toast('Nenhum item selecionado', 'warning'); return; }
   const ids = Array.from(state.selectedClean);
+  if (!confirmDangerous(ids)) return;
   const totalBytes = estimateTotalSpace();
 
   const overlay = $('progress-overlay');
@@ -1826,25 +1843,30 @@ function initQuickActions() {
           break;
         }
         case 'quick-fix-windows': {
-          toast('🔧 Executando correções do Windows...', 'info');
+          toast('🔧 Executando correções do Windows (SFC/DISM + limpeza)...', 'info');
           try {
-            await window.hbDesktop.applyBatch(['repair-windows-files', 'clear-logs', 'run-dism']);
-            toast('✔ Correções concluídas', 'success');
+            const res = await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']);
+            const r = res.result || {};
+            if (res.ok && r.applied > 0 && !r.failed) toast('✔ Correções concluídas', 'success');
+            else if ((r.applied || 0) > 0) toast(`✔ ${r.applied} aplicadas, ${r.failed || 0} pendentes (podem exigir admin)`, 'warning');
+            else toast('⚠️ ' + ((r.results || []).find(x => !x.ok)?.message || 'Nada aplicado — tente como administrador'), 'warning');
           } catch (e) { toast('Erro: ' + e.message, 'error'); }
           break;
         }
         case 'quick-free-ram': {
-          toast('🧠 Liberando RAM...', 'info');
+          toast('🧠 Medindo memória...', 'info');
           try {
-            await window.hbDesktop.freeRam();
-            toast('✔ RAM liberada', 'success');
+            const res = await window.hbDesktop.freeRam();
+            if (!res.ok) throw new Error(res.error || 'Falha');
+            toast('✔ ' + (res.message || 'RAM liberada'), 'success');
           } catch (e) { toast('Erro: ' + e.message, 'error'); }
           break;
         }
         case 'quick-flush-dns': {
           toast('🌐 Flushing DNS...', 'info');
           try {
-            await window.hbDesktop.applyOptimization('flush-dns');
+            const res = await window.hbDesktop.applyOptimization('flushdns');
+            if (!res.ok) throw new Error(res.error || 'Falha');
             toast('✔ DNS flushed', 'success');
           } catch (e) { toast('Erro: ' + e.message, 'error'); }
           break;
@@ -2247,6 +2269,73 @@ function initPremium() {
     });
   });
   setTimeout(() => { if (state.health) paintHealth(state.health.score); renderRecentMini(); }, 600);
+  initAutoUpdate();
+  initOnboarding();
+}
+const ONBOARD_STEPS = [
+  { ico: '⚡', title: 'Bem-vindo ao Honest Boost', desc: 'Otimização profissional para Windows: saúde do sistema, 33 ajustes validados e rollback seguro em cada mudança.' },
+  { ico: '🔑', title: 'Ative sua licença', desc: 'Cole sua chave HB- na tela Autenticação. Sem conta, sem complicação — a ativação é vitalícia.', action: 'auth', actionLabel: 'Abrir autenticação' },
+  { ico: '🛡', title: 'Primeiro: crie segurança', desc: 'Antes de otimizar, crie um ponto de restauração. Cada otimização também gera snapshot próprio do registro.', action: 'restoration', actionLabel: 'Abrir restauração' },
+  { ico: '🚀', title: 'Execute e otimize', desc: 'Rode a varredura de saúde no Dashboard e clique em Otimizar Agora. Itens com selo admin pedem elevação.', action: 'dashboard', actionLabel: 'Ir para o dashboard' },
+];
+function initOnboarding() {
+  let step = 0;
+  const overlay = $('onboard-overlay');
+  if (!overlay) return;
+  // Só no primeiro uso real: sem licença salva e sem tour concluído
+  try {
+    if (localStorage.getItem('hb.onboarded') === '1' || localStorage.getItem('hb.key')) return;
+  } catch (e) { return; }
+  const ico = $('onboard-ico'), title = $('onboard-title'), desc = $('onboard-desc'),
+    dots = $('onboard-dots'), nextBtn = $('onboard-next'), nextLabel = $('onboard-next-label'),
+    skipBtn = $('onboard-skip');
+  const finish = () => {
+    try { localStorage.setItem('hb.onboarded', '1'); } catch (e) {}
+    overlay.classList.add('hidden');
+  };
+  const paint = () => {
+    const s = ONBOARD_STEPS[step];
+    ico.textContent = s.ico; title.textContent = s.title; desc.textContent = s.desc;
+    nextLabel.textContent = step === ONBOARD_STEPS.length - 1 ? 'Começar' : (s.action ? s.actionLabel + ' →' : 'Próximo');
+    dots.innerHTML = ONBOARD_STEPS.map((_, i) => `<span class="${i === step ? 'on' : ''}"></span>`).join('');
+  };
+  nextBtn.addEventListener('click', () => {
+    const s = ONBOARD_STEPS[step];
+    if (step === 0 && s.action === undefined) { step++; paint(); return; }
+    if (s.action) navigate(s.action);
+    if (step >= ONBOARD_STEPS.length - 1) { finish(); return; }
+    step++; paint();
+  });
+  skipBtn.addEventListener('click', finish);
+  paint();
+  setTimeout(() => overlay.classList.remove('hidden'), 1500);
+}
+function initAutoUpdate() {
+  try {
+    window.hbDesktop.onUpdateStatus((st) => {
+      if (!st) return;
+      if (st.stage === 'available') {
+        toast(`⬇ Atualização ${st.version || ''} encontrada — baixando…`, 'info');
+        addNotification('Atualização disponível', `Versão ${st.version || 'nova'} baixando em segundo plano.`, 'info');
+      } else if (st.stage === 'downloaded') {
+        toast(`✔ Atualização ${st.version || ''} pronta`, 'success');
+        addNotification('Atualização pronta', 'Reinicie o app para aplicar.', 'success');
+        if (confirm(`Atualização ${st.version || ''} baixada.\n\nReiniciar agora para aplicar?`)) {
+          window.hbDesktop.installUpdate();
+        }
+      } else if (st.stage === 'error') {
+        if (st.message && !/dev|packaged|published|404/i.test(st.message)) toast('Atualização: ' + st.message, 'warning');
+      }
+    });
+  } catch (e) {}
+  // Checagem no boot (respeita a configuração; silenciosa se em dia)
+  setTimeout(async () => {
+    try {
+      if (localStorage.getItem('hb.check-version') === 'false') return;
+      const res = await window.hbDesktop.checkForUpdates();
+      if (res && res.ok && res.available) toast(`⬇ ${res.message}`, 'info');
+    } catch (e) {}
+  }, 8000);
 }
 async function handleQuickAction(action, el) {
   if (el) { el.style.transform = 'scale(.94)'; setTimeout(() => el.style.transform = '', 160); }
@@ -2254,8 +2343,8 @@ async function handleQuickAction(action, el) {
     case 'quick-boost': toast('🚀 Aplicando Boost...', 'info'); try { const r = await window.hbDesktop.applyRecommended(); toast(r.ok ? `✔ ${(r.result?.applied || 0)} otimizações aplicadas` : 'Erro: ' + r.error, r.ok ? 'success' : 'error'); if (r.ok) addHistory('recommended', '', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
     case 'quick-clean': navigate('cleaning'); ['temp-files', 'prefetch', 'wu-cache', 'thumbnails', 'dns-cache'].forEach(id => state.selectedClean.add(id)); renderCleaning(); toast('✔ Limpeza rápida pré-selecionada', 'success'); break;
     case 'quick-game-boost': toast('🎮 Ativando Game Mode...', 'info'); try { const r = await window.hbDesktop.applyPreset('competitive'); toast(r.ok ? '✔ Game Mode ativo' : 'Erro', r.ok ? 'success' : 'error'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-flush-dns': try { await window.hbDesktop.applyOptimization('flushdns'); toast('✔ DNS renovado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-free-ram': try { await window.hbDesktop.freeRam(); toast('✔ RAM liberada', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-flush-dns': try { const r = await window.hbDesktop.applyOptimization('flushdns'); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ DNS renovado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-free-ram': try { const r = await window.hbDesktop.freeRam(); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ ' + (r.message || 'RAM liberada'), 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
     case 'quick-restart-explorer': try { await window.hbDesktop.restartExplorer(); toast('✔ Explorer reiniciado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
     case 'quick-benchmark': navigate('dashboard'); setTimeout(runBenchmark, 300); break;
     case 'goto-apps': navigate('apps'); break;

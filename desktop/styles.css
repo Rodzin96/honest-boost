@@ -559,6 +559,19 @@ button{font-family:var(--font-sans)}
 .opt-card,.app-card,.history-item,.restore-point,.backup-item,.cleaning-item{content-visibility:auto;contain-intrinsic-size:auto 120px}
 .chart-canvas{will-change:auto}
 
+/* ---------- Onboarding ---------- */
+.onboard-overlay{position:fixed;inset:0;background:rgba(5,9,18,.78);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:750;transition:opacity 220ms}
+.onboard-overlay.hidden{opacity:0;pointer-events:none}
+.onboard-card{background:linear-gradient(180deg,#1B2740,#141D31);border:1px solid var(--border-strong);border-radius:var(--radius-xl);padding:36px 40px;width:440px;max-width:92vw;text-align:center;box-shadow:var(--shadow-lg);animation:modalIn 300ms var(--spring);position:relative;overflow:hidden}
+.onboard-card::before{content:'';position:absolute;top:-70px;left:50%;transform:translateX(-50%);width:280px;height:140px;background:radial-gradient(ellipse,rgba(59,130,246,.3),transparent 70%);pointer-events:none}
+.onboard-ico{font-size:44px;margin-bottom:12px;animation:float 3s ease-in-out infinite}
+.onboard-card h2{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px}
+.onboard-card p{font-size:13px;color:var(--text-secondary);line-height:1.6;min-height:64px}
+.onboard-dots{display:flex;gap:7px;justify-content:center;margin:16px 0 20px}
+.onboard-dots span{width:8px;height:8px;border-radius:50%;background:var(--border-strong);transition:all var(--t-fast)}
+.onboard-dots span.on{width:24px;border-radius:5px;background:var(--accent-primary);box-shadow:0 0 10px var(--accent-glow)}
+.onboard-actions{display:flex;gap:10px;justify-content:space-between}
+
 /* ---------- Ripple ---------- */
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);animation:rip .55s ease-out;pointer-events:none}
 @keyframes rip{to{transform:scale(3);opacity:0}}

@@ -559,7 +559,9 @@ async function cleanItem(id) {
       'chrome-cache': () => deleteChromeCache(),
       'chrome-cookies': () => deleteChromeCookies(),
       'chrome-history': () => deleteChromeHistory(),
-      'chrome-downloads': () => deleteChromeDownloads(),
+      // 'chrome-downloads' REMOVIDO: o alvo antigo era o arquivo Preferences
+      // (apagava CONFIGURAÇÕES do Chrome, não a lista de downloads). Sem alvo
+      // seguro, a ação foi desativada — chamar retorna "não reconhecida".
       'edge-cache': () => deleteEdgeCache(),
       'edge-cookies': () => deleteEdgeCookies(),
       'firefox-cache': () => deleteFirefoxCache(),
@@ -648,12 +650,11 @@ function emptyRecycleBin() {
 function getAppDataPaths(appName) {
   const base = process.env.LOCALAPPDATA || '';
   const paths = {};
-  // Chrome
-  if (appName === 'chrome' || appName === 'chrome-cache' || appName === 'chrome-cookies' || appName === 'chrome-history' || appName === 'chrome-downloads') {
+  // Chrome (NOTA: nunca apontar 'downloads' para Preferences — ver deleteChromeDownloads)
+  if (appName === 'chrome' || appName === 'chrome-cache' || appName === 'chrome-cookies' || appName === 'chrome-history') {
     paths.cache = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'Cache');
     paths.cookies = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'Network', 'Cookies');
     paths.history = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'History');
-    paths.downloads = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'Preferences');
   }
   // Edge
   if (appName === 'edge' || appName === 'edge-cache' || appName === 'edge-cookies') {
@@ -728,12 +729,9 @@ function deleteChromeHistory() {
   }
 }
 function deleteChromeDownloads() {
-  const { execSync } = require('child_process');
-  const paths = getAppDataPaths('chrome');
-  if (paths.downloads) {
-    try { execSync(`powershell -Command "Remove-Item -Path '${paths.downloads.replace(/'/g, "''")}' -Force -ErrorAction SilentlyContinue"`,
-      { windowsHide: true, stdio: 'ignore', timeout: 10000 }); } catch {}
-  }
+  // Desativada (ver actions acima): o histórico de downloads do Chrome vive
+  // dentro do arquivo History (SQLite) — não há alvo isolado seguro.
+  throw new Error('Ação desativada por segurança.');
 }
 function deleteEdgeCache() { deleteBrowserCache('edge', 'cache'); }
 function deleteEdgeCookies() { deleteBrowserCache('edge', 'cookies'); }

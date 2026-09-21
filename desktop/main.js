@@ -95,14 +95,64 @@ ipcMain.handle('app:info', () => ({
   }
 }));
 
-// Check updates (delegate; falhas silenciosas)
-ipcMain.handle('app:check-updates', async () => {
+// Auto-update real via electron-updater (GitHub Releases).
+// Em dev (não empacotado) ou sem releases publicadas, falha com mensagem
+// amigável em vez de quebrar. Download em background + avisa para reiniciar.
+let _updaterWired = false;
+function wireUpdater() {
+  if (_updaterWired) return;
+  _updaterWired = true;
   try {
-    // Ajuste fino real e inofensivo: verifica esquema ativo
-    await registry.regQuery;
-    return { ok: true, message: 'Verificação concluída.' };
-  } catch {
-    return { ok: true, message: 'Nenhuma atualização disponível.' };
+    const { autoUpdater } = require('electron-updater');
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.on('checking-for-update', () => {
+      if (mainWindow) mainWindow.webContents.send('update:status', { stage: 'checking' });
+    });
+    autoUpdater.on('update-available', (info) => {
+      if (mainWindow) mainWindow.webContents.send('update:status', { stage: 'available', version: info.version });
+      showNotification('Honest Boost', `Atualização ${info.version} encontrada — baixando em segundo plano.`);
+    });
+    autoUpdater.on('download-progress', (p) => {
+      if (mainWindow) mainWindow.webContents.send('update:status', { stage: 'progress', percent: Math.round(p.percent || 0) });
+    });
+    autoUpdater.on('update-downloaded', (info) => {
+      if (mainWindow) mainWindow.webContents.send('update:status', { stage: 'downloaded', version: info.version });
+      showNotification('Honest Boost', 'Atualização pronta — reinicie para aplicar.');
+    });
+    autoUpdater.on('error', (err) => {
+      if (mainWindow) mainWindow.webContents.send('update:status', { stage: 'error', message: String((err && err.message) || err).slice(0, 160) });
+    });
+  } catch (e) { /* electron-updater ausente — atualizações desativadas */ }
+}
+
+ipcMain.handle('app:check-updates', async () => {
+  if (!app.isPackaged) return { ok: false, dev: true, error: 'Verificação disponível apenas no app instalado.' };
+  try {
+    wireUpdater();
+    const { autoUpdater } = require('electron-updater');
+    const res = await autoUpdater.checkForUpdates();
+    const info = res && res.updateInfo;
+    if (info && info.version && info.version !== app.getVersion()) {
+      return { ok: true, available: true, version: info.version, message: `Nova versão ${info.version} — baixando…` };
+    }
+    return { ok: true, available: false, message: 'Você já está na versão mais recente.' };
+  } catch (e) {
+    const msg = String((e && e.message) || e);
+    if (/no published versions|not found|404/i.test(msg)) {
+      return { ok: true, available: false, message: 'Nenhuma atualização publicada ainda.' };
+    }
+    return { ok: false, error: msg.slice(0, 200) };
+  }
+});
+
+ipcMain.handle('app:install-update', async () => {
+  try {
+    const { autoUpdater } = require('electron-updater');
+    autoUpdater.quitAndInstall(false, true);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String((e && e.message) || e).slice(0, 200) };
   }
 });
 
@@ -568,23 +618,38 @@ ipcMain.handle('clean:selected', async (event, ids) => {
 });
 
 // ===== RAM =====
+// Honesto: mede memória livre antes/depois em vez de prometer liberação.
+// (global.gc só existe com --expose-gc; sem ele, reporta sem alegar efeito.)
 ipcMain.handle('system:free-ram', async () => {
   try {
-    global.gc && global.gc();
-    return { ok: true, message: 'Garbage collection executado. RAM liberada.' };
+    const before = os.freemem();
+    try { global.gc && global.gc(); } catch {}
+    await new Promise((r) => setTimeout(r, 400));
+    const after = os.freemem();
+    const freedMB = Math.max(0, (after - before) / 1048576);
+    return {
+      ok: true,
+      message: `Memória livre: ${(before / 1073741824).toFixed(1)} → ${(after / 1073741824).toFixed(1)} GB (${freedMB.toFixed(0)} MB recuperados).`,
+      result: { before, after, freedMB }
+    };
   } catch (e) {
     return { ok: false, error: e.message };
   }
 });
 
 // ===== Explorer =====
+// Antes: relançava com execSync (trava o main p/ sempre, pois o explorer não sai).
+// Agora: kill sync + relançamento detached sem bloquear.
 ipcMain.handle('system:restart-explorer', async () => {
   try {
-    const { execSync } = require('child_process');
-    execSync('taskkill /F /IM explorer.exe', { windowsHide: true, stdio: 'ignore' });
+    const { execSync, spawn } = require('child_process');
+    try { execSync('taskkill /F /IM explorer.exe', { windowsHide: true, stdio: 'ignore', timeout: 15000 }); } catch {}
     setTimeout(() => {
-      try { execSync('explorer.exe', { windowsHide: true, stdio: 'ignore' }); } catch {}
-    }, 1500);
+      try {
+        const child = spawn('explorer.exe', [], { detached: true, stdio: 'ignore', windowsHide: true });
+        child.unref();
+      } catch {}
+    }, 1200);
     return { ok: true, message: 'Explorador reiniciado.' };
   } catch (e) {
     return { ok: false, error: e.message };
@@ -592,15 +657,31 @@ ipcMain.handle('system:restart-explorer', async () => {
 });
 
 // ===== Recovery estendida =====
+// Antes: wbadmin systemstatebackup (10–60min, exige destino, SEM timeout →
+// congelava o app). Agora: ponto de restauração real via Checkpoint-Computer
+// (segundos), assíncrono e com timeout.
 ipcMain.handle('recovery:create-restore-point', async (event, description) => {
+  const runPs = (script, timeout) => new Promise((resolve) => {
+    execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command', script],
+      { windowsHide: true, timeout, maxBuffer: 2 * 1024 * 1024 },
+      (err, stdout, stderr) => resolve({ err, out: String(stdout || ''), errOut: String(stderr || '') }));
+  });
   try {
-    const { execSync } = require('child_process');
-    execSync(`powershell -Command "Enable-ComputerRestore -Drive C:"`);
-    const ts = new Date().toISOString().replace(/[:.]/g, '-');
-    execSync(`wbadmin start systemstatebackup -quiet`, { windowsHide: true, stdio: 'ignore' }).toString();
+    const desc = String(description || 'Honest Boost').replace(/'/g, "''").slice(0, 100);
+    await runPs(`Enable-ComputerRestore -Drive 'C:\\'`, 30000);
+    const r = await runPs(`Checkpoint-Computer -Description '${desc}' -RestorePointType 'MODIFY_SETTINGS'`, 180000);
+    if (r.err) {
+      const msg = (r.errOut || r.err.message || '').slice(0, 220);
+      if (/privilege|privilégio|administrator|administrador/i.test(msg)) {
+        return { ok: false, error: 'Criar ponto de restauração exige administrador.' };
+      }
+      return { ok: false, error: msg || 'Falha ao criar ponto de restauração.' };
+    }
+    const ts = new Date().toISOString();
+    showNotification('Honest Boost', 'Ponto de restauração criado.');
     return { ok: true, result: { message: `Ponto "${description}" criado com sucesso.`, timestamp: ts } };
   } catch (e) {
-    return { ok: false, error: e.message };
+    return { ok: false, error: String((e && e.message) || e).slice(0, 220) };
   }
 });
 
@@ -608,12 +689,15 @@ ipcMain.handle('recovery:backup-settings', async () => {
   try {
     const path = require('path');
     const fs = require('fs');
-    const backupDir = path.join(process.env.LOCALAPPDATA, 'Honest Boost', 'backups');
+    // NOTA: main process não tem localStorage (a versão anterior lançava
+    // ReferenceError e o backup SEMPRE falhava). Aqui persiste o carimbo da
+    // sessão; preferências visuais ficam no renderer (localStorage).
+    const backupDir = path.join(process.env.LOCALAPPDATA || os.tmpdir(), 'Honest Boost', 'backups');
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
     const settings = {
-      theme: localStorage?.getItem?.('hb.theme') || 'dark',
       preset: 'custom',
       createdAt: new Date().toISOString(),
+      version: app.getVersion(),
     };
     const file = path.join(backupDir, `backup-${Date.now()}.json`);
     fs.writeFileSync(file, JSON.stringify(settings, null, 2));
@@ -671,6 +755,7 @@ function createMenu() {
 app.whenReady().then(() => {
   createWindow();
   createMenu();
+  try { wireUpdater(); } catch {}
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

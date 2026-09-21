@@ -44,9 +44,12 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Honest Boost"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Rodzin96",
+      "repo": "honest-boost",
+      "releaseType": "release"
     }
-  },
-  "publish": {
-    "provider": "github"
   }
 }

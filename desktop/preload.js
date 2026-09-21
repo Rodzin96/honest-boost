@@ -15,6 +15,12 @@ const hbDesktop = {
   restartAsAdmin: () => ipcRenderer.invoke('app:restart-admin'),
   openPlans: () => ipcRenderer.invoke('app:open-plans'),
   checkForUpdates: () => ipcRenderer.invoke('app:check-updates'),
+  installUpdate: () => ipcRenderer.invoke('app:install-update'),
+  onUpdateStatus: (cb) => {
+    const listener = (_event, payload) => { try { cb(payload); } catch {} };
+    ipcRenderer.on('update:status', listener);
+    return () => ipcRenderer.removeListener('update:status', listener);
+  },
   authenticateWithKey: (key) => ipcRenderer.invoke('app:auth', key),
   logout: () => ipcRenderer.invoke('app:logout'),
 

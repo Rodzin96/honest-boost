@@ -13,6 +13,18 @@
 <body>
   <div class="ambient" aria-hidden="true"><div class="ambient-orb orb-a"></div><div class="ambient-orb orb-b"></div><div class="ambient-orb orb-c"></div><div class="ambient-grid"></div></div>
   <div id="modal-root"></div>
+  <div id="onboard-overlay" class="onboard-overlay hidden" role="dialog" aria-modal="true" aria-label="Bem-vindo ao Honest Boost">
+    <div class="onboard-card">
+      <div class="onboard-ico" id="onboard-ico">⚡</div>
+      <h2 id="onboard-title">Bem-vindo ao Honest Boost</h2>
+      <p id="onboard-desc">Otimização profissional para Windows: saúde do sistema, 33 ajustes validados e rollback seguro.</p>
+      <div class="onboard-dots" id="onboard-dots"></div>
+      <div class="onboard-actions">
+        <button class="btn btn-ghost btn-sm" id="onboard-skip">Pular tour</button>
+        <button class="btn btn-primary" id="onboard-next"><span id="onboard-next-label">Próximo</span></button>
+      </div>
+    </div>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="tooltip" class="tooltip hidden" role="tooltip"></div>
 
