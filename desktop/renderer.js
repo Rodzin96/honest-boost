@@ -730,6 +730,7 @@ function currentOptTab() {
   return document.querySelector('#opt-tabs-bar .tab-btn.active')?.dataset.opttab || 'all';
 }
 async function doApply(id) {
+  if (!licenseGate('aplicar otimizações')) return;
   try {
     const item = allOptItems().find(o => o.id === id);
     if (item?.kind === 'guide') {
@@ -756,6 +757,7 @@ function renderOptimizationsKeepTab() {
 }
 
 async function doRemove(id) {
+  if (!licenseGate('reverter otimizações')) return;
   try {
     const res = await window.hbDesktop.removeOptimization(id);
     const msg = res.result?.message || res.message || 'Removido';
@@ -788,6 +790,7 @@ function hideProgress(doneText) {
 // "Otimizar Agora" / "Recomendadas": batch real com progresso + resumo honesto
 // (aplicadas, puladas por hardware, bloqueadas por falta de admin).
 async function runOptimizeNow() {
+  if (!licenseGate('otimizar o Windows')) return;
   showProgress('Otimizando o Windows', 'Aplicando otimizações recomendadas…', 'Isso pode levar 1–2 minutos. Não feche o app.');
   try {
     const res = await window.hbDesktop.applyRecommended();
@@ -854,6 +857,7 @@ const PRESET_NAMES = {
 };
 
 async function applyPreset(presetId) {
+  if (!licenseGate('aplicar o preset')) return;
   try {
     const res = await window.hbDesktop.applyPreset(presetId);
     if (!res.ok) throw new Error(res.error || 'Falha');
@@ -1120,6 +1124,7 @@ function confirmDangerous(ids) {
 }
 
 async function doCleanItem(id) {
+  if (!licenseGate('executar a limpeza')) return;
   if (!confirmDangerous([id])) return;
   try {
     const res = await window.hbDesktop.cleanItem(id);
@@ -1133,6 +1138,7 @@ async function doCleanItem(id) {
 async function doCleanSelected() {
   if (state.selectedClean.size === 0) { toast('Nenhum item selecionado', 'warning'); return; }
   const ids = Array.from(state.selectedClean);
+  if (!licenseGate('executar a limpeza')) return;
   if (!confirmDangerous(ids)) return;
   const totalBytes = estimateTotalSpace();
 
@@ -1228,6 +1234,7 @@ function renderSystemRestore() {
   `;
 
   list.querySelector('#btn-restore-selected')?.addEventListener('click', async () => {
+    if (!licenseGate('restaurar o sistema')) return;
     toast('Restaurando ponto de restauração...', 'info');
     try {
       const res = await window.hbDesktop.restoreRegistry();
@@ -1237,6 +1244,7 @@ function renderSystemRestore() {
   });
 
   if (createBtn) createBtn.addEventListener('click', async () => {
+    if (!licenseGate('criar pontos de restauração')) return;
     createBtn.disabled = true;
     createBtn.innerHTML = '<span class="spinner"></span> Criando...';
     try {
@@ -1267,6 +1275,7 @@ function renderTogsBackup() {
   `;
 
   if (backupBtn) backupBtn.addEventListener('click', async () => {
+    if (!licenseGate('criar backups')) return;
     backupBtn.disabled = true;
     backupBtn.innerHTML = '<span class="spinner"></span> Criando Backup...';
     try {
@@ -1278,6 +1287,7 @@ function renderTogsBackup() {
   });
 
   if (restoreBtn) restoreBtn.addEventListener('click', async () => {
+    if (!licenseGate('restaurar backups')) return;
     restoreBtn.disabled = true;
     restoreBtn.innerHTML = '<span class="spinner"></span> Restaurando...';
     try {
@@ -1452,6 +1462,7 @@ function renderAppGrid(category, query) {
     if (activeTab) renderAppGrid(activeTab.dataset.apptab, ($('app-search') || {}).value || '');
   };
   grid.querySelectorAll('[data-install]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!licenseGate('instalar aplicativos')) return;
     const app = items.find(a => a.id === btn.dataset.install);
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Instalando… (pode levar minutos)';
@@ -1465,6 +1476,7 @@ function renderAppGrid(category, query) {
     finally { await refreshAppsStatus(true); rerender(); }
   }));
   grid.querySelectorAll('[data-update]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!licenseGate('atualizar aplicativos')) return;
     const app = items.find(a => a.id === btn.dataset.update);
     btn.disabled = true;
     const old = btn.textContent;
@@ -1477,6 +1489,7 @@ function renderAppGrid(category, query) {
     finally { btn.disabled = false; btn.textContent = old; }
   }));
   grid.querySelectorAll('[data-uninstall]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!licenseGate('desinstalar aplicativos')) return;
     const app = items.find(a => a.id === btn.dataset.uninstall);
     if (!confirm(`Desinstalar ${app?.name}?`)) return;
     btn.disabled = true;
@@ -1703,6 +1716,7 @@ function renderAuth() {
       catch (e) { toast('Erro: ' + e.message, 'error'); }
     });
   }
+  try { refreshLockUI(); } catch (e) {}
 }
 
 async function doLogout() {
@@ -1823,63 +1837,23 @@ function initQuickActions() {
 
   grid.querySelectorAll('.quick-action').forEach(btn => {
     btn.addEventListener('click', async () => {
+      // Drawer legado delega ao handler único (com trava de licença).
+      // 'quick-fix-windows' só existe aqui: trata com gate antes.
       const action = btn.dataset.action;
       $('quick-actions').classList.add('hidden');
-
-      switch (action) {
-        case 'quick-clean': {
-          navigate('cleaning');
-          ['temp-files', 'prefetch', 'wu-cache', 'thumbnails', 'dns-cache'].forEach(id => state.selectedClean.add(id));
-          renderCleaning();
-          toast('✔ Itens de limpeza rápida selecionados', 'success');
-          break;
-        }
-        case 'quick-game-boost': {
-          toast('🚀 Aplicando Boost para Jogos...', 'info');
-          try {
-            const res = await window.hbDesktop.applyPreset('competitive');
-            toast(res.ok ? '✔ Boost aplicado' : 'Erro', res.ok ? 'success' : 'error');
-          } catch (e) { toast('Erro: ' + e.message, 'error'); }
-          break;
-        }
-        case 'quick-fix-windows': {
-          toast('🔧 Executando correções do Windows (SFC/DISM + limpeza)...', 'info');
-          try {
-            const res = await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']);
-            const r = res.result || {};
-            if (res.ok && r.applied > 0 && !r.failed) toast('✔ Correções concluídas', 'success');
-            else if ((r.applied || 0) > 0) toast(`✔ ${r.applied} aplicadas, ${r.failed || 0} pendentes (podem exigir admin)`, 'warning');
-            else toast('⚠️ ' + ((r.results || []).find(x => !x.ok)?.message || 'Nada aplicado — tente como administrador'), 'warning');
-          } catch (e) { toast('Erro: ' + e.message, 'error'); }
-          break;
-        }
-        case 'quick-free-ram': {
-          toast('🧠 Medindo memória...', 'info');
-          try {
-            const res = await window.hbDesktop.freeRam();
-            if (!res.ok) throw new Error(res.error || 'Falha');
-            toast('✔ ' + (res.message || 'RAM liberada'), 'success');
-          } catch (e) { toast('Erro: ' + e.message, 'error'); }
-          break;
-        }
-        case 'quick-flush-dns': {
-          toast('🌐 Flushing DNS...', 'info');
-          try {
-            const res = await window.hbDesktop.applyOptimization('flushdns');
-            if (!res.ok) throw new Error(res.error || 'Falha');
-            toast('✔ DNS flushed', 'success');
-          } catch (e) { toast('Erro: ' + e.message, 'error'); }
-          break;
-        }
-        case 'quick-restart-explorer': {
-          toast('🖥️ Reiniciando Explorador...', 'info');
-          try {
-            await window.hbDesktop.restartExplorer();
-            toast('✔ Explorer reiniciado', 'success');
-          } catch (e) { toast('Erro: ' + e.message, 'error'); }
-          break;
-        }
+      if (action === 'quick-fix-windows') {
+        if (!licenseGate('executar correções do Windows')) return;
+        toast('🔧 Executando correções do Windows (SFC/DISM + limpeza)...', 'info');
+        try {
+          const res = await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']);
+          const r = res.result || {};
+          if (res.ok && r.applied > 0 && !r.failed) toast('✔ Correções concluídas', 'success');
+          else if ((r.applied || 0) > 0) toast(`✔ ${r.applied} aplicadas, ${r.failed || 0} pendentes (podem exigir admin)`, 'warning');
+          else toast('⚠️ ' + ((r.results || []).find(x => !x.ok)?.message || 'Nada aplicado — tente como administrador'), 'warning');
+        } catch (e) { toast('Erro: ' + e.message, 'error'); }
+        return;
       }
+      await handleQuickAction(action, btn);
     });
   });
 }
@@ -2206,11 +2180,11 @@ function renderInternetPanel() {
     list.querySelectorAll('[data-apply]').forEach(b => b.addEventListener('click', () => doApply(b.dataset.apply)));
   }
   if (s) syncPremiumWidgets(s, {});
-  $('btn-dns-flush')?.addEventListener('click', async () => { try { await window.hbDesktop.applyOptimization('flushdns'); toast('✔ DNS limpo', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
-  $('btn-net-boost')?.addEventListener('click', async () => { toast('🚀 Otimizando rede...', 'info'); try { const r = await window.hbDesktop.applyBatch(['flushdns', 'system-responsiveness']); if (r.ok) toast('✔ Rede otimizada', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
+  $('btn-dns-flush')?.addEventListener('click', async () => { if (!licenseGate('limpar o DNS')) return; try { await window.hbDesktop.applyOptimization('flushdns'); toast('✔ DNS limpo', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
+  $('btn-net-boost')?.addEventListener('click', async () => { if (!licenseGate('otimizar a rede')) return; toast('🚀 Otimizando rede...', 'info'); try { const r = await window.hbDesktop.applyBatch(['flushdns', 'system-responsiveness']); if (r.ok) toast('✔ Rede otimizada', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
 }
 function renderSecurityPanel() { if (state.snapshot) syncPremiumWidgets(state.snapshot, {});
-  $('btn-sec-repair')?.addEventListener('click', async () => { toast('🔧 Reparando arquivos do Windows...', 'info'); try { await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']); toast('✔ Reparo concluído', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
+  $('btn-sec-repair')?.addEventListener('click', async () => { if (!licenseGate('reparar o sistema')) return; toast('🔧 Reparando arquivos do Windows...', 'info'); try { await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']); toast('✔ Reparo concluído', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
 }
 async function runBenchmark() {
   const scoreEl = $('bench-score'), btn = $('btn-benchmark'), qa = $('qa-bench-sub');
@@ -2270,6 +2244,7 @@ function initPremium() {
   });
   setTimeout(() => { if (state.health) paintHealth(state.health.score); renderRecentMini(); }, 600);
   initAutoUpdate();
+  initLicenseGate();
   initOnboarding();
 }
 const ONBOARD_STEPS = [
@@ -2310,6 +2285,50 @@ function initOnboarding() {
   paint();
   setTimeout(() => overlay.classList.remove('hidden'), 1500);
 }
+// ============================================================
+// Modo bloqueado: sem licença válida, ações de ESCRITA exigem ativação.
+// Leitura (dashboard, gráficos, monitor, varredura, histórico) é livre.
+// ============================================================
+function isLicensed() {
+  const info = state.info;
+  if (!info) return false;
+  if (info.lifetime) return true;
+  if (info.expiryDate) {
+    try { if (new Date(info.expiryDate).getTime() < Date.now()) return false; } catch (e) {}
+  }
+  return true;
+}
+function licenseGate(actionLabel) {
+  if (isLicensed()) return true;
+  const overlay = $('license-gate-overlay');
+  const desc = $('license-gate-desc');
+  if (desc) desc.textContent = actionLabel
+    ? `Para ${actionLabel}, ative sua licença. A visualização é livre.`
+    : 'Ative sua licença para aplicar otimizações e alterações no sistema. A visualização é livre.';
+  if (overlay) overlay.classList.remove('hidden');
+  return false;
+}
+function refreshLockUI() {
+  const locked = !isLicensed();
+  const banner = $('license-banner');
+  if (banner) banner.classList.toggle('hidden', !locked);
+  document.body.classList.toggle('locked', locked);
+}
+function initLicenseGate() {
+  $('btn-gate-close')?.addEventListener('click', () => $('license-gate-overlay')?.classList.add('hidden'));
+  $('btn-gate-activate')?.addEventListener('click', () => {
+    $('license-gate-overlay')?.classList.add('hidden');
+    navigate('auth');
+  });
+  $('btn-gate-plans')?.addEventListener('click', async () => {
+    try { await window.hbDesktop.openPlans(); } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  });
+  $('btn-banner-activate')?.addEventListener('click', () => navigate('auth'));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') $('license-gate-overlay')?.classList.add('hidden');
+  });
+  refreshLockUI();
+}
 function initAutoUpdate() {
   try {
     window.hbDesktop.onUpdateStatus((st) => {
@@ -2340,12 +2359,12 @@ function initAutoUpdate() {
 async function handleQuickAction(action, el) {
   if (el) { el.style.transform = 'scale(.94)'; setTimeout(() => el.style.transform = '', 160); }
   switch (action) {
-    case 'quick-boost': toast('🚀 Aplicando Boost...', 'info'); try { const r = await window.hbDesktop.applyRecommended(); toast(r.ok ? `✔ ${(r.result?.applied || 0)} otimizações aplicadas` : 'Erro: ' + r.error, r.ok ? 'success' : 'error'); if (r.ok) addHistory('recommended', '', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-boost': await runOptimizeNow(); break;
     case 'quick-clean': navigate('cleaning'); ['temp-files', 'prefetch', 'wu-cache', 'thumbnails', 'dns-cache'].forEach(id => state.selectedClean.add(id)); renderCleaning(); toast('✔ Limpeza rápida pré-selecionada', 'success'); break;
-    case 'quick-game-boost': toast('🎮 Ativando Game Mode...', 'info'); try { const r = await window.hbDesktop.applyPreset('competitive'); toast(r.ok ? '✔ Game Mode ativo' : 'Erro', r.ok ? 'success' : 'error'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-flush-dns': try { const r = await window.hbDesktop.applyOptimization('flushdns'); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ DNS renovado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-free-ram': try { const r = await window.hbDesktop.freeRam(); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ ' + (r.message || 'RAM liberada'), 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-restart-explorer': try { await window.hbDesktop.restartExplorer(); toast('✔ Explorer reiniciado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-game-boost': if (!licenseGate('ativar o Game Mode')) break; toast('🎮 Ativando Game Mode...', 'info'); try { const r = await window.hbDesktop.applyPreset('competitive'); toast(r.ok ? '✔ Game Mode ativo' : 'Erro', r.ok ? 'success' : 'error'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-flush-dns': if (!licenseGate('limpar o DNS')) break; try { const r = await window.hbDesktop.applyOptimization('flushdns'); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ DNS renovado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-free-ram': if (!licenseGate('liberar RAM')) break; try { const r = await window.hbDesktop.freeRam(); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ ' + (r.message || 'RAM liberada'), 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-restart-explorer': if (!licenseGate('reiniciar o Explorer')) break; try { await window.hbDesktop.restartExplorer(); toast('✔ Explorer reiniciado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
     case 'quick-benchmark': navigate('dashboard'); setTimeout(runBenchmark, 300); break;
     case 'goto-apps': navigate('apps'); break;
     case 'goto-security': navigate('security'); break;
@@ -2438,6 +2457,7 @@ async function init() {
   // Apply selected optimizations
   const applySelectedBtn = $('btn-apply-selected-opt');
   if (applySelectedBtn) applySelectedBtn.addEventListener('click', async () => {
+    if (!licenseGate('aplicar otimizações')) return;
     const ids = Array.from(state.selectedOpt);
     if (ids.length === 0) { toast('Nenhuma otimização selecionada', 'warning'); return; }
     applySelectedBtn.disabled = true;

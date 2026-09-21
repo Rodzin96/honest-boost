@@ -571,6 +571,10 @@ button{font-family:var(--font-sans)}
 .onboard-dots span{width:8px;height:8px;border-radius:50%;background:var(--border-strong);transition:all var(--t-fast)}
 .onboard-dots span.on{width:24px;border-radius:5px;background:var(--accent-primary);box-shadow:0 0 10px var(--accent-glow)}
 .onboard-actions{display:flex;gap:10px;justify-content:space-between}
+.license-banner{display:flex;align-items:center;gap:12px;padding:11px 16px;margin-bottom:16px;border-radius:13px;background:linear-gradient(90deg,rgba(245,158,11,.14),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.4);font-size:12.5px;animation:panelIn 280ms var(--ease)}
+.license-banner-ico{font-size:17px}
+.license-banner span:nth-child(2){flex:1}
+.license-banner .btn{flex-shrink:0}
 
 /* ---------- Ripple ---------- */
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);animation:rip .55s ease-out;pointer-events:none}

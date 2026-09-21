@@ -25,6 +25,18 @@
       </div>
     </div>
   </div>
+  <div id="license-gate-overlay" class="onboard-overlay hidden" role="dialog" aria-modal="true" aria-label="Recurso bloqueado">
+    <div class="onboard-card">
+      <div class="onboard-ico">🔒</div>
+      <h2>Recurso bloqueado</h2>
+      <p id="license-gate-desc">Ative sua licença para aplicar otimizações e alterações no sistema. A visualização é livre.</p>
+      <div class="onboard-actions" style="justify-content:center;gap:10px;">
+        <button class="btn btn-ghost btn-sm" id="btn-gate-close">Agora não</button>
+        <button class="btn btn-secondary btn-sm" id="btn-gate-plans">Ver planos</button>
+        <button class="btn btn-primary" id="btn-gate-activate">Ativar licença</button>
+      </div>
+    </div>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="tooltip" class="tooltip hidden" role="tooltip"></div>
 
@@ -107,6 +119,11 @@
       </aside>
 
       <main class="main-content" id="main-content">
+        <div id="license-banner" class="license-banner hidden" role="alert">
+          <span class="license-banner-ico">🔒</span>
+          <span><strong>Modo bloqueado.</strong> Ative sua licença para aplicar otimizações — a visualização é livre.</span>
+          <button class="btn btn-primary btn-sm" id="btn-banner-activate">Ativar licença</button>
+        </div>
         <!-- ================= DASHBOARD ================= -->
         <section id="panel-dashboard" class="panel active">
           <header class="panel-header">
