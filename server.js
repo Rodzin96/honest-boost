@@ -217,7 +217,9 @@ function requireAdmin(req, res, next) {
 const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 /* Rate limiters */
-const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
+  const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
+  // App desktop valida a chave no boot + no login manual; folga p/ retries e cold start.
+  const appAuthLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
 const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10 });
 const resetLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5 });
 
@@ -386,7 +388,7 @@ async function sendLicenseEmail(to, licenseKey, product) {
     from,
     to,
     subject: 'Sua licença Honest Boost chegou!',
-    text: `Olá!\n\nSua licença do plano ${product.name} está ativa.\n\nChave de licença: ${licenseKey}\n\nUse essa chave no painel para liberar o app.\n\nHonest Boost`
+    text: `Olá!\n\nSua licença do plano ${product.name} está ativa.\n\nChave de licença: ${licenseKey}\n\nPara ativar: baixe o app, abra a tela Autenticação e cole essa chave — pronto, sem criar conta.\n\nHonest Boost`
   });
 }
 
@@ -670,7 +672,7 @@ app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 /* App auth */
-app.post('/api/app/auth', asyncRoute(async (req, res) => {
+app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
   if (!dbReady) {
     try {
       await ensureDbReady();
@@ -678,31 +680,59 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
       return res.status(503).json({ error: 'database_not_ready' });
     }
   }
-  
+
   const { key, deviceInfo } = req.body;
   if (!key) return res.status(400).json({ error: 'missing_key' });
-  
+
   const keyHash = crypto.createHash('sha256').update(key).digest('hex');
   const dbKey = await getDb().dbGet('SELECT * FROM api_keys WHERE key_hash = $1', [keyHash]);
-  
-  if (!dbKey) return res.status(401).json({ error: 'key_not_found' });
-  if (dbKey.status !== 'active') return res.status(401).json({ error: 'key_' + dbKey.status });
-  if (new Date(dbKey.expires_at) < new Date()) return res.status(401).json({ error: 'key_expired' });
-  
-  await getDb().dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
-  
-  const user = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE id = $1', [dbKey.user_id]);
-  if (!user) return res.status(404).json({ error: 'user_not_found' });
 
-  const entitlement = await accountEntitlement(user.username);
-  await audit(req, 'app.auth', { keyId: dbKey.id, tier: entitlement.tier });
+  if (dbKey) {
+    if (dbKey.status !== 'active') return res.status(401).json({ error: 'key_' + dbKey.status });
+    if (new Date(dbKey.expires_at) < new Date()) return res.status(401).json({ error: 'key_expired' });
+
+    await getDb().dbRun('UPDATE api_keys SET last_used_at = $1 WHERE id = $2', [new Date().toISOString(), dbKey.id]);
+
+    const user = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE id = $1', [dbKey.user_id]);
+    if (!user) return res.status(404).json({ error: 'user_not_found' });
+
+    const entitlement = await accountEntitlement(user.username);
+    await audit(req, 'app.auth', { keyId: dbKey.id, tier: entitlement.tier });
+
+    return res.json({
+      ok: true,
+      token: key,
+      user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier: entitlement.tier },
+      expiresAt: dbKey.expires_at,
+      lifetime: false,
+      tier: entitlement.tier
+    });
+  }
+
+  // Ponte HB-: a chave entregue na compra (licenses.license_key, vitalícia)
+  // também ativa o app direto, sem exigir conta/dashboard. Chaves têm 128 bits
+  // de entropia + este endpoint tem rate limit dedicado.
+  const license = await getDb().dbGet(
+    'SELECT license_key, email, product, status FROM licenses WHERE license_key = $1',
+    [String(key).trim()]
+  );
+  if (!license || license.status !== 'active') return res.status(401).json({ error: 'key_not_found' });
+
+  const { getProduct } = require('./src/products');
+  const product = getProduct(license.product);
+  const tier = product ? product.id : 'pro';
+  const linked = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE username = $1', [license.email]);
+  await audit(req, 'app.auth', { license: license.license_key.slice(0, 12) + '…', tier });
 
   return res.json({
     ok: true,
     token: key,
-    user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier: entitlement.tier },
-    expiresAt: dbKey.expires_at,
-    tier: entitlement.tier
+    user: linked
+      ? { id: linked.id, username: linked.username, nickname: linked.nickname || null, role: linked.role, tier }
+      : { id: null, username: license.email, nickname: null, role: 'user', tier },
+    expiresAt: null,
+    lifetime: true,
+    tier
   });
 }));
 

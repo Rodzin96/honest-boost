@@ -58,7 +58,7 @@
         licenseEl.textContent = data.license;
         setStatus('licença ativa', 'status-active');
         if (titleEl) titleEl.textContent = 'Compra Concluída!';
-        if (subtitleEl) subtitleEl.textContent = 'Sua licença foi ativada. Guarde a chave abaixo.';
+        if (subtitleEl) subtitleEl.textContent = 'Sua licença foi ativada. Cole a chave abaixo na tela Autenticação do app — sem criar conta.';
         if (downloadBtn) downloadBtn.disabled = false;
         return;
       }

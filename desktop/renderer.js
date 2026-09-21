@@ -1626,8 +1626,8 @@ function renderAuth() {
     $('profile-avatar').textContent = initial;
     $('license-id').textContent = state.info.licenseId || '—';
     $('license-plan').textContent = state.info.plan || 'Pro';
-    $('license-days').textContent = state.info.daysRemaining ?? daysRemaining(state.info.expiryDate);
-    $('license-expiry').textContent = state.info.expiryDate ? new Date(state.info.expiryDate).toLocaleDateString('pt-BR') : '—';
+    $('license-days').textContent = state.info.lifetime ? '∞' : (state.info.daysRemaining ?? daysRemaining(state.info.expiryDate));
+    $('license-expiry').textContent = state.info.lifetime ? 'Vitalícia' : (state.info.expiryDate ? new Date(state.info.expiryDate).toLocaleDateString('pt-BR') : '—');
     $('license-machines').textContent = `${state.info.machinesUsed || 1}/${state.info.machineLimit || 3}`;
     $('user-name').textContent = state.info.name || 'Usuário';
     $('user-name-large').textContent = state.info.name || 'Usuário';

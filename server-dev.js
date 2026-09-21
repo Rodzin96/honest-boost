@@ -272,32 +272,64 @@ app.post('/api/app/auth', asyncRoute(async (req, res) => {
     });
   });
   
-  if (!dbKey) return res.status(401).json({ error: 'key_not_found' });
-  if (dbKey.status !== 'active') return res.status(401).json({ error: 'key_' + dbKey.status });
-  if (new Date(dbKey.expires_at) < new Date()) return res.status(401).json({ error: 'key_expired' });
-  
-  await new Promise((resolve, reject) => {
-    db.run('UPDATE api_keys SET last_used_at = ? WHERE id = ?', [new Date().toISOString(), dbKey.id],
-      (err) => { if (err) reject(err); else resolve(); }
-    );
-  });
-  
-  const user = await new Promise((resolve, reject) => {
-    db.get('SELECT id, username, nickname, role FROM users WHERE id = ?', [dbKey.user_id], (err, row) => {
+  if (dbKey) {
+    if (dbKey.status !== 'active') return res.status(401).json({ error: 'key_' + dbKey.status });
+    if (new Date(dbKey.expires_at) < new Date()) return res.status(401).json({ error: 'key_expired' });
+
+    await new Promise((resolve, reject) => {
+      db.run('UPDATE api_keys SET last_used_at = ? WHERE id = ?', [new Date().toISOString(), dbKey.id],
+        (err) => { if (err) reject(err); else resolve(); }
+      );
+    });
+
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT id, username, nickname, role FROM users WHERE id = ?', [dbKey.user_id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    if (!user) return res.status(404).json({ error: 'user_not_found' });
+
+    const entitlement = await accountEntitlement(user.username);
+
+    return res.json({
+      ok: true,
+      token: key,
+      user: { id: user.id, username: user.username, nickname: user.nickname, role: user.role, tier: entitlement.tier },
+      expiresAt: dbKey.expires_at,
+      lifetime: false,
+      tier: entitlement.tier
+    });
+  }
+
+  // Ponte HB- (dev): chave da compra ativa o app direto. Espelha a produção.
+  const license = await new Promise((resolve, reject) => {
+    db.get('SELECT license_key, email, product, status FROM licenses WHERE license_key = ?', [String(key).trim()], (err, row) => {
       if (err) reject(err);
       else resolve(row);
     });
   });
-  if (!user) return res.status(404).json({ error: 'user_not_found' });
-  
-  const entitlement = await accountEntitlement(user.username);
-  
+  if (!license || license.status !== 'active') return res.status(401).json({ error: 'key_not_found' });
+
+  const { getProduct } = require('./src/products');
+  const product = getProduct(license.product);
+  const tier = product ? product.id : 'pro';
+  const linked = await new Promise((resolve, reject) => {
+    db.get('SELECT id, username, nickname, role FROM users WHERE username = ?', [license.email], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+
   return res.json({
     ok: true,
     token: key,
-    user: { id: user.id, username: user.username, nickname: user.nickname, role: user.role, tier: entitlement.tier },
-    expiresAt: dbKey.expires_at,
-    tier: entitlement.tier
+    user: linked
+      ? { id: linked.id, username: linked.username, nickname: linked.nickname, role: linked.role, tier }
+      : { id: null, username: license.email, nickname: null, role: 'user', tier },
+    expiresAt: null,
+    lifetime: true,
+    tier
   });
 }));
 

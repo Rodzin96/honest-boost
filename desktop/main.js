@@ -169,7 +169,7 @@ ipcMain.handle('app:auth', async (event, key) => {
     if (res.offline) return { ok: false, error: 'Sem conexão com o servidor de licenças. Verifique a internet e tente de novo.', offline: true };
     return { ok: false, error: res.error };
   }
-  const { user, expiresAt, tier } = res.data;
+  const { user, expiresAt, tier, lifetime } = res.data;
   const plan = PLAN_LABELS[tier] || (tier ? tier.charAt(0).toUpperCase() + tier.slice(1) : 'Trial');
   return {
     ok: true, tier,
@@ -178,6 +178,7 @@ ipcMain.handle('app:auth', async (event, key) => {
       name: (user && (user.nickname || user.username)) || 'Usuário',
       plan, licenseId: cleanKey,
       expiryDate: expiresAt || null,
+      lifetime: lifetime === true,
       machineLimit: 3, machinesUsed: 1,
     },
   };
