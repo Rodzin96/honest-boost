@@ -1567,8 +1567,12 @@ function renderSettings() {
 
   const viewLogsBtn = $('btn-view-logs');
   const clearLogsBtn = $('btn-clear-logs');
-  if (viewLogsBtn) viewLogsBtn.addEventListener('click', () => toast(`Logs: ${state.history?.length || 0} entradas`, 'info'));
-  if (clearLogsBtn) clearLogsBtn.addEventListener('click', () => { state.history = []; localStorage.removeItem('hb.history'); toast('✔ Logs limpos', 'success'); });
+  if (viewLogsBtn) viewLogsBtn.addEventListener('click', showLogsModal);
+  if (clearLogsBtn) clearLogsBtn.addEventListener('click', () => {
+    state.history = []; state.errlog = [];
+    localStorage.removeItem('hb.history'); localStorage.removeItem('hb.errlog');
+    toast('✔ Logs limpos', 'success');
+  });
 
   // Avançado
   ['safe-mode', 'dev-mode'].forEach(id => {
@@ -1729,6 +1733,56 @@ async function doLogout() {
     renderAuth();
     navigate('auth');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+// ============================================================
+// Log local de erros (100% local — nada sai da máquina).
+// Alimenta o visualizador em Configurações → Logs (para suporte via Discord).
+// ============================================================
+state.errlog = [];
+try { state.errlog = JSON.parse(localStorage.getItem('hb.errlog') || '[]'); } catch (e) { state.errlog = []; }
+function pushErrLog(msg, src) {
+  try {
+    state.errlog.unshift({ t: new Date().toISOString(), msg: String(msg || 'erro').slice(0, 300), src: String(src || '').slice(-120) });
+    if (state.errlog.length > 50) state.errlog.length = 50;
+    localStorage.setItem('hb.errlog', JSON.stringify(state.errlog));
+  } catch (e) {}
+}
+window.addEventListener('error', (e) => pushErrLog(e.message || 'window.onerror', e.filename));
+window.addEventListener('unhandledrejection', (e) => pushErrLog((e.reason && (e.reason.message || e.reason)) || 'unhandledrejection', 'promise'));
+function showLogsModal() {
+  const root = $('modal-root');
+  if (!root) return;
+  const ops = (state.history || []).slice(0, 30).map(h =>
+    `<div class="log-row"><span class="log-time">${esc(h.date || '')} ${esc(h.time || '')}</span><span class="log-msg">${esc(h.label || h.type || '')}</span><span class="history-status ${h.status}">${esc(h.status || '')}</span></div>`
+  ).join('');
+  const errs = (state.errlog || []).map(e =>
+    `<div class="log-row"><span class="log-time">${esc((e.t || '').slice(0, 19).replace('T', ' '))}</span><span class="log-msg">${esc(e.msg || '')}</span><span class="log-src">${esc(e.src || '')}</span></div>`
+  ).join('');
+  root.innerHTML = `
+    <div class="progress-overlay" id="logs-modal">
+      <div class="progress-modal" style="width:560px;max-width:94vw;max-height:80vh;display:flex;flex-direction:column;">
+        <div class="progress-header"><div class="progress-title-wrap"><h3>Logs locais</h3></div><button class="progress-close" id="logs-close" aria-label="Fechar">✕</button></div>
+        <div class="progress-body" style="overflow-y:auto;">
+          <p class="progress-detail" style="margin-bottom:8px;">Operações (${(state.history || []).length}) e erros (${(state.errlog || []).length}) — ficam só neste PC. Copie e envie ao suporte se precisar.</p>
+          <h4 class="mini-title" style="margin:10px 0 6px;">Erros recentes</h4>
+          ${errs || '<div class="empty-state" style="padding:12px;"><div class="empty-state-desc">Nenhum erro registrado. 🎉</div></div>'}
+          <h4 class="mini-title" style="margin:14px 0 6px;">Últimas operações</h4>
+          ${ops || '<div class="empty-state" style="padding:12px;"><div class="empty-state-desc">Sem operações ainda.</div></div>'}
+        </div>
+        <div class="setting-action-row" style="margin-top:12px;">
+          <button class="btn btn-secondary btn-sm" id="logs-copy">Copiar tudo</button>
+        </div>
+      </div>
+    </div>`;
+  $('logs-close')?.addEventListener('click', () => { root.innerHTML = ''; });
+  $('logs-modal')?.addEventListener('click', (e) => { if (e.target.id === 'logs-modal') root.innerHTML = ''; });
+  $('logs-copy')?.addEventListener('click', async () => {
+    const text = 'OPERACOES:\n' + (state.history || []).slice(0, 30).map(h => `${h.date} ${h.time} [${h.status}] ${h.label}`).join('\n')
+      + '\n\nERROS:\n' + (state.errlog || []).map(e => `${e.t} ${e.msg} (${e.src})`).join('\n');
+    try { await navigator.clipboard.writeText(text); toast('✔ Logs copiados — cole no suporte', 'success'); }
+    catch (e) { toast('Erro ao copiar', 'error'); }
+  });
 }
 
 // ============================================================

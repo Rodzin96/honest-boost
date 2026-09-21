@@ -134,6 +134,27 @@
             <section class="admin-panel">
                 <div class="section-header">
                     <div>
+                        <h2 class="section-title">Dispositivos</h2>
+                        <p class="section-subtitle">PCs ativados por todos os clientes. Remover libera a vaga no ato.</p>
+                    </div>
+                    <div class="admin-actions">
+                        <button id="refreshDevicesBtn" class="btn btn-tonal">
+                            <span class="material-symbols-rounded">refresh</span>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+                <div id="devices-list" class="table-wrap">
+                    <div class="loading-state">
+                        <span class="material-symbols-rounded" style="font-size:2rem;">hourglass</span><br>
+                        Carregando dispositivos...
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-panel">
+                <div class="section-header">
+                    <div>
                         <h2 class="section-title">Licenças</h2>
                         <p class="section-subtitle">Licenças de compra (HB-…). Keys de acesso <code style="font-family:monospace;">hb_…</code> estão na seção acima.</p>
                     </div>
@@ -338,11 +359,60 @@
                 .finally(function () { btn.disabled = false; });
         });
 
+        function renderDevices(data) {
+            var list = document.getElementById('devices-list');
+            if (!list) return;
+            if (!Array.isArray(data) || !data.length) {
+                list.innerHTML = '<div class="empty-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">inbox</span><br>Nenhum dispositivo ativado ainda.</div>';
+                return;
+            }
+            var html = '<table><thead><tr><th>Cliente</th><th>Chave</th><th>PC</th><th>Plataforma</th><th>Visto por último</th><th></th></tr></thead><tbody>';
+            data.forEach(function (r) {
+                var keyLabel = String(r.key_ref || '').indexOf('lic:') === 0
+                    ? escapeHtml(String(r.key_ref).slice(4, 15) + '…') + ' <span class="status-badge status-pending">licença</span>'
+                    : escapeHtml(String(r.key_ref || '').slice(0, 8) + '…') + ' <span class="status-badge status-active">key</span>';
+                html += '<tr>' +
+                    '<td>' + escapeHtml(r.email || '-') + '</td>' +
+                    '<td style="font-family:Courier New,monospace;font-size:0.82rem;">' + keyLabel + '</td>' +
+                    '<td>' + escapeHtml(r.hostname || '-') + '</td>' +
+                    '<td>' + escapeHtml(r.platform || '-') + '</td>' +
+                    '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.last_seen || '-') + '</td>' +
+                    '<td><button class="btn btn-outlined" style="padding:0.4rem 0.7rem;" title="Remover e liberar vaga" onclick="removeDevice(\'' + escapeHtml(r.key_ref) + '\',\'' + escapeHtml(r.machine_id) + '\')"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button></td>' +
+                    '</tr>';
+            });
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
+
+        function loadDevices() {
+            var list = document.getElementById('devices-list');
+            if (!list) return;
+            fetch('/api/admin/machines', { credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (out) { renderDevices(out && out.machines); })
+                .catch(function () {
+                    list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro de conexão.</div>';
+                });
+        }
+
+        function removeDevice(keyRef, machineId) {
+            if (!window.confirm('Remover este dispositivo? Libera 1 vaga na hora.')) return;
+            fetch('/api/machines', {
+                method: 'DELETE',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyRef: keyRef, machineId: machineId })
+            }).then(function () { loadDevices(); })
+              .catch(function () { window.alert('Erro ao remover dispositivo.'); });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             load();
             loadUsers();
+            loadDevices();
             document.getElementById('refreshBtn').addEventListener('click', load);
             document.getElementById('refreshKeysBtn').addEventListener('click', loadKeys);
+            document.getElementById('refreshDevicesBtn').addEventListener('click', loadDevices);
         });
     </script>
 </body>

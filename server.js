@@ -687,19 +687,44 @@ app.get('/api/machines', requireAuth, asyncRoute(async (req, res) => {
   return res.json({ ok: true, devices: out });
 }));
 
+/* Admin: dispositivos recentes de todos os clientes (suporte). */
+app.get('/api/admin/machines', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const rows = await getDb().dbAll(
+    `SELECT m.key_ref, m.machine_id, m.hostname, m.platform, m.first_seen, m.last_seen,
+            u.username AS email
+     FROM key_machines m
+     LEFT JOIN api_keys k ON k.key_hash = m.key_ref
+     LEFT JOIN users u ON u.id = k.user_id
+     ORDER BY m.last_seen DESC LIMIT 200`
+  );
+  const out = await Promise.all(rows.map(async (r) => {
+    let email = r.email || null;
+    if (!email && String(r.key_ref).startsWith('lic:')) {
+      const lic = await getDb().dbGet('SELECT email FROM licenses WHERE license_key = $1', [String(r.key_ref).slice(4)]);
+      email = (lic && lic.email) || null;
+    }
+    return { ...r, email };
+  }));
+  return res.json({ ok: true, machines: out });
+}));
+
 app.delete('/api/machines', requireAuth, asyncRoute(async (req, res) => {
   await ensureDbReady();
   const { keyRef, machineId } = req.body || {};
   if (!keyRef || !machineId) return res.status(400).json({ error: 'missing_fields' });
   const userId = req.session.user.id;
   const email = req.session.user.username;
-  let owned = false;
-  if (String(keyRef).startsWith('lic:')) {
-    const lic = await getDb().dbGet('SELECT email FROM licenses WHERE license_key = $1', [String(keyRef).slice(4)]);
-    owned = !!lic && lic.email === email;
-  } else {
-    const k = await getDb().dbGet('SELECT user_id FROM api_keys WHERE key_hash = $1', [String(keyRef)]);
-    owned = !!k && Number(k.user_id) === Number(userId);
+  const isAdminUser = req.session.user.role === 'admin';
+  let owned = !!isAdminUser;
+  if (!owned) {
+    if (String(keyRef).startsWith('lic:')) {
+      const lic = await getDb().dbGet('SELECT email FROM licenses WHERE license_key = $1', [String(keyRef).slice(4)]);
+      owned = !!lic && lic.email === email;
+    } else {
+      const k = await getDb().dbGet('SELECT user_id FROM api_keys WHERE key_hash = $1', [String(keyRef)]);
+      owned = !!k && Number(k.user_id) === Number(userId);
+    }
   }
   if (!owned) return res.status(403).json({ error: 'forbidden' });
   await getDb().dbRun('DELETE FROM key_machines WHERE key_ref = $1 AND machine_id = $2', [String(keyRef), String(machineId)]);

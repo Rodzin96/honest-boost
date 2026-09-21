@@ -1,0 +1,39 @@
+# Release do instalador Windows (NSIS) + publicação no GitHub Releases.
+# Uso: git tag v2.0.1 && git push origin v2.0.1
+# O electron-builder anexa o .exe/.blockmap + latest.yml à Release, e o
+# auto-update do app passa a encontrar novas versões sozinho.
+name: Release desktop (Windows)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-win:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build + publish NSIS
+        run: npm run build:win -- --publish always
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
