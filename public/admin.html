@@ -113,8 +113,29 @@
             <section class="admin-panel">
                 <div class="section-header">
                     <div>
+                        <h2 class="section-title">Keys de acesso</h2>
+                        <p class="section-subtitle">Chaves <code style="font-family:monospace;">hb_…</code> geradas (app + dashboard). Revogar derruba o acesso na hora.</p>
+                    </div>
+                    <div class="admin-actions">
+                        <button id="refreshKeysBtn" class="btn btn-tonal">
+                            <span class="material-symbols-rounded">refresh</span>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+                <div id="keys-list" class="table-wrap">
+                    <div class="loading-state">
+                        <span class="material-symbols-rounded" style="font-size:2rem;">hourglass</span><br>
+                        Carregando keys...
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-panel">
+                <div class="section-header">
+                    <div>
                         <h2 class="section-title">Licenças</h2>
-                        <p class="section-subtitle">Lista atual de licenças retornadas pela API administrativa disponível.</p>
+                        <p class="section-subtitle">Licenças de compra (HB-…). Keys de acesso <code style="font-family:monospace;">hb_…</code> estão na seção acima.</p>
                     </div>
                     <div class="admin-actions">
                         <a href="/api/licenses" class="btn btn-outlined" target="_blank" rel="noreferrer">
@@ -189,6 +210,54 @@
                 .catch(function () {
                     list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro de conexão ao carregar licenças.</div>';
                 });
+            loadKeys();
+        }
+
+        function renderKeys(data) {
+            var list = document.getElementById('keys-list');
+            if (!list) return;
+            if (!Array.isArray(data)) {
+                list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro ao carregar keys.</div>';
+                return;
+            }
+            if (!data.length) {
+                list.innerHTML = '<div class="empty-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">inbox</span><br>Nenhuma key gerada ainda.</div>';
+                return;
+            }
+            var html = '<table><thead><tr><th>Prefixo</th><th>Email</th><th>Tipo</th><th>Status</th><th>Expira em</th><th>Último uso</th><th></th></tr></thead><tbody>';
+            data.forEach(function (r) {
+                html += '<tr>' +
+                    '<td style="font-family:Courier New,monospace;font-size:0.82rem;">' + escapeHtml((r.key_prefix || '') + '…') + '</td>' +
+                    '<td>' + escapeHtml(r.email || '-') + '</td>' +
+                    '<td>' + escapeHtml(r.key_type || '-') + '</td>' +
+                    '<td>' + statusBadge(r.status) + '</td>' +
+                    '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.expires_at || '-') + '</td>' +
+                    '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.last_used_at || '-') + '</td>' +
+                    '<td>' + (r.status === 'active'
+                        ? '<button class="btn btn-outlined" style="padding:0.4rem 0.7rem;" onclick="revokeAdminKey(\'' + escapeHtml(r.id) + '\')"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button>'
+                        : '') + '</td>' +
+                    '</tr>';
+            });
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
+
+        function loadKeys() {
+            var list = document.getElementById('keys-list');
+            if (!list) return;
+            fetch('/api/admin/keys', { credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (out) { renderKeys(out && out.keys); })
+                .catch(function () {
+                    list.innerHTML = '<div class="error-state-admin"><span class="material-symbols-rounded" style="font-size:2rem;">error</span><br>Erro de conexão ao carregar keys.</div>';
+                });
+        }
+
+        function revokeAdminKey(id) {
+            if (!window.confirm('Revogar esta key? O acesso cai na hora.')) return;
+            fetch('/api/admin/keys/' + encodeURIComponent(id), { method: 'DELETE', credentials: 'same-origin' })
+                .then(function () { loadKeys(); })
+                .catch(function () { window.alert('Erro ao revogar key.'); });
         }
 
         function loadUsers() {
@@ -224,6 +293,7 @@
                     if ((out.status === 201) && out.data && out.data.ok) {
                         var exp = out.data.expiresAt ? new Date(out.data.expiresAt).toLocaleString('pt-BR') : '-';
                         result.innerHTML = '<p><span class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">check_circle</span> Key gerada (válida até ' + escapeHtml(exp) + '): <code style="font-family:Courier New,monospace;">' + escapeHtml(out.data.key) + '</code></p>';
+                        loadKeys();
                     } else {
                         var msg = (out.data && out.data.error) || ('HTTP ' + out.status);
                         if (msg === 'user_not_found') msg = 'Usuário não encontrado. Confira o email ou cadastre-o.';
@@ -272,6 +342,7 @@
             load();
             loadUsers();
             document.getElementById('refreshBtn').addEventListener('click', load);
+            document.getElementById('refreshKeysBtn').addEventListener('click', loadKeys);
         });
     </script>
 </body>

@@ -1123,6 +1123,27 @@ app.post('/api/admin/keys', requireAdmin, asyncRoute(async (req, res) => {
   return res.status(201).json({ ok: true, id, key: rawKey, expiresAt, ttlHours });
 }));
 
+/* Admin: lista hb_ (api_keys) com dono + revogação. */
+app.get('/api/admin/keys', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const keys = await getDb().dbAll(
+    `SELECT k.id, k.key_prefix, k.status, k.key_type, k.created_at, k.expires_at, k.last_used_at, u.username AS email
+     FROM api_keys k LEFT JOIN users u ON u.id = k.user_id
+     ORDER BY k.created_at DESC LIMIT 200`
+  );
+  return res.json({ ok: true, keys });
+}));
+
+app.delete('/api/admin/keys/:id', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  await getDb().dbRun(
+    "UPDATE api_keys SET status = 'revoked', revoked_at = $1, revoke_reason = 'admin' WHERE id = $2",
+    [new Date().toISOString(), req.params.id]
+  );
+  await audit(req, 'key.admin-revoke', { keyId: req.params.id });
+  return res.json({ ok: true });
+}));
+
 app.post('/api/licenses/verify', asyncRoute(async (req, res) => {
   await ensureDbReady();
   const suppliedKey = req.body?.licenseKey || req.body?.license;
