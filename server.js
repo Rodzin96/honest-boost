@@ -1081,6 +1081,48 @@ app.post('/api/licenses', requireAdmin, asyncRoute(async (req, res) => {
   return res.status(201).json({ ok: true, license });
 }));
 
+/* Admin: lista usuários (para selecionar o destinatário da key). */
+app.get('/api/admin/users', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const users = await getDb().dbAll(
+    'SELECT id, username, nickname, role, created_at FROM users ORDER BY created_at DESC LIMIT 200'
+  );
+  return res.json({ ok: true, users });
+}));
+
+/* Admin: emite hb_ para qualquer usuário, com validade configurável.
+ * TTLs permitidos: 4h, 24h, 7d, 30d, 1 ano. Respeita o teto de keys ativas
+ * do plano do destinatário (admin revoga antes se precisar exceder). */
+const ADMIN_KEY_TTLS = { '4h': 4, '24h': 24, '7d': 168, '30d': 720, '1y': 8760 };
+app.post('/api/admin/keys', requireAdmin, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const email = normalizeEmail(req.body && req.body.email);
+  const ttlHours = ADMIN_KEY_TTLS[req.body && req.body.ttl];
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'invalid_email' });
+  if (!ttlHours) return res.status(400).json({ error: 'invalid_ttl' });
+  const target = await getDb().dbGet('SELECT id, username FROM users WHERE username = $1', [email]);
+  if (!target) return res.status(404).json({ error: 'user_not_found' });
+  const entitlement = await accountEntitlement(email);
+  const maxActive = Math.max(1, Number(entitlement.maxActiveKeys) || 1);
+  const activeKeys = await getDb().dbGet(
+    "SELECT COUNT(*)::int AS count FROM api_keys WHERE user_id = $1 AND status = 'active' AND expires_at > $2",
+    [target.id, new Date().toISOString()]
+  );
+  if (Number(activeKeys && activeKeys.count) >= maxActive) {
+    return res.status(409).json({ error: 'device_limit_reached', max: maxActive });
+  }
+  const rawKey = 'hb_' + crypto.randomBytes(24).toString('hex');
+  const id = uuidv4();
+  const createdAt = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + ttlHours * 3600 * 1000).toISOString();
+  await getDb().dbRun(
+    'INSERT INTO api_keys (id, user_id, key_hash, key_prefix, created_at, expires_at, status, ip_address, key_type) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+    [id, target.id, crypto.createHash('sha256').update(rawKey).digest('hex'), rawKey.slice(0, 8), createdAt, expiresAt, 'active', req.ip, 'premium']
+  );
+  await audit(req, 'key.admin-create', { userId: target.id, email, ttlHours });
+  return res.status(201).json({ ok: true, id, key: rawKey, expiresAt, ttlHours });
+}));
+
 app.post('/api/licenses/verify', asyncRoute(async (req, res) => {
   await ensureDbReady();
   const suppliedKey = req.body?.licenseKey || req.body?.license;

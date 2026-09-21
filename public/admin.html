@@ -59,6 +59,35 @@
             <section class="admin-panel">
                 <div class="section-header">
                     <div>
+                        <h2 class="section-title">Gerar key de acesso</h2>
+                        <p class="section-subtitle">Cria uma <code style="font-family:monospace;">hb_…</code> para qualquer usuário, com a validade que você escolher. A key entra direto no app.</p>
+                    </div>
+                </div>
+                <form id="key-form" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem;">
+                    <label style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem;">Email do usuário
+                        <input id="key-email" type="email" required placeholder="cliente@email.com" class="input-field" style="min-width:240px;" list="users-list">
+                        <datalist id="users-list"></datalist>
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem;">Validade
+                        <select id="key-ttl" class="input-field">
+                            <option value="4h">4 horas</option>
+                            <option value="24h" selected>24 horas</option>
+                            <option value="7d">7 dias</option>
+                            <option value="30d">30 dias</option>
+                            <option value="1y">1 ano</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-filled" id="key-btn">
+                        <span class="material-symbols-rounded">key</span>
+                        Gerar key
+                    </button>
+                </form>
+                <div id="key-result" aria-live="polite" style="margin-bottom:1rem;"></div>
+            </section>
+
+            <section class="admin-panel">
+                <div class="section-header">
+                    <div>
                         <h2 class="section-title">Emitir licença</h2>
                         <p class="section-subtitle">Cria uma licença ativa (HB-…) que já entra direto no app. O cliente usa o email da compra para gerenciar dispositivos.</p>
                     </div>
@@ -162,6 +191,52 @@
                 });
         }
 
+        function loadUsers() {
+            fetch('/api/admin/users', { credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (out) {
+                    if (!out || !out.ok || !Array.isArray(out.users)) return;
+                    var dl = document.getElementById('users-list');
+                    dl.innerHTML = out.users.map(function (u) {
+                        return '<option value="' + escapeHtml(u.username) + '">' + escapeHtml((u.nickname || u.username) + ' • ' + u.username) + '</option>';
+                    }).join('');
+                })
+                .catch(function () {});
+        }
+
+        document.getElementById('key-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var email = document.getElementById('key-email').value.trim();
+            var ttl = document.getElementById('key-ttl').value;
+            var result = document.getElementById('key-result');
+            var btn = document.getElementById('key-btn');
+            if (!email) return;
+            btn.disabled = true;
+            result.innerHTML = '<p class="text-muted">Gerando key...</p>';
+            fetch('/api/admin/keys', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, ttl: ttl })
+            })
+                .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
+                .then(function (out) {
+                    if ((out.status === 201) && out.data && out.data.ok) {
+                        var exp = out.data.expiresAt ? new Date(out.data.expiresAt).toLocaleString('pt-BR') : '-';
+                        result.innerHTML = '<p><span class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">check_circle</span> Key gerada (válida até ' + escapeHtml(exp) + '): <code style="font-family:Courier New,monospace;">' + escapeHtml(out.data.key) + '</code></p>';
+                    } else {
+                        var msg = (out.data && out.data.error) || ('HTTP ' + out.status);
+                        if (msg === 'user_not_found') msg = 'Usuário não encontrado. Confira o email ou cadastre-o.';
+                        if (msg === 'device_limit_reached') msg = 'Usuário atingiu o teto de keys ativas do plano. Revogue uma antes.';
+                        result.innerHTML = '<p class="text-muted">Falha: ' + escapeHtml(msg) + '</p>';
+                    }
+                })
+                .catch(function () {
+                    result.innerHTML = '<p class="text-muted">Erro de conexão. Tente novamente.</p>';
+                })
+                .finally(function () { btn.disabled = false; });
+        });
+
         document.getElementById('issue-form').addEventListener('submit', function (e) {
             e.preventDefault();
             var email = document.getElementById('issue-email').value.trim();
@@ -195,6 +270,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             load();
+            loadUsers();
             document.getElementById('refreshBtn').addEventListener('click', load);
         });
     </script>
