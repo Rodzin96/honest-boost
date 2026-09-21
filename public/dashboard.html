@@ -712,7 +712,7 @@
                     <div class="section-header">
                         <div>
                             <h2 class="section-title">Minhas keys</h2>
-                            <p class="section-subtitle">Gere e acompanhe chaves temporárias para uso no aplicativo.</p>
+                            <p class="section-subtitle">Gere e acompanhe chaves de acesso ao aplicativo.</p>
                         </div>
                         <button class="btn btn-filled" id="generate-key-btn">
                             <span class="material-symbols-rounded">add</span>
@@ -725,8 +725,7 @@
                         <div id="keys-list" class="keys-list">
                             <div class="empty-state">
                                 <span class="material-symbols-rounded">key_off</span>
-                                <p>Nenhuma key ativa</p>
-                                <p style="font-size:0.85rem;">Gere uma nova key para começar.</p>
+                                <p>Carregando suas keys…</p>
                             </div>
                         </div>
                     </div>
@@ -862,11 +861,11 @@
                 </div>
                 <p class="modal-info">
                     <span class="material-symbols-rounded">schedule</span>
-                    Expira em <strong id="key-expires">4 horas</strong>
+                    Expira em <strong id="key-expires">—</strong>
                 </p>
                 <p class="modal-info" id="key-type-info">
                     <span class="material-symbols-rounded">info</span>
-                    Tipo: <strong id="key-type-label">Trial</strong>
+                    Tipo: <strong id="key-type-label">Licença</strong>
                 </p>
             </div>
             <div class="modal-footer">

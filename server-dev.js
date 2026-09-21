@@ -212,7 +212,10 @@ app.post('/api/logout', (req, res) => {
 app.post('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   const userId = req.session.user.id;
   const entitlement = await accountEntitlement(req.session.user.username);
-  
+  if (!entitlement.license) {
+    return res.status(403).json({ error: 'license_required' });
+  }
+
   const activeKeys = await new Promise((resolve, reject) => {
     db.get('SELECT COUNT(*) as count FROM api_keys WHERE user_id = ? AND status = ? AND expires_at > ?',
       [userId, 'active', new Date().toISOString()],
@@ -349,13 +352,14 @@ async function accountEntitlement(email) {
   const license = await activeLicenseForEmail(email);
   const product = license ? require('./src/products').getProduct(license.product) : null;
   const isPremium = Boolean(license && product);
+  // Sem período de teste: só licença ativa gera keys.
   return {
     license,
     product,
     tier: isPremium ? product.id : 'trial',
-    keyType: isPremium ? 'premium' : 'trial',
-    maxActiveKeys: isPremium ? (product.seats || 1) : 1,
-    keyTtlMs: isPremium ? 365 * 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000
+    keyType: isPremium ? 'premium' : null,
+    maxActiveKeys: isPremium ? (product.seats || 1) : 0,
+    keyTtlMs: isPremium ? 365 * 24 * 60 * 60 * 1000 : 0
   };
 }
 

@@ -6,6 +6,7 @@
   let currentUser = null;
   let keys = [];
   let maxActiveKeys = 1;
+  let hasLicense = false;
 
   const sidebar = document.getElementById('sidebar');
   const themeToggle = document.getElementById('theme-toggle');
@@ -98,7 +99,21 @@
     generateKeyBtn.addEventListener('click', generateKey);
   }
 
+  function updateGenerateButton() {
+    if (!generateKeyBtn) return;
+    if (hasLicense) {
+      generateKeyBtn.innerHTML = '<span class="material-symbols-rounded">add</span> Gerar nova key';
+    } else {
+      generateKeyBtn.innerHTML = '<span class="material-symbols-rounded">shopping_cart</span> Ver planos';
+    }
+  }
+
   async function generateKey() {
+    // Sem licença ativa não há trial: direciona para os planos.
+    if (!hasLicense) {
+      window.location.href = '/planos.html';
+      return;
+    }
     const activeKeys = keys.filter(k => k.status === 'active').length;
     if (activeKeys >= maxActiveKeys) {
       window.alert('Você já possui ' + maxActiveKeys + ' key(s) ativa(s). Revogue uma antes de gerar outra.');
@@ -114,6 +129,11 @@
         if (Number(result.maxActive) > 0) maxActiveKeys = Number(result.maxActive);
         showKeyModal(result.key, result.expiresAt, result.type);
         await loadKeys();
+      } else if (result.error === 'license_required') {
+        hasLicense = false;
+        updateGenerateButton();
+        window.alert('Você precisa de uma licença ativa para gerar keys.');
+        window.location.href = '/planos.html';
       } else {
         window.alert(window.HB?.errorMessage ? window.HB.errorMessage(result, 'Erro ao gerar key.') : (result.error || 'Erro ao gerar key.'));
       }
@@ -122,7 +142,7 @@
     }
 
     generateKeyBtn.disabled = false;
-    generateKeyBtn.innerHTML = '<span class="material-symbols-rounded">add</span> Gerar nova key';
+    updateGenerateButton();
   }
 
   function showKeyModal(key, expiresAt, keyType) {
@@ -135,7 +155,7 @@
     const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
     if (keyExpiresEl) keyExpiresEl.textContent = hours + 'h ' + minutes + 'min';
     const typeLabel = document.getElementById('key-type-label');
-    if (typeLabel) typeLabel.textContent = keyType === 'premium' ? 'Premium (1 ano)' : 'Trial (4 horas)';
+    if (typeLabel) typeLabel.textContent = keyType === 'premium' ? 'Premium (1 ano)' : String(keyType || 'Licença');
     keyModal.classList.add('open');
   }
 
@@ -213,12 +233,14 @@
     try {
       const result = await api('/api/keys');
       if (result.ok) {
+        hasLicense = !!result.license;
         if (Number(result.maxActive) > 0) maxActiveKeys = Number(result.maxActive);
+        updateGenerateButton();
         keys = (result.keys || []).map(normalizeKey);
         renderKeys();
         const activeCount = keys.filter(k => k.status === 'active').length;
         setText('stat-active-keys', String(activeCount));
-        setText('keys-count', activeCount + '/' + maxActiveKeys);
+        setText('keys-count', hasLicense ? activeCount + '/' + maxActiveKeys : String(activeCount));
         renderUsageFromKeys();
       }
     } catch (e) {
@@ -245,8 +267,10 @@
       keysList.innerHTML = [
         '<div class="empty-state">',
         '<span class="material-symbols-rounded">key_off</span>',
-        '<p>Nenhuma key ativa</p>',
-        '<p style="font-size:0.85rem;">Gere uma nova key para começar.</p>',
+        hasLicense ? '<p>Nenhuma key ativa</p>' : '<p>Nenhuma licença ativa</p>',
+        hasLicense
+          ? '<p style="font-size:0.85rem;">Gere uma nova key para começar.</p>'
+          : '<p style="font-size:0.85rem;">Adquira um plano para gerar keys de ativação.</p>',
         '</div>'
       ].join('');
       return;
