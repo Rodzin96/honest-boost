@@ -159,6 +159,19 @@ async function initSchema() {
     
     ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS key_type TEXT DEFAULT 'trial';
     
+    -- Dispositivos ativados por chave (limite de máquinas do plano).
+    -- key_ref: api_keys.key_hash ou 'lic:' + licenses.license_key.
+    CREATE TABLE IF NOT EXISTS key_machines (
+      key_ref TEXT NOT NULL,
+      machine_id TEXT NOT NULL,
+      hostname TEXT,
+      platform TEXT,
+      first_seen TEXT NOT NULL,
+      last_seen TEXT NOT NULL,
+      PRIMARY KEY (key_ref, machine_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_key_machines_ref ON key_machines(key_ref);
+
     CREATE TABLE IF NOT EXISTS audit_logs (
       id SERIAL PRIMARY KEY,
       user_id INTEGER,

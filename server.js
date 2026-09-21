@@ -388,7 +388,7 @@ async function sendLicenseEmail(to, licenseKey, product) {
     from,
     to,
     subject: 'Sua licença Honest Boost chegou!',
-    text: `Olá!\n\nSua licença do plano ${product.name} está ativa.\n\nChave de licença: ${licenseKey}\n\nPara ativar: baixe o app, abra a tela Autenticação e cole essa chave — pronto, sem criar conta.\n\nHonest Boost`
+    text: `Olá!\n\nSua licença do plano ${product.name} está ativa.\n\nChave de licença: ${licenseKey}\n\nPara ativar: baixe o app, abra a tela Autenticação e cole essa chave — pronto, sem criar conta.\n\nGerencie seus dispositivos (limite do plano) em ${process.env.PUBLIC_BASE_URL || 'https://honest-boost.onrender.com'}/dashboard.\n\nHonest Boost`
   });
 }
 
@@ -662,6 +662,48 @@ app.get('/api/keys', requireAuth, asyncRoute(async (req, res) => {
   });
 }));
 
+/* Dispositivos por chave/licença do usuário + remoção (libera seat). */
+app.get('/api/machines', requireAuth, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const userId = req.session.user.id;
+  const email = req.session.user.username;
+  const myKeys = await getDb().dbAll('SELECT key_hash, key_prefix, key_type FROM api_keys WHERE user_id = $1', [userId]);
+  const myLicenses = await getDb().dbAll("SELECT license_key, product, status FROM licenses WHERE email = $1 AND status = 'active'", [email]);
+  const refs = [
+    ...myKeys.map(k => ({ ref: k.key_hash, label: (k.key_prefix || 'hb_') + '…', kind: 'key', detail: k.key_type || '' })),
+    ...myLicenses.map(l => ({ ref: 'lic:' + l.license_key, label: l.license_key.slice(0, 11) + '…', kind: 'license', detail: l.product || '' })),
+  ];
+  const out = [];
+  for (const r of refs) {
+    const machines = await getDb().dbAll(
+      'SELECT machine_id, hostname, platform, first_seen, last_seen FROM key_machines WHERE key_ref = $1 ORDER BY last_seen DESC',
+      [r.ref]
+    );
+    out.push({ ...r, machines });
+  }
+  return res.json({ ok: true, devices: out });
+}));
+
+app.delete('/api/machines', requireAuth, asyncRoute(async (req, res) => {
+  await ensureDbReady();
+  const { keyRef, machineId } = req.body || {};
+  if (!keyRef || !machineId) return res.status(400).json({ error: 'missing_fields' });
+  const userId = req.session.user.id;
+  const email = req.session.user.username;
+  let owned = false;
+  if (String(keyRef).startsWith('lic:')) {
+    const lic = await getDb().dbGet('SELECT email FROM licenses WHERE license_key = $1', [String(keyRef).slice(4)]);
+    owned = !!lic && lic.email === email;
+  } else {
+    const k = await getDb().dbGet('SELECT user_id FROM api_keys WHERE key_hash = $1', [String(keyRef)]);
+    owned = !!k && Number(k.user_id) === Number(userId);
+  }
+  if (!owned) return res.status(403).json({ error: 'forbidden' });
+  await getDb().dbRun('DELETE FROM key_machines WHERE key_ref = $1 AND machine_id = $2', [String(keyRef), String(machineId)]);
+  await audit(req, 'machine.remove', { keyRef: String(keyRef).slice(0, 14) + '…', machineId: String(machineId).slice(0, 12) });
+  return res.json({ ok: true });
+}));
+
 app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
   if (!dbReady) return res.json({ ok: true });
   
@@ -672,6 +714,36 @@ app.delete('/api/keys/:id', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 /* App auth */
+/* Limite de máquinas do plano (seats). Registra o dispositivo na ativação;
+ * máquinas novas além do limite são recusadas SEM gravar (evita lotar seats).
+ * keyRef: api_keys.key_hash ou 'lic:' + licenses.license_key. */
+async function checkMachineSlot({ keyRef, seats, deviceInfo }) {
+  const machineId = String((deviceInfo && deviceInfo.machineId) || 'unknown').slice(0, 128);
+  const hostname = String((deviceInfo && deviceInfo.hostname) || '').slice(0, 128);
+  const platform = String((deviceInfo && deviceInfo.platform) || '').slice(0, 32);
+  const now = new Date().toISOString();
+  const known = await getDb().dbGet(
+    'SELECT machine_id FROM key_machines WHERE key_ref = $1 AND machine_id = $2',
+    [keyRef, machineId]
+  );
+  if (known) {
+    await getDb().dbRun(
+      'UPDATE key_machines SET last_seen = $3, hostname = $4, platform = $5 WHERE key_ref = $1 AND machine_id = $2',
+      [keyRef, machineId, now, hostname, platform]
+    );
+    const used = await getDb().dbGet('SELECT COUNT(*)::int AS count FROM key_machines WHERE key_ref = $1', [keyRef]);
+    return { over: false, used: Number(used && used.count) || 1, max: seats, machineId };
+  }
+  const counted = await getDb().dbGet('SELECT COUNT(*)::int AS count FROM key_machines WHERE key_ref = $1', [keyRef]);
+  const used = Number(counted && counted.count) || 0;
+  if (used >= seats) return { over: true, used, max: seats, machineId };
+  await getDb().dbRun(
+    'INSERT INTO key_machines (key_ref, machine_id, hostname, platform, first_seen, last_seen) VALUES ($1,$2,$3,$4,$5,$5)',
+    [keyRef, machineId, hostname, platform, now]
+  );
+  return { over: false, used: used + 1, max: seats, machineId };
+}
+
 app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
   if (!dbReady) {
     try {
@@ -697,6 +769,12 @@ app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
     if (!user) return res.status(404).json({ error: 'user_not_found' });
 
     const entitlement = await accountEntitlement(user.username);
+    const seats = Math.max(1, Number(entitlement.product && entitlement.product.seats) || 1);
+    const slot = await checkMachineSlot({ keyRef: keyHash, seats, deviceInfo });
+    if (slot.over) {
+      await audit(req, 'app.auth.denied', { keyId: dbKey.id, used: slot.used, max: slot.max });
+      return res.status(403).json({ error: 'device_limit_reached', max: slot.max, used: slot.used });
+    }
     await audit(req, 'app.auth', { keyId: dbKey.id, tier: entitlement.tier });
 
     return res.json({
@@ -705,7 +783,8 @@ app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
       user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier: entitlement.tier },
       expiresAt: dbKey.expires_at,
       lifetime: false,
-      tier: entitlement.tier
+      tier: entitlement.tier,
+      machines: { used: slot.used, max: slot.max }
     });
   }
 
@@ -721,6 +800,12 @@ app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
   const { getProduct } = require('./src/products');
   const product = getProduct(license.product);
   const tier = product ? product.id : 'pro';
+  const seats = Math.max(1, Number(product && product.seats) || 1);
+  const slot = await checkMachineSlot({ keyRef: 'lic:' + license.license_key, seats, deviceInfo: deviceInfo });
+  if (slot.over) {
+    await audit(req, 'app.auth.denied', { license: license.license_key.slice(0, 12) + '…', used: slot.used, max: slot.max });
+    return res.status(403).json({ error: 'device_limit_reached', max: slot.max, used: slot.used });
+  }
   const linked = await getDb().dbGet('SELECT id, username, nickname, role FROM users WHERE username = $1', [license.email]);
   await audit(req, 'app.auth', { license: license.license_key.slice(0, 12) + '…', tier });
 
@@ -732,7 +817,8 @@ app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
       : { id: null, username: license.email, nickname: null, role: 'user', tier },
     expiresAt: null,
     lifetime: true,
-    tier
+    tier,
+    machines: { used: slot.used, max: slot.max }
   });
 }));
 

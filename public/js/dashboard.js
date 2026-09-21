@@ -39,6 +39,7 @@
     currentUser = authInfo.user || null;
     updateUI();
     await loadKeys();
+    await loadMachines();
     renderUsageFallback();
     renderActivityFallback();
   }
@@ -320,6 +321,82 @@
       else window.alert('Não foi possível revogar a key.');
     } catch (e) {
       window.alert('Erro ao revogar key.');
+    }
+  };
+
+  function escapeAttr(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  async function loadMachines() {
+    var list = document.getElementById('devices-list');
+    if (!list) return;
+    try {
+      const result = await api('/api/machines');
+      if (!result.ok) throw new Error('load_failed');
+      renderMachines(result.devices || []);
+    } catch (e) {
+      list.innerHTML = [
+        '<div class="empty-state">',
+        '<span class="material-symbols-rounded">error</span>',
+        '<p>Não foi possível carregar os dispositivos</p>',
+        '<p style="font-size:0.85rem;">Tente recarregar a página.</p>',
+        '</div>'
+      ].join('');
+    }
+  }
+
+  function renderMachines(groups) {
+    var list = document.getElementById('devices-list');
+    if (!list) return;
+    var total = groups.reduce(function (n, g) { return n + (g.machines || []).length; }, 0);
+    if (!total) {
+      list.innerHTML = [
+        '<div class="empty-state">',
+        '<span class="material-symbols-rounded">devices</span>',
+        '<p>Nenhum dispositivo ativado</p>',
+        '<p style="font-size:0.85rem;">Ative o app com sua chave para vê-lo aqui.</p>',
+        '</div>'
+      ].join('');
+      return;
+    }
+    list.innerHTML = groups.map(function (g) {
+      if (!g.machines || !g.machines.length) return '';
+      return [
+        '<div class="keys-limit" style="margin-top:0.6rem;">' + escapeHtml(g.label) + ' <span style="opacity:.65;">(' + escapeHtml(g.kind === 'license' ? 'licença' : 'key') + (g.detail ? ' • ' + escapeHtml(g.detail) : '') + ')</span></div>',
+        g.machines.map(function (m) {
+          return [
+            '<div class="key-item active">',
+            '<div class="key-info">',
+            '<div class="key-prefix"><span class="material-symbols-rounded" style="font-size:18px;">computer</span> ' + escapeHtml(m.hostname || 'PC desconhecido') + '</div>',
+            '<div class="key-meta">',
+            '<span><span class="material-symbols-rounded" style="font-size:14px;">dns</span> ' + escapeHtml(m.platform || '—') + '</span>',
+            '<span><span class="material-symbols-rounded" style="font-size:14px;">touch_app</span> visto ' + escapeHtml(formatDate(m.last_seen)) + '</span>',
+            '</div>',
+            '</div>',
+            '<div class="key-status">',
+            '<button class="btn btn-outlined" style="padding:0.55rem 0.85rem;" title="Remover dispositivo e liberar vaga" onclick="removeMachine(\'' + escapeAttr(g.ref) + '\',\'' + escapeAttr(m.machine_id) + '\')"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button>',
+            '</div>',
+            '</div>'
+          ].join('');
+        }).join('')
+      ].join('');
+    }).join('');
+  }
+
+  window.removeMachine = async function (keyRef, machineId) {
+    if (!window.confirm('Remover este dispositivo? Ele precisará ativar a chave de novo.')) return;
+    try {
+      const result = await api('/api/machines', {
+        method: 'DELETE',
+        body: { keyRef: keyRef, machineId: machineId }
+      });
+      if (result.ok) await loadMachines();
+      else window.alert('Não foi possível remover o dispositivo.');
+    } catch (e) {
+      window.alert('Erro ao remover dispositivo.');
     }
   };
 

@@ -111,6 +111,26 @@ ipcMain.handle('app:check-updates', async () => {
 // verdadeiros do banco (api_keys.expires_at). Sem trial local.
 const API_BASE = (process.env.HONEST_BOOST_API_BASE_URL || 'https://honest-boost.onrender.com').replace(/\/+$/, '');
 
+// ID estável por máquina (arquivo em userData — sobrevive a reinstalações do
+// perfil e não muda como hostname). Usado no limite de máquinas do plano.
+function getMachineId() {
+  try {
+    const fs = require('fs');
+    const dir = app.getPath('userData');
+    const file = path.join(dir, 'machine-id');
+    if (fs.existsSync(file)) {
+      const saved = fs.readFileSync(file, 'utf8').trim();
+      if (saved) return saved;
+    }
+    const id = require('crypto').randomUUID();
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(file, id);
+    return id;
+  } catch {
+    return os.hostname() + '-' + process.platform;
+  }
+}
+
 async function validateKeyOnline(key) {
   // Até 2 tentativas: o plano free do Render dorme e o cold start pode
   // estourar o 1º timeout — a 2ª costuma responder com ele já acordado.
@@ -122,7 +142,7 @@ async function validateKeyOnline(key) {
       const resp = await fetch(`${API_BASE}/api/app/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, deviceInfo: { hostname: os.hostname(), platform: process.platform } }),
+        body: JSON.stringify({ key, deviceInfo: { machineId: getMachineId(), hostname: os.hostname(), platform: process.platform, arch: os.arch() } }),
         signal: ctrl.signal,
       });
       clearTimeout(timer);
@@ -142,6 +162,10 @@ async function validateKeyOnline(key) {
           database_not_ready: 'Servidor iniciando — tente novamente em instantes.',
         }[data.error] || `Falha na validação (${data.error}).`;
         return { ok: false, error: friendly, code: data.error };
+      }
+      if (resp.status === 403 && data.error === 'device_limit_reached') {
+        const max = Number(data.max) || '?', used = Number(data.used) || '?';
+        return { ok: false, error: `Limite de máquinas atingido (${used}/${max}). Remova um dispositivo no dashboard (Meu perfil → Dispositivos) ou fale com o suporte.`, code: data.error };
       }
       return { ok: false, error: `Servidor de licenças indisponível (HTTP ${resp.status}). Tente mais tarde.`, offline: true, code: `http_${resp.status}` };
     }
@@ -169,7 +193,7 @@ ipcMain.handle('app:auth', async (event, key) => {
     if (res.offline) return { ok: false, error: 'Sem conexão com o servidor de licenças. Verifique a internet e tente de novo.', offline: true };
     return { ok: false, error: res.error };
   }
-  const { user, expiresAt, tier, lifetime } = res.data;
+  const { user, expiresAt, tier, lifetime, machines } = res.data;
   const plan = PLAN_LABELS[tier] || (tier ? tier.charAt(0).toUpperCase() + tier.slice(1) : 'Trial');
   return {
     ok: true, tier,
@@ -179,7 +203,8 @@ ipcMain.handle('app:auth', async (event, key) => {
       plan, licenseId: cleanKey,
       expiryDate: expiresAt || null,
       lifetime: lifetime === true,
-      machineLimit: 3, machinesUsed: 1,
+      machineLimit: Number(machines && machines.max) || 3,
+      machinesUsed: Number(machines && machines.used) || 1,
     },
   };
 });
