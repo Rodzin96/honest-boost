@@ -1600,11 +1600,11 @@ function renderSettings() {
     }
   });
 
-  // Sobre
+  // Sobre (versão real do app instalado)
   const aboutTab = $('tab-about');
   if (aboutTab) {
-    const versionEl = aboutTab.querySelector('.about-version');
-    if (versionEl) versionEl.textContent = 'Versão 2.0.0 — Honest Boost';
+    const versionEl = $('about-version');
+    if (versionEl) versionEl.textContent = `Versão ${state.appVersion || '…'} — Performance Intelligence Platform`;
     const logoText = aboutTab.querySelector('.about-logo .logo-text');
     if (logoText) logoText.textContent = 'Honest Boost';
     const copyright = aboutTab.querySelector('.about-copyright');
@@ -2628,6 +2628,18 @@ async function init() {
 
   renderAuth();
 
+  // Versão real do app instalado (sidebar, sobre, notificações)
+  try {
+    const info = await window.hbDesktop.getInfo();
+    if (info && info.ok && info.info && info.info.version) {
+      state.appVersion = info.info.version;
+      const sv = $('sidebar-version');
+      if (sv) sv.textContent = `v${state.appVersion} • PRO`;
+      const av = $('about-version');
+      if (av) av.textContent = `Versão ${state.appVersion} — Performance Intelligence Platform`;
+    }
+  } catch (e) { /* silent */ }
+
   // Primeiro snapshot
   try {
     const res = await window.hbDesktop.getSnapshot();
@@ -2666,7 +2678,7 @@ async function init() {
   startSnapshotPolling(1500);
 
   // Notification inicial
-  addNotification('Honest Boost iniciado', 'v2.0.0 — Sistema completo de otimização de Windows', 'info');
+  addNotification('Honest Boost iniciado', `v${state.appVersion || '?'} — Sistema completo de otimização de Windows`, 'info');
   updateNotifyBadge();
 }
 
