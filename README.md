@@ -1,147 +1,132 @@
-# Honest Boost — Local Development
+# Honest Boost — Otimizador de Windows + plataforma de licenças
 
-This project includes a static frontend (in `public/`) and a small Express backend that provides:
+Monorepo com o **site + backend de licenças/pagamentos** (Express + PostgreSQL) e o
+**aplicativo desktop** (Electron) — o otimizador profissional de Windows.
 
-- Static hosting for the site (`public/`)
-- `/api/download` endpoint with download info
-- `/api/create-checkout-session` creates a Stripe Checkout session (returns the hosted checkout URL)
-- `/api/licenses` to generate and list licenses
-- `/api/orders` to fetch order + license status (success page)
-- `/webhook` verifies Stripe signatures and activates the license on `checkout.session.completed`
+- Site e checkout em `public/` (landing, planos, checkout Pix/cartão, login, dashboard do cliente, `/admin`)
+- API Express em `server.js` (`/api/*`, webhooks Stripe/InfinitePay, licenças vitalícias `HB-…`, keys de ativação `hb_…`)
+- App desktop em `desktop/` (Electron + NSIS, auto-update via GitHub Releases)
 
-Quick start
+> Não há período de teste: os planos são de **pagamento único** (Básico 1 PC, Pro 3 PCs).
+> A chave entregue na compra (`HB-…`, vitalícia) **ativa direto no app**, sem criar conta.
 
-1. Install dependencies
+## Início rápido (dev local)
 
 ```bash
 npm install
-```
-
-2. Initialize the database
-
-```bash
-npm run init-db
-```
-
-3. Start the server
-
-```bash
 npm start
 ```
 
-4. Open `http://localhost:3000` in your browser. Admin licenses: `http://localhost:3000/admin.html`
+Abra `http://localhost:3000`. O schema do Postgres é criado sozinho no boot
+(`initSchema` + migrações `IF NOT EXISTS`); sem `DATABASE_URL`, rotas de dados
+retornam `database_not_ready`, mas o site estático e o `/health` funcionam.
 
-Notes
+Scripts úteis:
 
-- To enable real Stripe integration set `STRIPE_SECRET` and `PAYMENT_WEBHOOK_SECRET` in `.env`, then register `POST /webhook` in the Stripe Dashboard (event: `checkout.session.completed`).
-- The checkout charges the catalog amount in `src/products.js` (BRL, one-time/lifetime). It uses the live Stripe catalog Prices embedded as defaults in that file; set `STRIPE_PRICE_BASIC|STARTER|PRO` to override.
-- Stripe Tax is **not available for Brazil-based accounts** yet (see Stripe docs). Keep `ENABLE_STRIPE_TAX` off; Brazilian digital-goods taxes (ICMS/ISS) must be handled externally (nota fiscal / accountant). The env var only exists for when Stripe expands support.
-- Pix appears automatically in Checkout once Stripe releases it for the account (new accounts get Pix only after ~60 days/onboarding validation). No code change needed — the checkout never hardcodes `payment_method_types`.
-- Checkout always collects billing address + tax id (CPF/CNPJ) for Brazilian receipts.
-- Replace the placeholder download file in `public/downloads/` with your real installer binary.
+| Comando | O que faz |
+|---|---|
+| `npm start` | Sobe o servidor (`server.js`) |
+| `npm run dev` | Servidor com reload (`server-dev.js`, SQLite local — só dev) |
+| `npm run check` | Checagem de sintaxe (`server.js`, `desktop/*`) |
 
-Admin access
+## Variáveis de ambiente
 
-- The project includes a protected admin panel to view generated licenses. Access it at: `http://localhost:3000/admin`.
-- Default admin credentials are defined in `.env` (see `.env.example`). For local testing you can set:
+Copie `.env.example` para `.env`. As principais:
 
-```
-ADMIN_USER=admin
-ADMIN_PASS=adminpass
-```
+| Var | Uso |
+|---|---|
+| `DATABASE_URL` | Postgres (Neon em produção). Sem ela, o app sobe mas sem dados |
+| `SESSION_SECRET` | Sessões web (obrigatória em produção) |
+| `PUBLIC_BASE_URL` | URLs de retorno do checkout/emails |
+| `HONEST_BOOST_API_BASE_URL` | Base que o Electron usa p/ validar chaves (padrão: produção Render) |
+| `STRIPE_SECRET` / `PAYMENT_WEBHOOK_SECRET` | Cartão (checkout + `POST /webhook`) |
+| `INFINITEPAY_HANDLE` | Pix (checkout + `POST /webhook/infinitepay`) |
+| `ADMIN_USER` / `ADMIN_PASS` | **Email válido** + senha 8+; cria/atualiza o admin no boot |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | Email de licença/recuperação (sem isso, a chave aparece só na success page) |
+| `GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL` | Login com Google (opcional) |
 
-After setting credentials, restart the server. The admin route uses HTTP Basic Auth.
+Preços e planos vivem em `src/products.js` (fonte única: site, checkout e backend leem dali).
 
-Endpoints
+## Fluxo de compra (ponta a ponta)
 
-- `GET /api/download` — returns download metadata (url, filename).
-- `POST /api/create-checkout-session` — creates a Stripe Checkout session; returns `{ ok, checkoutUrl, orderId }`.
-- `POST /api/licenses` — generates a new license (returns JSON with `license`).
-- `GET /api/licenses` — (admin only) lists recent licenses.
+1. `POST /api/create-checkout-session` → Stripe (cartão) ou InfinitePay (Pix)
+2. Webhook (`/webhook` com assinatura / `/webhook/infinitepay` com reconfirmação + valor) marca o pedido `paid` e cria a licença `HB-…` (idempotente)
+3. `/checkout/success/:orderId` → `success.html` exibe a chave (polling de `/api/orders/:orderId`)
+4. A `HB-…` **ativa direto no app** (ponte em `/api/app/auth`); alternativamente o cliente cria conta com o email da compra → dashboard → gera `hb_…`
+5. Email com a chave é enviado se SMTP configurado (falha silenciosa de propósito — a success page é a fonte primária)
 
-Notes on deployment
+## Licenças, keys e limite de máquinas
 
-- For production, set `STRIPE_SECRET` and `PAYMENT_WEBHOOK_SECRET`, register `POST /webhook` in the Stripe Dashboard, and keep admin credentials strong.
+- `licenses` (`HB-…`): vitalícias, criadas no webhook ou pelo admin (`POST /api/licenses`, formulário em `/admin`)
+- `api_keys` (`hb_…`): geradas no dashboard **só com licença ativa** (1 ano, teto = seats do plano)
+- `key_machines`: cada ativação registra o PC; `POST /api/app/auth` recusa além dos seats (`403 device_limit_reached`)
+- Cliente gerencia PCs em dashboard → Dispositivos; admin vê/remover tudo em `/admin` → Dispositivos
+- Admin é isento da trava (gera keys de suporte/teste) e emite `hb_` por email com validade à escolha (`POST /api/admin/keys`)
 
-Docker
+## Acesso admin
 
-Build and run with Docker:
+Defina `ADMIN_USER` (email válido!) e `ADMIN_PASS` no ambiente e reinicie — o
+boot provisiona o papel `admin`. Entre em `/login.html` e abra `/admin`
+(emissão de licenças/keys, listas, dispositivos).
 
-```bash
-docker build -t honest-boost .
-docker run -p 3000:3000 --env-file .env --name honest-boost honest-boost
-```
-
-Or with `docker-compose`:
-
-```bash
-docker-compose up --build
-```
-
-Google OAuth
-
-- To enable login with Google, create OAuth credentials in Google Cloud Console and set the following in your `.env`:
-
-```
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_CALLBACK_URL=https://yourdomain.com/auth/google/callback
-```
-
-After configuring, restart the server. The login/register pages will show a "Entrar com Google" button.
-
-Password reset
-
-- Use `/reset-request.html` to request a password reset token (in this demo the token is logged to the server console). Use `/reset.html` to apply the token and set a new password.
-
-SMTP (sending emails)
-
-- To send password reset emails instead of returning the token in responses, configure SMTP values in your `.env`:
-
-```
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=smtp-user
-SMTP_PASS=smtp-pass
-SMTP_FROM="Honest Boost <noreply@yourdomain.com>"
-```
-
-- After set, restart the server; the `/api/password-reset-request` endpoint will send an email with a reset link.
-
-Desktop (Electron)
-
-Build the Windows installer (NSIS):
+## App desktop (`desktop/`)
 
 ```bash
 cd desktop
 npm install
-npm run build:win
+npm start        # dev (janela Electron)
+npm run build:win  # instalador NSIS em dist/
 ```
 
-Auto-updates use GitHub Releases. To publish a release:
+- Catálogo de 33 otimizações validadas (`src/catalog.js`); telemetria em tempo real com coleta lenta em background (não trava a UI)
+- Loja de apps instala de verdade via `winget` (allowlist no main process)
+- **Modo bloqueado**: sem licença válida, escrita exige ativação (leitura é livre)
+- Otimizações com `admin` pedem elevação (botão Admin relança elevado)
+- Login valida `POST /api/app/auth` (API base via `HONEST_BOOST_API_BASE_URL`); offline, usa a última verificação salva
 
-1. Bump the `version` in `desktop/package.json` (this drives the update check).
-2. Build and publish:
+## Releases e auto-update
 
-```bash
-npm run publish
+1. Suba `version` em `desktop/package.json`
+2. `git tag vX.Y.Z && git push origin vX.Y.Z`
+3. O workflow `.github/workflows/release.yml` compila o NSIS e publica na Release com `latest.yml` — o `electron-updater` encontra sozinho
+
+Nunca crie a Release pela interface web sem assets: uma tag "latest" sem instalador quebra o auto-update. Sem assinatura de código, o SmartScreen avisa até o binário ganhar reputação.
+
+## Deploy (Render)
+
+Blueprint em `render.yaml` (`NODE_ENV=production`, `npm ci`, `npm start`, health check `/health`).
+**Nunca fixe `PORT`** nas env vars — o Render injeta a porta e o health check mira nela
+(foi a causa de um deploy `Timed out` aqui). `/health` responde 200 em ms mesmo
+com o banco acordando (orçamento de 3s para o `SELECT 1`).
+
+## Endpoints principais
+
+| Método/Rota | Acesso | Descrição |
+|---|---|---|
+| `GET /health` | público | Liveness + flag `db` |
+| `POST /api/register` / `/api/login` / `/api/logout` | público | Conta (sessão; login aceita Google) |
+| `GET /api/me` | sessão | Usuário autenticado |
+| `POST /api/create-checkout-session` | público | Checkout Stripe/Pix |
+| `POST /webhook` | Stripe (assinatura) | Ativa pedido + licença |
+| `POST /webhook/infinitepay` | InfinitePay (reconfirmação) | Idem p/ Pix |
+| `GET /checkout/success/:orderId` | recibo (cookie) | Redireciona p/ success |
+| `GET /api/orders/:orderId` | dono/admin/recibo | Pedido + licença (polling) |
+| `POST /api/app/auth` | rate limit 20/min | **Ativação do app** (`hb_` e `HB-`), com seats |
+| `POST /api/licenses/verify` | público | Valida licença `HB-` |
+| `GET/POST /api/keys` · `DELETE /api/keys/:id` | sessão (+licença p/ criar) | Keys `hb_` do usuário |
+| `GET/DELETE /api/machines` | sessão (dono/admin) | Dispositivos por chave |
+| `GET /api/licenses` · `POST /api/licenses` | admin | Lista/emite `HB-` |
+| `GET /api/admin/users` · `GET/DELETE /api/admin/keys/:id` · `POST /api/admin/keys` · `GET /api/admin/machines` | admin | Operação/suporte |
+| `GET /api/download` | sessão | Metadados do instalador |
+| `GET /dashboard` · `GET /admin` | sessão / admin | Páginas autenticadas |
+
+## Estrutura
+
 ```
-
-`electron-builder --publish always` creates a GitHub Release with the installer and a `latest.yml` file that `electron-updater` reads.  
-A GitHub personal access token with `repo` scope must be available to `electron-builder` (use `GH_TOKEN` env var).
-
-Code signing (recommended)
-
-Without signing, Windows SmartScreen will flag the installer until enough users trust the binary. To remove the warning:
-
-- Obtain an Authenticode certificate from a trusted CA (e.g. DigiCert, Sectigo).
-- Build with the certificate:
-
-```bash
-set WIN_CSC_LINK=path/to/certificate.pfx
-set WIN_CSC_KEY_PASSWORD=your-password
-npm run publish
+server.js            # API + site (produção)
+server-dev.js        # espelho p/ dev local (SQLite)
+src/                 # db, keys, products, infinitepay, audit, middleware
+public/              # site estático + js/ (hb, checkout, dashboard, admin...)
+desktop/             # app Electron (main, renderer, src/, package.json próprio)
+desktop/dist/        # saída do NSIS (ignorado no git)
 ```
-
-For CI, store the base64-encoded `.pfx` in `WIN_CSC_LINK_BASE64` and decode it before build, or use a cloud HSM / Azure Trusted Signing.
-
