@@ -2362,11 +2362,19 @@ function licenseGate(actionLabel) {
   if (overlay) overlay.classList.remove('hidden');
   return false;
 }
+function updateVersionLabel() {
+  const sv = $('sidebar-version');
+  if (!sv) return;
+  const v = state.appVersion || '…';
+  const tag = isLicensed() && state.info.plan ? String(state.info.plan).toUpperCase() : 'FREE';
+  sv.textContent = `v${v} • ${tag}`;
+}
 function refreshLockUI() {
   const locked = !isLicensed();
   const banner = $('license-banner');
   if (banner) banner.classList.toggle('hidden', !locked);
   document.body.classList.toggle('locked', locked);
+  updateVersionLabel();
 }
 function initLicenseGate() {
   $('btn-gate-close')?.addEventListener('click', () => $('license-gate-overlay')?.classList.add('hidden'));
@@ -2633,8 +2641,7 @@ async function init() {
     const info = await window.hbDesktop.getInfo();
     if (info && info.ok && info.info && info.info.version) {
       state.appVersion = info.info.version;
-      const sv = $('sidebar-version');
-      if (sv) sv.textContent = `v${state.appVersion} • PRO`;
+      updateVersionLabel();
       const av = $('about-version');
       if (av) av.textContent = `Versão ${state.appVersion} — Performance Intelligence Platform`;
     }
