@@ -1515,23 +1515,77 @@ function renderAppGrid(category, query) {
 // Jogos — biblioteca detectada + perfil de otimização por jogo
 // (IDs validados contra o catálogo real em auditoria)
 // ============================================================
+// Conjuntos compartilhados (só IDs reais do catálogo):
+const SET_FPS = ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'];
+const SET_FPS_MPO = ['game-dvr', 'system-responsiveness', 'mpo-disable', 'power-plan-ultimate', 'visual-effects', 'telemetry'];
+const SET_BASE = ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'];
+const SET_LIGHT = ['visual-effects', 'power-plan-ultimate'];
 const GAME_PROFILES = [
-  { match: ['counter-strike', 'cs2', 'csgo'], name: 'Perfil CS2 Competitivo', ids: ['cs2-cvars', 'game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
-  { match: ['valorant'], name: 'Perfil Valorant', ids: ['game-dvr', 'system-responsiveness', 'mpo-disable', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
-  { match: ['league of legends', 'leagueoflegends'], name: 'Perfil LoL', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
-  { match: ['fortnite'], name: 'Perfil Fortnite', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
-  { match: ['apex'], name: 'Perfil Apex Legends', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
-  { match: ['warzone', 'call of duty', 'modern warfare', 'black ops'], name: 'Perfil CoD', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
-  { match: ['overwatch'], name: 'Perfil Overwatch', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
-  { match: ['gta', 'five m', 'fivem', 'red dead', 'rdr'], name: 'Perfil Mundo Aberto', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
-  { match: ['minecraft'], name: 'Perfil Minecraft', ids: ['visual-effects', 'power-plan-ultimate', 'system-responsiveness'] },
-  { match: ['roblox'], name: 'Perfil Roblox', ids: ['visual-effects', 'power-plan-ultimate'] },
-  { match: ['fifa', 'ea sports fc', 'fc 24', 'fc 25', 'fc 26'], name: 'Perfil EA FC', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
+  { match: ['counter strike', 'cs2', 'csgo'], name: 'Perfil CS2 Competitivo', desc: 'Launch options + latência mínima', ids: ['cs2-cvars', 'game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
+  { match: ['valorant'], name: 'Perfil Valorant', desc: 'Anti-stutter + MPO off', ids: SET_FPS_MPO },
+  { match: ['league of legends', 'leagueoflegends'], name: 'Perfil LoL', desc: 'Estabilidade em teamfights', ids: SET_BASE },
+  { match: ['fortnite'], name: 'Perfil Fortnite', desc: 'FPS estável no late game', ids: SET_FPS_MPO },
+  { match: ['apex'], name: 'Perfil Apex Legends', desc: 'Fluidez em movimento rápido', ids: SET_FPS_MPO },
+  { match: ['warzone', 'call of duty', 'modern warfare', 'black ops', 'cold war', 'vanguard'], name: 'Perfil CoD', desc: 'Shader + latência sob controle', ids: SET_FPS },
+  { match: ['overwatch'], name: 'Perfil Overwatch', desc: '144+ FPS consistentes', ids: SET_FPS_MPO },
+  { match: ['rainbow six', 'rainbow six siege', 'r6'], name: 'Perfil Rainbow Six', desc: 'Competitivo sem microtravadas', ids: SET_FPS_MPO },
+  { match: ['team fortress', 'tf2'], name: 'Perfil TF2', desc: 'Clássico otimizado', ids: SET_BASE },
+  { match: ['rocket league'], name: 'Perfil Rocket League', desc: 'Input preciso', ids: SET_FPS_MPO },
+  { match: ['fall guys', 'stumble guys'], name: 'Perfil Party Game', desc: 'Leve e estável', ids: SET_BASE },
+  { match: ['marvel rivals'], name: 'Perfil Marvel Rivals', desc: 'Anti-stutter em lutas', ids: SET_FPS_MPO },
+  { match: ['the finals', 'fragpunk', 'splitgate', 'delta force'], name: 'Perfil FPS Arena', desc: 'Competitivo fluido', ids: SET_FPS_MPO },
+  { match: ['battlefield'], name: 'Perfil Battlefield', desc: 'Mapas grandes sem quedas', ids: SET_FPS },
+  { match: ['halo infinite'], name: 'Perfil Halo', desc: 'Campanha e MP estáveis', ids: SET_FPS },
+  { match: ['destiny 2'], name: 'Perfil Destiny 2', desc: 'Raids sem engasgo', ids: SET_FPS },
+  { match: ['warframe'], name: 'Perfil Warframe', desc: 'Hordas fluidas', ids: SET_BASE },
+  { match: ['war thunder', 'world of tanks'], name: 'Perfil Guerra', desc: 'Batalhas estáveis', ids: SET_BASE },
+  { match: ['pubg', 'playerunknown'], name: 'Perfil PUBG', desc: 'Erangel sem quedas', ids: SET_FPS },
+  { match: ['rust', 'dayz', 'escape from tarkov', 'tarkov', 'scum'], name: 'Perfil Survival', desc: 'Mundo persistente estável', ids: SET_FPS },
+  { match: ['ark', 'atlas'], name: 'Perfil Ark', desc: 'Sobrevivência pesada', ids: SET_FPS },
+  { match: ['gta', 'grand theft auto', 'five m', 'fivem', 'red dead', 'rdr', 'sleeping dogs', 'mafia', 'saints row', 'watch dogs'], name: 'Perfil Mundo Aberto', desc: 'Cidade e campo fluidos', ids: SET_BASE },
+  { match: ['cyberpunk'], name: 'Perfil Cyberpunk', desc: 'Night City pesada', ids: SET_FPS },
+  { match: ['elden ring', 'dark souls', 'sekiro', 'bloodborne', 'lies of p'], name: 'Perfil Soulslike', desc: 'Frame pacing estável', ids: SET_FPS_MPO },
+  { match: ['witcher'], name: 'Perfil The Witcher', desc: 'RPG pesado fluido', ids: SET_BASE },
+  { match: ['baldur', 'bg3', 'divinity', 'disco elysium'], name: 'Perfil RPG Tático', desc: 'Turnos sem espera', ids: SET_BASE },
+  { match: ['hogwarts', 'harry potter'], name: 'Perfil Hogwarts', desc: 'Magia sem stutter', ids: SET_FPS },
+  { match: ['starfield', 'skyrim', 'fallout', 'oblivion'], name: 'Perfil Bethesda', desc: 'Mundos gigantes', ids: SET_FPS },
+  { match: ['god of war', 'horizon', 'spider man', 'spiderman', 'marvel', 'last of us', 'uncharted', 'ghost of tsushima', 'days gone', 'ratchet'], name: 'Perfil Ports Sony', desc: 'Ports exigentes afinados', ids: SET_FPS },
+  { match: ['assetto corsa', 'assetto', 'forza', 'gran turismo', 'f1', 'motogp', 'dirt', 'wrc', 'need for speed', 'nfs', 'the crew'], name: 'Perfil Corrida', desc: 'Velocidade sem tearing', ids: SET_FPS_MPO },
+  { match: ['minecraft'], name: 'Perfil Minecraft', desc: 'Chunks sem engasgo', ids: ['visual-effects', 'power-plan-ultimate', 'system-responsiveness'] },
+  { match: ['roblox'], name: 'Perfil Roblox', desc: 'Leve para qualquer PC', ids: SET_LIGHT },
+  { match: ['fifa', 'ea sports fc', 'efootball', 'pes'], name: 'Perfil Futebol', desc: 'Partidas lisas', ids: SET_BASE },
+  { match: ['nba 2k', 'madden', 'wwe 2k', 'ufc', 'tekken', 'street fighter', 'mortal kombat', 'dragon ball'], name: 'Perfil Esporte/Luta', desc: '60 FPS cravados', ids: SET_BASE },
+  { match: ['dota 2', 'dota2', 'heroes of the storm', 'smite'], name: 'Perfil MOBA', desc: 'Teamfights estáveis', ids: SET_BASE },
+  { match: ['diablo', 'path of exile', 'last epoch', 'torchlight', 'titan quest', 'grim dawn'], name: 'Perfil ARPG', desc: 'Hordas sem queda', ids: SET_FPS },
+  { match: ['world of warcraft', 'wow', 'final fantasy xiv', 'ffxiv', 'elder scrolls online', 'eso', 'guild wars', 'black desert', 'lost ark', 'new world', 'throne and liberty'], name: 'Perfil MMO', desc: 'Cidades lotadas fluidas', ids: SET_FPS },
+  { match: ['palworld', 'helldivers', 'lethal company', 'phasmophobia', 'content warning', 'valheim', 'terraria', 'stardew', 'core keeper', 'v rising', 'once human'], name: 'Perfil Co-op', desc: 'Com amigos, sem lag', ids: SET_BASE },
+  { match: ['left 4 dead', 'l4d', 'back 4 blood', 'dying light', 'dead island', 'state of decay', 'days to die', 'project zomboid'], name: 'Perfil Zumbis', desc: 'Hordas sob controle', ids: SET_FPS },
+  { match: ['far cry', 'farcry', 'assassin', 'ghost recon', 'division', 'avatar frontiers', 'skull and bones'], name: 'Perfil Ubisoft', desc: 'Mundo aberto Ubisoft', ids: SET_FPS },
+  { match: ['outlast', 'amnesia', 'resident evil', 'silent hill', 'alan wake', 'dead space', 'callisto'], name: 'Perfil Terror', desc: 'Clima sem stutter', ids: SET_FPS },
+  { match: ['hades', 'hollow knight', 'celeste', 'dead cells', 'ori ', 'cuphead', 'hollow'], name: 'Perfil Indie', desc: 'Precisão total', ids: SET_LIGHT },
+  { match: ['age of empires', 'aoe', 'civilization', 'total war', 'crusader kings', 'stellaris', 'anno', 'frostpunk', 'hearts of iron', 'starcraft', 'warcraft iii', 'northgard'], name: 'Perfil Estratégia', desc: 'Late game fluido', ids: SET_BASE },
+  { match: ['flight simulator', 'msfs', 'x-plane', 'elite dangerous', 'star citizen', 'no man'], name: 'Perfil Simulador', desc: 'Simulação pesada', ids: SET_FPS },
+  { match: ['stalker', 'metro ', 'atomic heart'], name: 'Perfil Zona', desc: 'Atmosfera estável', ids: SET_FPS },
 ];
-const GENERIC_GAME_PROFILE = { name: 'Perfil Performance Geral', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] };
+const GENERIC_GAME_PROFILE = { name: 'Perfil Performance Geral', desc: 'Base sólida para qualquer jogo', ids: SET_BASE };
+// Normaliza títulos de pasta/Steam ("Far-Cry-5-SteamRIP.com" → "far cry 5")
+const SCENE_TAGS = ['steamerip', 'steamunlocked', 'fitgirl', 'dodi', 'codex', 'skidrow', 'elamigos', 'gog', 'flt', 'p2p', 'rune', 'tenoke', ' Goldberg', '.com'];
+function normalizeGameTitle(raw) {
+  let s = String(raw || '').toLowerCase().replace(/[®™©]/g, ' ');
+  for (const tag of SCENE_TAGS) s = s.split(tag).join(' ');
+  s = s.replace(/[._\-+]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return s;
+}
 function gameProfileFor(name) {
-  const n = String(name || '').toLowerCase();
+  const n = normalizeGameTitle(name);
   return GAME_PROFILES.find(p => p.match.some(k => n.includes(k))) || GENERIC_GAME_PROFILE;
+}
+// Nome limpo p/ exibição ("Far-Cry-5-SteamRIP.com" → "Far Cry 5")
+function prettyGameName(raw) {
+  let s = normalizeGameTitle(raw);
+  s = s.replace(/\b\d{3,}\b/g, ' ').replace(/\s+/g, ' ').trim();
+  s = s.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1));
+  return s.slice(0, 42) || String(raw || 'Jogo');
 }
 function gameHue(name) {
   let h = 0;
@@ -1558,8 +1612,10 @@ async function renderGames() {
       const byGame = new Map();
       for (const g of list) {
         const key = String(g.appId || '') + '|' + String(g.name || 'Desconhecido').toLowerCase();
-        if (!byGame.has(key)) byGame.set(key, { name: g.name || 'Desconhecido', source: g.source || '?', dir: g.dir || '', exes: 0 });
-        byGame.get(key).exes++;
+        if (!byGame.has(key)) byGame.set(key, { name: g.name || 'Desconhecido', source: g.source || '?', dir: g.dir || '', exe: g.exe || '', exes: 0 });
+        const entry = byGame.get(key);
+        entry.exes++;
+        if (!entry.exe && g.exe) entry.exe = g.exe;
       }
       state.games = [...byGame.values()].sort((a, b) => a.name.localeCompare(b.name));
     } catch (e) {
@@ -1578,14 +1634,16 @@ async function renderGames() {
     const total = profile.ids.length;
     const done = profile.ids.filter(id => isOptApplied(id)).length;
     const pct = Math.round((done / total) * 100);
+    const display = prettyGameName(g.name);
     return `
     <div class="game-card card">
       <div class="game-top">
-        <div class="game-avatar" style="background:linear-gradient(135deg,hsl(${gameHue(g.name)},55%,38%),hsl(${(gameHue(g.name) + 40) % 360},55%,24%));">${esc(gameInitials(g.name))}</div>
-        <div style="flex:1;min-width:0;"><div class="game-name">${esc(g.name)}</div><div class="game-src">${esc(g.source)} • ${g.exes} executável(eis)</div></div>
+        <div class="game-avatar" data-game-icon="${i}" title="${esc(g.name)}" style="background:linear-gradient(135deg,hsl(${gameHue(display)},55%,38%),hsl(${(gameHue(display) + 40) % 360},55%,24%));overflow:hidden;">${esc(gameInitials(display))}</div>
+        <div style="flex:1;min-width:0;"><div class="game-name" title="${esc(g.name)}">${esc(display)}</div><div class="game-src">${esc(g.source)} • ${g.exes} executável(eis)</div></div>
       </div>
       <div class="game-profile">
         <div class="game-profile-name">⚡ ${esc(profile.name)}</div>
+        <div class="game-profile-desc">${esc(profile.desc || '')}</div>
         <div class="game-profile-tags">${profile.ids.slice(0, 4).map(id => `<span class="badge-sm">${esc(shortOptName(id))}</span>`).join('')}${total > 4 ? `<span class="badge-sm">+${total - 4}</span>` : ''}</div>
       </div>
       <div class="game-progress"><div style="width:${pct}%"></div></div>
@@ -1595,6 +1653,20 @@ async function renderGames() {
       </div>
     </div>`;
   }).join('');
+  // Ícones reais dos .exe (lazy, com fallback das iniciais)
+  if (!state.gameIcons) state.gameIcons = {};
+  grid.querySelectorAll('[data-game-icon]').forEach(async (slot) => {
+    const g = state.games[Number(slot.dataset.gameIcon)];
+    if (!g || !g.exe) return;
+    try {
+      if (state.gameIcons[g.exe] === undefined) {
+        const res = await window.hbDesktop.getGameIcon(g.exe);
+        state.gameIcons[g.exe] = (res && res.ok && res.icon) ? res.icon : null;
+      }
+      const icon = state.gameIcons[g.exe];
+      if (icon) slot.innerHTML = `<img src="${icon}" alt="">`;
+    } catch (e) {}
+  });
   grid.querySelectorAll('[data-game-apply]').forEach(btn => btn.addEventListener('click', async () => {
     if (!licenseGate('aplicar perfis de jogos')) return;
     const g = state.games[Number(btn.dataset.gameApply)];

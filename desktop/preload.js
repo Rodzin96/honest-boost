@@ -67,6 +67,7 @@ const hbDesktop = {
 
   // ===== Jogos =====
   scanGames: () => ipcRenderer.invoke('games:scan'),
+  getGameIcon: (exe) => ipcRenderer.invoke('games:icon', exe),
 
   // ===== Loja de Apps (instalação real via winget) =====
   installApp: (key) => ipcRenderer.invoke('apps:install', key),

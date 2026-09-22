@@ -598,6 +598,8 @@ button{font-family:var(--font-sans)}
 .game-src{font-size:10.5px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
 .game-profile{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:11px;padding:11px 13px}
 .game-profile-name{font-size:12px;font-weight:800;color:#7AA8FF;display:flex;align-items:center;gap:7px}
+.game-profile-desc{font-size:11px;color:var(--text-secondary);margin-top:3px}
+.game-avatar img{width:48px;height:48px;object-fit:contain;display:block}
 .game-profile-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .game-progress{height:6px;background:#0A1120;border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
 .game-progress div{height:100%;background:linear-gradient(90deg,var(--green),#4ADE80);border-radius:4px;transition:width .6s var(--ease)}

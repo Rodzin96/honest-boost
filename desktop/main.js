@@ -410,12 +410,33 @@ ipcMain.handle('recovery:restore-registry', async () => {
 });
 
 // ===== Jogos =====
+// Diretórios escaneados (allowlist p/ o ícone: só .exe dentro do scan).
+let _gamesAllowedDirs = [];
 ipcMain.handle('games:scan', async () => {
   try {
     const games = await systemAnalyzer.scanGames();
+    const path = require('path');
+    _gamesAllowedDirs = [...new Set(games.map(g => g.dir).filter(Boolean))];
     return { ok: true, games };
   } catch (e) {
     return { ok: false, error: e.message, games: [] };
+  }
+});
+
+// Ícone real do executável (app.getFileIcon). Só permite .exe dentro dos
+// diretórios detectados no scan — nunca arquivo arbitrário.
+ipcMain.handle('games:icon', async (event, exePath) => {
+  try {
+    const p = String(exePath || '');
+    if (!p.toLowerCase().endsWith('.exe')) return { ok: false };
+    const low = p.toLowerCase();
+    const allowed = _gamesAllowedDirs.some(d => low.startsWith(String(d).toLowerCase()));
+    if (!allowed) return { ok: false, error: 'not-allowed' };
+    const img = await app.getFileIcon(p, { size: 'large' });
+    if (!img || img.isEmpty()) return { ok: false };
+    return { ok: true, icon: img.toDataURL() };
+  } catch (e) {
+    return { ok: false, error: String((e && e.message) || e).slice(0, 120) };
   }
 });
 
