@@ -80,7 +80,7 @@ const NAV_GROUPS = [
   ]},
   { label: 'Sistema', items: [
     { id: 'monitor', label: 'Monitor', tip: 'Processos e inicialização' },
-    { id: 'games', label: 'Jogos', tip: 'Biblioteca e perfis por jogo' },
+    { id: 'games', label: 'Jogos', tip: 'Perfis de otimização por jogo' },
     { id: 'apps', label: 'Apps', tip: 'Loja de utilitários' },
     { id: 'services', label: 'Serviços', tip: 'Serviços do Windows' },
     { id: 'internet', label: 'Internet', tip: 'Rede, DNS e latência' },
@@ -1568,6 +1568,37 @@ const GAME_PROFILES = [
   { match: ['stalker', 'metro ', 'atomic heart'], name: 'Perfil Zona', desc: 'Atmosfera estável', ids: SET_FPS },
 ];
 const GENERIC_GAME_PROFILE = { name: 'Perfil Performance Geral', desc: 'Base sólida para qualquer jogo', ids: SET_BASE };
+// Catálogo curado (sem scan): título exibido → perfil. Sem pastas pirata,
+// sem launchers, sem "27 executáveis" — só o jogo e seu perfil.
+const GAME_CATALOG = [
+  ['Counter-Strike 2', 'Perfil CS2 Competitivo'], ['Valorant', 'Perfil Valorant'],
+  ['League of Legends', 'Perfil LoL'], ['Fortnite', 'Perfil Fortnite'],
+  ['Apex Legends', 'Perfil Apex Legends'], ['Call of Duty: Warzone', 'Perfil CoD'],
+  ['Overwatch 2', 'Perfil Overwatch'], ['Rainbow Six Siege', 'Perfil Rainbow Six'],
+  ['Team Fortress 2', 'Perfil TF2'], ['Rocket League', 'Perfil Rocket League'],
+  ['Fall Guys', 'Perfil Party Game'], ['Stumble Guys', 'Perfil Party Game'],
+  ['Marvel Rivals', 'Perfil Marvel Rivals'], ['The Finals', 'Perfil FPS Arena'],
+  ['Battlefield 2042', 'Perfil Battlefield'], ['Halo Infinite', 'Perfil Halo'],
+  ['Destiny 2', 'Perfil Destiny 2'], ['Warframe', 'Perfil Warframe'],
+  ['PUBG: Battlegrounds', 'Perfil PUBG'], ['Rust', 'Perfil Survival'],
+  ['ARK: Survival', 'Perfil Ark'], ['GTA V', 'Perfil Mundo Aberto'],
+  ['FiveM', 'Perfil Mundo Aberto'], ['Red Dead Redemption 2', 'Perfil Mundo Aberto'],
+  ['Cyberpunk 2077', 'Perfil Cyberpunk'], ['Elden Ring', 'Perfil Soulslike'],
+  ["Baldur's Gate 3", 'Perfil RPG Tático'], ['Minecraft', 'Perfil Minecraft'],
+  ['Roblox', 'Perfil Roblox'], ['EA FC 26', 'Perfil Futebol'],
+  ['eFootball', 'Perfil Futebol'], ['Dota 2', 'Perfil MOBA'],
+  ['Diablo IV', 'Perfil ARPG'], ['World of Warcraft', 'Perfil MMO'],
+  ['Palworld', 'Perfil Co-op'], ['Helldivers 2', 'Perfil Co-op'],
+  ['Lethal Company', 'Perfil Co-op'], ['Phasmophobia', 'Perfil Co-op'],
+  ['Left 4 Dead 2', 'Perfil Co-op'], ['Far Cry 6', 'Perfil Ubisoft'],
+  ['Outlast', 'Perfil Terror'], ['Resident Evil 4', 'Perfil Terror'],
+  ['Hogwarts Legacy', 'Perfil Hogwarts'], ['Starfield', 'Perfil Bethesda'],
+  ['God of War', 'Perfil Ports Sony'], ['Spider-Man', 'Perfil Ports Sony'],
+  ['Forza Horizon 5', 'Perfil Corrida'], ['The Witcher 3', 'Perfil The Witcher'],
+];
+const _profileByName = {};
+GAME_PROFILES.forEach(p => { _profileByName[p.name] = p; });
+_profileByName[GENERIC_GAME_PROFILE.name] = GENERIC_GAME_PROFILE;
 // Normaliza títulos de pasta/Steam ("Far-Cry-5-SteamRIP.com" → "far cry 5")
 const SCENE_TAGS = ['steamerip', 'steamunlocked', 'fitgirl', 'dodi', 'codex', 'skidrow', 'elamigos', 'gog', 'flt', 'p2p', 'rune', 'tenoke', ' Goldberg', '.com'];
 function normalizeGameTitle(raw) {
@@ -1597,49 +1628,28 @@ function gameInitials(name) {
   return ((words[0] || '?')[0] + (words.length > 1 ? words[1][0] : '')).toUpperCase();
 }
 
-async function renderGames() {
+function renderGames() {
   const grid = $('games-grid');
   if (!grid) return;
-  if (!state.games) {
-    grid.innerHTML = Array.from({ length: 6 }).map(() => `
-      <div class="game-card card"><div class="game-top"><div class="skeleton" style="width:48px;height:48px;border-radius:14px;"></div>
-      <div style="flex:1;"><div class="skeleton" style="height:16px;width:60%;margin-bottom:8px;"></div><div class="skeleton" style="height:11px;width:40%;"></div></div></div>
-      <div class="skeleton" style="height:64px;"></div></div>`).join('');
-    try {
-      const res = await window.hbDesktop.scanGames();
-      const list = (res.ok && res.games) ? res.games : [];
-      // Agrupa por jogo (o scanner retorna 1 linha por .exe)
-      const byGame = new Map();
-      for (const g of list) {
-        const key = String(g.appId || '') + '|' + String(g.name || 'Desconhecido').toLowerCase();
-        if (!byGame.has(key)) byGame.set(key, { name: g.name || 'Desconhecido', source: g.source || '?', dir: g.dir || '', exe: g.exe || '', exes: 0 });
-        const entry = byGame.get(key);
-        entry.exes++;
-        if (!entry.exe && g.exe) entry.exe = g.exe;
-      }
-      state.games = [...byGame.values()].sort((a, b) => a.name.localeCompare(b.name));
-    } catch (e) {
-      state.games = [];
-      toast('Falha ao escanear jogos: ' + e.message, 'error');
-    }
-  }
-  const count = $('games-count');
-  if (count) count.textContent = `${state.games.length} jogo(s) detectado(s)`;
-  if (!state.games.length) {
-    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎮</div><div class="empty-state-title">Nenhum jogo detectado</div><div class="empty-state-desc">Instalamos via Steam, Riot, Epic e pastas de jogos. Clique em escanear novamente.</div></div>';
+  const searchEl = $('game-search');
+  const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  const items = GAME_CATALOG
+    .map(([title, profileName], i) => ({ title, profile: _profileByName[profileName] || GENERIC_GAME_PROFILE, i }))
+    .filter(e => !q || e.title.toLowerCase().includes(q));
+  if (!items.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">Nenhum jogo encontrado</div><div class="empty-state-desc">Tente outro termo na busca.</div></div>';
     return;
   }
-  grid.innerHTML = state.games.map((g, i) => {
-    const profile = gameProfileFor(g.name);
+  grid.innerHTML = items.map((e) => {
+    const profile = e.profile;
     const total = profile.ids.length;
     const done = profile.ids.filter(id => isOptApplied(id)).length;
     const pct = Math.round((done / total) * 100);
-    const display = prettyGameName(g.name);
     return `
     <div class="game-card card">
       <div class="game-top">
-        <div class="game-avatar" data-game-icon="${i}" title="${esc(g.name)}" style="background:linear-gradient(135deg,hsl(${gameHue(display)},55%,38%),hsl(${(gameHue(display) + 40) % 360},55%,24%));overflow:hidden;">${esc(gameInitials(display))}</div>
-        <div style="flex:1;min-width:0;"><div class="game-name" title="${esc(g.name)}">${esc(display)}</div><div class="game-src">${esc(g.source)} • ${g.exes} executável(eis)</div></div>
+        <div class="game-avatar" title="${esc(e.title)}" style="background:linear-gradient(135deg,hsl(${gameHue(e.title)},55%,38%),hsl(${(gameHue(e.title) + 40) % 360},55%,24%));">${esc(gameInitials(e.title))}</div>
+        <div style="flex:1;min-width:0;"><div class="game-name">${esc(e.title)}</div><div class="game-src">perfil pronto • 1 clique</div></div>
       </div>
       <div class="game-profile">
         <div class="game-profile-name">⚡ ${esc(profile.name)}</div>
@@ -1649,47 +1659,32 @@ async function renderGames() {
       <div class="game-progress"><div style="width:${pct}%"></div></div>
       <div class="game-progress-label">${done}/${total} aplicadas</div>
       <div class="game-footer">
-        <button class="btn btn-primary btn-sm" data-game-apply="${i}" ${done === total ? 'disabled' : ''}>${done === total ? 'Perfil ativo ✓' : done > 0 ? 'Completar perfil' : 'Aplicar perfil'}</button>
+        <button class="btn btn-primary btn-sm" data-game-apply="${esc(e.title)}" ${done === total ? 'disabled' : ''}>${done === total ? 'Perfil ativo ✓' : done > 0 ? 'Completar perfil' : 'Aplicar perfil'}</button>
       </div>
     </div>`;
   }).join('');
-  // Ícones reais dos .exe (lazy, com fallback das iniciais)
-  if (!state.gameIcons) state.gameIcons = {};
-  grid.querySelectorAll('[data-game-icon]').forEach(async (slot) => {
-    const g = state.games[Number(slot.dataset.gameIcon)];
-    if (!g || !g.exe) return;
-    try {
-      if (state.gameIcons[g.exe] === undefined) {
-        const res = await window.hbDesktop.getGameIcon(g.exe);
-        state.gameIcons[g.exe] = (res && res.ok && res.icon) ? res.icon : null;
-      }
-      const icon = state.gameIcons[g.exe];
-      if (icon) slot.innerHTML = `<img src="${icon}" alt="">`;
-    } catch (e) {}
-  });
   grid.querySelectorAll('[data-game-apply]').forEach(btn => btn.addEventListener('click', async () => {
     if (!licenseGate('aplicar perfis de jogos')) return;
-    const g = state.games[Number(btn.dataset.gameApply)];
-    const profile = gameProfileFor(g.name);
+    const title = btn.dataset.gameApply;
+    const entry = GAME_CATALOG.map(t => ({ title: t[0], profile: _profileByName[t[1]] || GENERIC_GAME_PROFILE })).find(x => x.title === title);
+    const profile = entry ? entry.profile : GENERIC_GAME_PROFILE;
     const pending = profile.ids.filter(id => !isOptApplied(id));
     if (!pending.length) return;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Aplicando…';
-    toast(`⚡ Aplicando ${profile.name}…`, 'info');
+    toast(`⚡ Aplicando ${profile.name} em ${title}…`, 'info');
     try {
       const res = await window.hbDesktop.applyBatch(pending);
       const r = res.result || {};
       if ((r.applied || 0) > 0) {
         toast(`✔ ${r.applied}/${pending.length} do perfil aplicadas`, r.failed ? 'warning' : 'success');
-        addHistory('preset', g.name, r.failed ? 'success' : 'success', `${r.applied} aplicadas`);
+        addHistory('preset', title, 'success', `${r.applied} aplicadas`);
       } else {
         toast('⚠️ ' + (((r.results || []).find(x => !x.ok) || {}).message || 'Nada aplicado — tente como administrador'), 'warning');
-        addHistory('preset', g.name, 'error');
+        addHistory('preset', title, 'error');
       }
     } catch (e) { toast('Erro: ' + e.message, 'error'); }
     await refreshCatalog();
-    const keep = state.games;
-    state.games = keep;
     renderGames();
   }));
   bindTips(grid);
@@ -2505,11 +2500,16 @@ function initPremium() {
   $('btn-sidebar-boost')?.addEventListener('click', () => handleQuickAction('quick-boost'));
   $('btn-perf-boost')?.addEventListener('click', () => handleQuickAction('quick-boost'));
   $('btn-benchmark')?.addEventListener('click', runBenchmark);
-  $('btn-scan-games')?.addEventListener('click', async () => {
-    state.games = null;
-    await renderGames();
-    toast('✔ Biblioteca atualizada', 'success');
-  });
+  const gameSearch = $('game-search');
+  if (gameSearch) {
+    let gameTimer = null;
+    gameSearch.addEventListener('input', () => {
+      clearTimeout(gameTimer);
+      gameTimer = setTimeout(() => {
+        if (document.querySelector('.panel.active')?.id === 'panel-games') renderGames();
+      }, 200);
+    });
+  }
   $('btn-optimize-now')?.addEventListener('click', () => paintHealth(state.health ? state.health.score : 0));
   const optSearch = $('opt-search');
   if (optSearch) optSearch.addEventListener('input', () => {
