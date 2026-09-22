@@ -2135,7 +2135,14 @@ function syncPremiumWidgets(snap, pre) {
     if (sig !== _lastStartupSig) {
       _lastStartupSig = sig;
       const msu = _el('mon-startup');
-      if (msu) msu.innerHTML = (snap.startup && snap.startup.length) ? snap.startup.slice(0, 8).map(s => `<div class="startup-item">${esc(String(s).slice(0, 60))}</div>`).join('') : '<div class="startup-item">Nenhum app de inicialização detectado</div>';
+      if (msu) {
+        msu.innerHTML = (snap.startup && snap.startup.length)
+          ? snap.startup.slice(0, 10).map(s => {
+              const raw = String(s);
+              return `<div class="startup-item" title="${esc(raw)}"><span class="startup-dot"></span><span class="startup-name">${esc(prettyStartupName(raw))}</span></div>`;
+            }).join('')
+          : '<div class="startup-empty">Nenhum app de inicialização detectado</div>';
+      }
     }
     _setText('mon-host', snap.os.hostname || '—'); _setText('mon-uptime', snap.os.uptime ? snap.os.uptime.label : '—');
     _setText('mon-os', (snap.os.type || '') + ' ' + (snap.os.release || '')); _setText('mon-arch', snap.os.arch || '—');
@@ -2160,6 +2167,24 @@ function syncPremiumWidgets(snap, pre) {
     if (sig !== _lastHealthSig) { _lastHealthSig = sig; try { paintHealth(state.health.score); } catch (e) {} }
   }
   renderRecentMini();
+}
+// Nomes amigáveis: "GoogleChromeAutoLaunch_B69058BE..." → "Google Chrome"
+function prettyStartupName(raw) {
+  let s = String(raw || '').trim();
+  s = s.replace(/AutoLaunch_[0-9A-F]+$/i, '').replace(/[_-]+$/, '').trim();
+  const known = [
+    [/^GoogleChrome$/i, 'Google Chrome'], [/^MicrosoftEdge$/i, 'Microsoft Edge'],
+    [/^RiotClient$/i, 'Riot Client'], [/^Riot ?Vanguard$/i, 'Riot Vanguard'],
+    [/^NoxMultiPlayer$/i, 'Nox MultiPlayer'], [/^RobloxPlayerBeta$/i, 'Roblox Player'],
+    [/^Free Download Manager$/i, 'Free Download Manager'], [/^Proton ?VPN$/i, 'Proton VPN'],
+    [/^SecurityHealth$/i, 'Segurança do Windows'], [/^OneDrive$/i, 'OneDrive'],
+    [/^Steam$/i, 'Steam'], [/^Discord$/i, 'Discord'], [/^Spotify$/i, 'Spotify'],
+  ];
+  for (const [re, label] of known) {
+    if (re.test(s)) return label;
+  }
+  // Insere espaço antes de maiúsculas em CamelCase simples (ex: Lightshot segue igual)
+  return s.replace(/([a-z])([A-Z])/g, '$1 $2').slice(0, 48);
 }
 function renderRecentMini() {
   const sig = (state.history || []).slice(0, 5).map(h => h.label + h.status + h.time).join('|');
