@@ -28,6 +28,17 @@
         .download-card,.security-note { background:var(--surface-1); border:1px solid var(--divider); border-radius:24px; padding:1.5rem; box-shadow:var(--elevation-1); }
         .download-card p,.security-note p { color:var(--on-surface-variant); }
         @media (max-width: 1024px) { .download-grid { grid-template-columns:1fr; } }
+        .verify-box { display:grid; gap:1rem; margin-top:1rem; }
+        .verify-row { display:flex; gap:0.9rem; align-items:flex-start; background:var(--surface); border:1px solid var(--divider); border-radius:16px; padding:1rem 1.1rem; }
+        .verify-row > .material-symbols-rounded { color:var(--primary); font-size:1.6rem; }
+        .verify-row > div { flex:1; min-width:0; }
+        .verify-row .btn { flex-shrink:0; }
+        .verify-label { font-weight:700; font-size:0.9rem; }
+        .verify-hash { display:block; font-family:ui-monospace,Consolas,monospace; font-size:0.78rem; word-break:break-all; background:var(--surface-3); border-radius:8px; padding:0.5rem 0.7rem; margin-top:0.45rem; }
+        .verify-how { background:var(--surface); border:1px dashed var(--divider); border-radius:16px; padding:0.9rem 1.1rem; }
+        .verify-how summary { cursor:pointer; font-weight:700; font-size:0.9rem; }
+        .verify-code { display:block; font-family:ui-monospace,Consolas,monospace; font-size:0.78rem; background:var(--surface-3); border-radius:8px; padding:0.5rem 0.7rem; margin:0.5rem 0; overflow-x:auto; white-space:nowrap; }
+        @media (max-width: 640px) { .verify-row { flex-direction:column; } }
     </style>
 </head>
 <body>
@@ -90,6 +101,42 @@
             </section>
 
             <section class="security-note">
+                <h2>Verificação de segurança</h2>
+                <p>Confira que o instalador é o oficial antes de executar: compare o hash do arquivo baixado com o publicado na Release e veja o laudo no VirusTotal.</p>
+                <!-- Atualizar HASH + VERSÃO a cada release (ver Assets no GitHub) -->
+                <div class="verify-box">
+                    <div class="verify-row">
+                        <span class="material-symbols-rounded">fingerprint</span>
+                        <div>
+                            <div class="verify-label">SHA256 oficial — Honest-Boost-Setup-2.0.1.exe</div>
+                            <code class="verify-hash" id="official-hash">e3838f7885d39a6699535f59bf4d6e50a36e984daf3e588c4b7803956a872e88</code>
+                        </div>
+                        <button class="btn btn-outlined" id="copy-hash-btn" type="button">
+                            <span class="material-symbols-rounded">content_copy</span>
+                            Copiar
+                        </button>
+                    </div>
+                    <div class="verify-row">
+                        <span class="material-symbols-rounded">shield</span>
+                        <div>
+                            <div class="verify-label">Laudo antivírus independente</div>
+                            <p style="font-size:0.85rem;margin:0.2rem 0 0;">Análise do instalador no VirusTotal (70+ antivírus). Se o arquivo ainda não foi analisado, a página oferece o upload.</p>
+                        </div>
+                        <a class="btn btn-tonal" href="https://www.virustotal.com/gui/file/e3838f7885d39a6699535f59bf4d6e50a36e984daf3e588c4b7803956a872e88/detection" target="_blank" rel="noreferrer">
+                            <span class="material-symbols-rounded">verified_user</span>
+                            Ver no VirusTotal
+                        </a>
+                    </div>
+                    <details class="verify-how">
+                        <summary>Como conferir o hash no Windows</summary>
+                        <p>Abra o PowerShell na pasta do download e rode:</p>
+                        <code class="verify-code">certutil -hashfile "Honest-Boost-Setup-2.0.1.exe" SHA256</code>
+                        <p>O resultado deve ser idêntico ao hash oficial acima.</p>
+                    </details>
+                </div>
+            </section>
+
+            <section class="security-note">
                 <h2>Segurança e confiança</h2>
                 <p>O fluxo de download foi mantido conectado ao estado de autenticação para reduzir acesso indevido e reforçar a percepção de produto confiável.</p>
             </section>
@@ -97,5 +144,17 @@
     </main>
 
     <script src="/js/hb.js" defer></script>
+    <script>
+        document.getElementById('copy-hash-btn').addEventListener('click', function () {
+            var hash = document.getElementById('official-hash').textContent.trim();
+            var btn = this;
+            navigator.clipboard.writeText(hash).then(function () {
+                btn.innerHTML = '<span class="material-symbols-rounded">check</span> Copiado';
+                setTimeout(function () {
+                    btn.innerHTML = '<span class="material-symbols-rounded">content_copy</span> Copiar';
+                }, 1800);
+            });
+        });
+    </script>
 </body>
 </html>
