@@ -13,7 +13,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
-const { regAdd, regQuery } = require('./registry');
+const { regAdd, regQuery, restorePaths } = require('./registry');
 const { cimCsv } = require('./cim');
 
 const SYS32 = (name) =>
@@ -86,6 +86,14 @@ async function disableService(name) {
   await run(SC, ['config', name, 'start=', 'disabled']).catch(() => {});
 }
 
+async function enableService(name, startType = 'demand', startNow = false) {
+  await run(SC, ['config', name, 'start=', startType]).catch(() => {});
+  if (startNow) await run(SYS32('net.exe'), ['start', name]).catch(() => {});
+}
+
+// Monta pares {path,name} para restorePaths a partir de listas simples
+const RP = (pathName, ...names) => names.map((name) => ({ path: pathName, name }));
+
 function guide(id, name, category, summary, steps, links = []) {
   return {
     id, name, tier: null, kind: 'guide', category,
@@ -122,6 +130,10 @@ const RECOMMENDED = [
       await regAdd('HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects', 'VisualFXSetting', 'REG_DWORD', '2');
       return { message: 'Efeitos visuais ajustados para melhor desempenho.' };
     },
+    async revert() {
+      const r = await restorePaths(RP('HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects', 'VisualFXSetting'));
+      return { message: r.restored ? 'Efeitos visuais restaurados ao original.' : 'Nada a desfazer (valor não foi alterado pelo app).' };
+    },
     async status() {
       const v = await regHex('HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects', 'VisualFXSetting');
       return v === 2
@@ -144,6 +156,13 @@ const RECOMMENDED = [
       await regAdd('HKCU\\System\\GameConfigStore', 'GameDVR_FSEBehaviorMode', 'REG_DWORD', '2');
       await regAdd('HKCU\\System\\GameConfigStore', 'GameDVR_HonorUserFSEBehaviorMode', 'REG_DWORD', '1');
       return { message: 'Game DVR desativado.' };
+    },
+    async revert() {
+      const r = await restorePaths([
+        ...RP('HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR', 'AppCaptureEnabled'),
+        ...RP('HKCU\\System\\GameConfigStore', 'GameDVR_Enabled', 'GameDVR_FSEBehaviorMode', 'GameDVR_HonorUserFSEBehaviorMode'),
+      ]);
+      return { message: r.restored ? 'Game DVR restaurado ao original.' : 'Nada a desfazer (não foi alterado pelo app).' };
     },
     async status() {
       const v = await regHex('HKCU\\System\\GameConfigStore', 'GameDVR_Enabled');
@@ -168,6 +187,13 @@ const RECOMMENDED = [
       const a = d.ok ? await run(POWERCFG, ['/setactive', target]) : await run(POWERCFG, ['/setactive', 'e9a42b02-d5df-448d-aa00-03f14749eb61']);
       if (!a.ok) return { message: 'Plano ativado via esquema existente (verifique em Opções de Energia).' };
       return { message: 'Plano “Desempenho Final” ativado.' };
+    },
+    async revert() {
+      // Volta ao Equilibrado (padrão da maioria das instalações Windows)
+      const r = await run(POWERCFG, ['/setactive', '381b4222-f694-41f0-9685-ff5bb260df2e']);
+      return r.ok
+        ? { message: 'Plano de energia restaurado para Equilibrado.' }
+        : { message: 'Não foi possível restaurar automaticamente — escolha o plano em Opções de Energia.' };
     },
     async status() {
       const { execFile: exec } = require('child_process');
@@ -194,6 +220,12 @@ const RECOMMENDED = [
       if (!r.ok) return { message: 'Comando executado (pode já estar desativado).' };
       return { message: 'Hibernação desativada.' };
     },
+    async revert() {
+      const r = await run(POWERCFG, ['-h', 'on']);
+      return r.ok
+        ? { message: 'Hibernação reativada.' }
+        : { message: 'Não foi possível reativar — rode powercfg -h on como administrador.' };
+    },
     async status() {
       const v = await regHex('HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power', 'HibernateEnabled');
       return v === 0
@@ -216,6 +248,15 @@ const RECOMMENDED = [
       await regAdd('HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection', 'AllowTelemetry', 'REG_DWORD', '0');
       await regAdd('HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection', 'AllowTelemetry', 'REG_DWORD', '0');
       return { message: 'Telemetria desativada.' };
+    },
+    async revert() {
+      await restorePaths([
+        ...RP('HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection', 'AllowTelemetry'),
+        ...RP('HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection', 'AllowTelemetry'),
+      ]).catch(() => {});
+      await enableService('DiagTrack', 'auto', true);
+      await enableService('dmwappushservice', 'demand', false);
+      return { message: 'Telemetria restaurada (serviços e políticas revertidos).' };
     },
     async status() {
       const s = await scState('DiagTrack');
@@ -284,6 +325,12 @@ const RECOMMENDED = [
       }
       return { message: 'Recall desativado.' };
     },
+    async revert() {
+      const r = await run(DISMEXE, ['/Online', '/Enable-Feature', '/FeatureName:"recall"', '/NoRestart'], { timeout: 600000 }).catch(() => ({ ok: false }));
+      return r && r.ok
+        ? { message: 'Recall reativado.' }
+        : { message: 'Reversão tentada — se o recurso não existia aqui, nada muda.' };
+    },
     async status() {
       const r = await run(DISMEXE, ['/Online', '/Get-FeatureInfo', '/FeatureName:"recall"'], { timeout: 120000 });
       const m = r.stdout.match(/State\s*:\s*(.+)$/m);
@@ -310,6 +357,12 @@ const RECOMMENDED = [
       await run(POWERCFG, ['/setacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '2']).catch(() => {});
       await run(POWERCFG, ['/setactive', 'scheme_current']).catch(() => {});
       return { message: 'Boost do processador configurado como Agressivo (AC).' };
+    },
+    async revert() {
+      // 1 = Ativado (padrão da maioria dos planos); Agressivo era o 2.
+      await run(POWERCFG, ['/setacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '1']).catch(() => {});
+      await run(POWERCFG, ['/setactive', 'scheme_current']).catch(() => {});
+      return { message: 'Boost do processador voltou a Ativado (padrão).' };
     },
     async status() {
       const r = await run(POWERCFG, ['/getacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE']);
@@ -544,6 +597,13 @@ const OPTIONAL = [
       }
       return { message: `Desativados: ${applied.join(', ') || 'nenhum serviço encontrado'}.` };
     },
+    async revert() {
+      // Volta a Manual (neutro e seguro); não reinicia serviços remotos sozinho.
+      for (const name of ['RemoteRegistry', 'PhoneSvc', 'SCardSvr', 'RemoteAccess']) {
+        await enableService(name, 'demand', false);
+      }
+      return { message: 'Serviços restaurados para Manual (padrão seguro).' };
+    },
     async status() {
       const s = await scState('RemoteRegistry');
       return s === 'STOPPED'
@@ -567,6 +627,10 @@ const OPTIONAL = [
       await regAdd(GAMES_KEY, 'SFIO Priority', 'REG_SZ', 'High');
       return { message: 'Classe Games configurada (GPU=8).' };
     },
+    async revert() {
+      const r = await restorePaths(RP(GAMES_KEY, 'GPU Priority', 'Priority', 'Scheduling Category', 'SFIO Priority'));
+      return { message: r.restored ? 'Classe Games restaurada ao original.' : 'Nada a desfazer (não foi alterada pelo app).' };
+    },
     async status() {
       const v = await regStr(GAMES_KEY, 'Scheduling Category');
       return v === 'High'
@@ -586,6 +650,10 @@ const OPTIONAL = [
     async apply() {
       await regAdd(SYSPROFILE_KEY, 'SystemResponsiveness', 'REG_DWORD', '1');
       return { message: 'SystemResponsiveness = 1. Teste; se travar áudio/fundo, reaplique “Reverter tudo”.' };
+    },
+    async revert() {
+      const r = await restorePaths(RP(SYSPROFILE_KEY, 'SystemResponsiveness'));
+      return { message: r.restored ? 'SystemResponsiveness restaurado (padrão 20).' : 'Nada a desfazer (não foi alterado pelo app).' };
     },
     async status() {
       const v = await regHex(SYSPROFILE_KEY, 'SystemResponsiveness');
@@ -614,6 +682,13 @@ const OPTIONAL = [
           : 'Compressão de memória ativada. Reinicie para aplicar.'
       };
     },
+    async revert() {
+      // Inverte de novo = volta exatamente ao estado anterior ao Aplicar.
+      const cur = await currentMemoryCompression();
+      if (cur == null) return { message: 'Não foi possível verificar o estado atual.' };
+      await ps(cur ? 'Disable-MMAgent -mc' : 'Enable-MMAgent -mc');
+      return { message: 'Compressão de memória revertida ao estado anterior. Reinicie.' };
+    },
     async status() {
       const on = await currentMemoryCompression();
       return { level: 'NA', label: 'Condicional', detail: `Compressão de memória: ${on ? 'Ligada' : 'Desligada'} (padrão do Windows: Ligada)` };
@@ -631,6 +706,10 @@ const OPTIONAL = [
     async apply() {
       await disableService('Ndu');
       return { message: 'Ndu desativado.' };
+    },
+    async revert() {
+      await enableService('Ndu', 'demand', false);
+      return { message: 'Ndu restaurado para Manual (padrão).' };
     },
     async status() {
       const s = await scState('Ndu');
@@ -655,6 +734,10 @@ const OPTIONAL = [
       await regAdd('HKLM\\SOFTWARE\\Intel', 'DedicatedSegmentSize', 'REG_DWORD', String(value));
       return { message: `DedicatedSegmentSize = ${value} (${ramGB >= 8 ? '8 GB+' : 'menos de 8 GB'} de RAM).` };
     },
+    async revert() {
+      const r = await restorePaths(RP('HKLM\\SOFTWARE\\Intel', 'DedicatedSegmentSize'));
+      return { message: r.restored ? 'VRAM dedicada restaurada ao original.' : 'Nada a desfazer (não foi alterado pelo app).' };
+    },
     async status() {
       const v = await regHex('HKLM\\SOFTWARE\\Intel', 'DedicatedSegmentSize');
       return v != null
@@ -674,6 +757,10 @@ const OPTIONAL = [
     async apply() {
       await regAdd('HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers', 'DisableMultiplaneOverlay', 'REG_DWORD', '1');
       return { message: 'MPO desativado. Reinicie e teste o jogo; reverta se não notar diferença.' };
+    },
+    async revert() {
+      const r = await restorePaths(RP('HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers', 'DisableMultiplaneOverlay'));
+      return { message: r.restored ? 'MPO restaurado ao original.' : 'Nada a desfazer (não foi alterado pelo app).' };
     },
     async status() {
       const v = await regHex('HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers', 'DisableMultiplaneOverlay');
@@ -695,6 +782,10 @@ const OPTIONAL = [
       const r = await run(BCDEDIT, ['/set', 'disabledynamictick', 'yes']);
       if (!r.ok) return { message: 'Comando executado. (Não disponível em todos os sistemas.)' };
       return { message: 'Dynamic tick desativado.' };
+    },
+    async revert() {
+      await run(BCDEDIT, ['/deletevalue', '{current}', 'disabledynamictick']).catch(() => {});
+      return { message: 'Dynamic tick restaurado ao padrão. Reinicie.' };
     },
     async status() {
       const r = await run(BCDEDIT, ['/enum', '{current}']);
@@ -724,6 +815,10 @@ const OPTIONAL = [
     async apply() {
       await regAdd(GAMES_KEY, 'GPU Priority', 'REG_DWORD', '31');
       return { message: 'GPU Priority = 31 (variante agressiva). Teste e compare com o valor 8.' };
+    },
+    async revert() {
+      const r = await restorePaths(RP(GAMES_KEY, 'GPU Priority'));
+      return { message: r.restored ? 'GPU Priority restaurado ao original.' : 'Nada a desfazer (não foi alterado pelo app).' };
     },
     async status() {
       const v = await regHex(GAMES_KEY, 'GPU Priority');
@@ -778,6 +873,10 @@ const OPTIONAL = [
       await regAdd('HKCU\\Control Panel\\Mouse', 'MouseThreshold2', 'REG_SZ', '0');
       return { message: 'Aceleração do mouse desativada.' };
     },
+    async revert() {
+      const r = await restorePaths(RP('HKCU\\Control Panel\\Mouse', 'MouseSpeed', 'MouseThreshold1', 'MouseThreshold2'));
+      return { message: r.restored ? 'Mouse restaurado ao original.' : 'Nada a desfazer (não foi alterado pelo app).' };
+    },
     async status() {
       const v = await regStr('HKCU\\Control Panel\\Mouse', 'MouseSpeed');
       return v === '0'
@@ -817,6 +916,10 @@ const OPTIONAL = [
     async apply() {
       await regAdd('HKCU\\Control Panel\\Accessibility\\MouseKeys', 'MouseKeys', 'REG_SZ', '0');
       return { message: 'MouseKeys desativado.' };
+    },
+    async revert() {
+      const r = await restorePaths(RP('HKCU\\Control Panel\\Accessibility\\MouseKeys', 'MouseKeys'));
+      return { message: r.restored ? 'MouseKeys restaurado ao original.' : 'Nada a desfazer (não foi alterado pelo app).' };
     },
     async status() {
       const v = await regStr('HKCU\\Control Panel\\Accessibility\\MouseKeys', 'MouseKeys');

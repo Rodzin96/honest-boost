@@ -80,6 +80,33 @@ async function getSnapshotStatus() {
   return { count: Object.keys(snap.values).length, createdAt: snap.createdAt };
 }
 
+// Restaura APENAS as chaves listadas (desfazer em 1 clique por otimização).
+// Usa o snapshot capturado automaticamente por regAdd/regDelete: se o valor
+// existia, volta o original; se foi criado pelo app, é removido. Sem entrada
+// no snapshot = o app não mexeu → pula (nunca apaga o que não fez).
+async function restorePaths(pairs) {
+  const snap = await loadSnapshot();
+  let restored = 0;
+  const skipped = [];
+  for (const { path: pathName, name: valueName } of pairs) {
+    const entry = snap.values[`${pathName}|${valueName}`];
+    if (!entry) { skipped.push(valueName); continue; }
+    try {
+      if (entry.exists) {
+        await regCmd(['add', entry.pathName, '/v', entry.valueName, '/t', entry.type, '/d', String(entry.data), '/f']);
+      } else {
+        await regCmd(['delete', entry.pathName, '/v', entry.valueName, '/f']);
+      }
+      delete snap.values[`${pathName}|${valueName}`];
+      restored++;
+    } catch {
+      skipped.push(valueName);
+    }
+  }
+  await saveSnapshot();
+  return { restored, skipped };
+}
+
 async function restoreSnapshot() {
   const snap = await loadSnapshot();
   const entries = Object.values(snap.values);
@@ -107,6 +134,6 @@ async function restoreSnapshot() {
 
 module.exports = {
   regAdd, regQuery, regDelete,
-  getSnapshotStatus, restoreSnapshot,
+  getSnapshotStatus, restoreSnapshot, restorePaths,
   snapshotValue
 };
