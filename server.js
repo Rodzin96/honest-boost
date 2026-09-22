@@ -837,21 +837,27 @@ app.post('/api/app/auth', appAuthLimiter, asyncRoute(async (req, res) => {
     if (!user) return res.status(404).json({ error: 'user_not_found' });
 
     const entitlement = await accountEntitlement(user.username);
-    const seats = Math.max(1, Number(entitlement.product && entitlement.product.seats) || 1);
+    // Sem licença, vale o tipo da key: premium (emitida pelo admin/suporte)
+    // responde como Pro com 3 seats; trial responde Trial com 1.
+    const isPremiumKey = dbKey.key_type === 'premium';
+    const tier = entitlement.tier !== 'trial' ? entitlement.tier : (isPremiumKey ? 'pro' : 'trial');
+    const seats = entitlement.product
+      ? Math.max(1, Number(entitlement.product.seats) || 1)
+      : (isPremiumKey ? 3 : 1);
     const slot = await checkMachineSlot({ keyRef: keyHash, seats, deviceInfo });
     if (slot.over) {
       await audit(req, 'app.auth.denied', { keyId: dbKey.id, used: slot.used, max: slot.max });
       return res.status(403).json({ error: 'device_limit_reached', max: slot.max, used: slot.used });
     }
-    await audit(req, 'app.auth', { keyId: dbKey.id, tier: entitlement.tier });
+    await audit(req, 'app.auth', { keyId: dbKey.id, tier });
 
     return res.json({
       ok: true,
       token: key,
-      user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier: entitlement.tier },
+      user: { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, tier },
       expiresAt: dbKey.expires_at,
       lifetime: false,
-      tier: entitlement.tier,
+      tier,
       machines: { used: slot.used, max: slot.max }
     });
   }
