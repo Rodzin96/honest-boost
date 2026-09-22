@@ -516,6 +516,70 @@ app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res
 }));
 
 /* Login exclusivamente email + senha (Google OAuth removido do produto). */
+/* Laudo VirusTotal exibido DENTRO do site (sem redirecionar).
+ * Requer VT_API_KEY (gratuita) e INSTALLER_SHA256 da release atual.
+ * Cache 24h (falhas 1h); limite free do VT é 4 req/min — o cache cobre. */
+const VT_API_KEY = (process.env.VT_API_KEY || '').trim() || null;
+const INSTALLER_SHA256 = (process.env.INSTALLER_SHA256 || '').trim().toLowerCase() || null;
+let _vtCache = { at: 0, payload: null };
+async function fetchVtReport() {
+  if (!VT_API_KEY || !INSTALLER_SHA256) return { available: false, reason: 'not_configured' };
+  if (Date.now() - _vtCache.at < 24 * 3600 * 1000 && _vtCache.payload) return _vtCache.payload;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const resp = await fetch(`https://www.virustotal.com/api/v3/files/${INSTALLER_SHA256}`, {
+      headers: { 'x-apikey': VT_API_KEY },
+      signal: ctrl.signal,
+    });
+    if (resp.status === 404) {
+      const p = { available: false, reason: 'never_scanned' };
+      _vtCache = { at: Date.now() - 23 * 3600 * 1000, payload: p }; // retry em 1h
+      return p;
+    }
+    if (!resp.ok) {
+      const p = { available: false, reason: `http_${resp.status}` };
+      _vtCache = { at: Date.now() - 23 * 3600 * 1000, payload: p };
+      return p;
+    }
+    const data = await resp.json();
+    const attr = (data && data.data && data.data.attributes) || {};
+    const stats = attr.last_analysis_stats || {};
+    const malicious = Number(stats.malicious) || 0;
+    const suspicious = Number(stats.suspicious) || 0;
+    const undetected = Number(stats.undetected) || 0;
+    const harmless = Number(stats.harmless) || 0;
+    const total = malicious + suspicious + undetected + harmless
+      + (Number(stats.timeout) || 0) + (Number(stats.failure) || 0);
+    const payload = {
+      available: true,
+      malicious, suspicious, undetected, harmless, total,
+      clean: malicious === 0 && suspicious === 0,
+      scannedAt: attr.last_analysis_date ? new Date(attr.last_analysis_date * 1000).toISOString() : null,
+      permalink: `https://www.virustotal.com/gui/file/${INSTALLER_SHA256}/detection`,
+    };
+    _vtCache = { at: Date.now(), payload };
+    return payload;
+  } catch (e) {
+    const p = { available: false, reason: 'fetch_failed' };
+    _vtCache = { at: Date.now() - 23 * 3600 * 1000, payload: p };
+    return p;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+app.get('/api/security/report', asyncRoute(async (req, res) => {
+  const asset = await resolveInstallerAsset().catch(() => null);
+  const vt = await fetchVtReport();
+  return res.json({
+    ok: true,
+    version: asset && asset.filename ? (asset.filename.match(/(\d+\.\d+\.\d+)/) || [])[1] || null : null,
+    filename: asset ? asset.filename : null,
+    sha256: INSTALLER_SHA256,
+    vt,
+  });
+}));
+
 /* Instalador sempre atual: 1) arquivo local em public/downloads (dev);
  * 2) última Release do GitHub (lida do latest.yml do auto-update, cache 1h).
  * O binário de 75MB nunca entra no git — o Render não teria como servi-lo. */

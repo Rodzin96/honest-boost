@@ -31,3 +31,9 @@ services:
         sync: false
       - key: PAYMENT_WEBHOOK_SECRET
         sync: false
+      # Laudo VirusTotal no site: chave gratuita (my.virustotal.com) + SHA256
+      # do instalador da release atual (página da Release no GitHub).
+      - key: VT_API_KEY
+        sync: false
+      - key: INSTALLER_SHA256
+        sync: false

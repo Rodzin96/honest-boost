@@ -108,7 +108,7 @@
                     <div class="verify-row">
                         <span class="material-symbols-rounded">fingerprint</span>
                         <div>
-                            <div class="verify-label">SHA256 oficial — Honest-Boost-Setup-2.0.1.exe</div>
+                            <div class="verify-label">SHA256 oficial — <span id="official-filename">instalador atual</span></div>
                             <code class="verify-hash" id="official-hash">e3838f7885d39a6699535f59bf4d6e50a36e984daf3e588c4b7803956a872e88</code>
                         </div>
                         <button class="btn btn-outlined" id="copy-hash-btn" type="button">
@@ -118,19 +118,18 @@
                     </div>
                     <div class="verify-row">
                         <span class="material-symbols-rounded">shield</span>
-                        <div>
-                            <div class="verify-label">Laudo antivírus independente</div>
-                            <p style="font-size:0.85rem;margin:0.2rem 0 0;">Análise do instalador no VirusTotal (70+ antivírus). Se o arquivo ainda não foi analisado, a página oferece o upload.</p>
+                        <div style="flex:1;min-width:0;">
+                            <div class="verify-label">Laudo antivírus — <span id="vt-version">verificando…</span></div>
+                            <div id="vt-report" aria-live="polite">
+                                <p style="font-size:0.85rem;margin:0.2rem 0 0;">Consultando análise…</p>
+                            </div>
+                            <p style="font-size:0.75rem;margin:0.4rem 0 0;opacity:0.7;">Fonte dos dados: VirusTotal.</p>
                         </div>
-                        <a class="btn btn-tonal" href="https://www.virustotal.com/gui/file/e3838f7885d39a6699535f59bf4d6e50a36e984daf3e588c4b7803956a872e88/detection" target="_blank" rel="noreferrer">
-                            <span class="material-symbols-rounded">verified_user</span>
-                            Ver no VirusTotal
-                        </a>
                     </div>
                     <details class="verify-how">
                         <summary>Como conferir o hash no Windows</summary>
                         <p>Abra o PowerShell na pasta do download e rode:</p>
-                        <code class="verify-code">certutil -hashfile "Honest-Boost-Setup-2.0.1.exe" SHA256</code>
+                        <code class="verify-code" id="certutil-cmd">certutil -hashfile "instalador.exe" SHA256</code>
                         <p>O resultado deve ser idêntico ao hash oficial acima.</p>
                     </details>
                 </div>
@@ -155,6 +154,54 @@
                 }, 1800);
             });
         });
+
+        // Laudo VirusTotal inline (via backend, com cache) — sem sair do site.
+        (function () {
+            var box = document.getElementById('vt-report');
+            var verEl = document.getElementById('vt-version');
+            if (!box) return;
+            function esc(s) {
+                return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            fetch('/api/security/report', { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (out) {
+                    if (out && out.version && verEl) verEl.textContent = 'v' + out.version;
+                    if (out && out.sha256) {
+                        var h = document.getElementById('official-hash');
+                        if (h) h.textContent = out.sha256;
+                    }
+                    if (out && out.filename) {
+                        var fn = document.getElementById('official-filename');
+                        if (fn) fn.textContent = out.filename;
+                        var cc = document.getElementById('certutil-cmd');
+                        if (cc) cc.textContent = 'certutil -hashfile "' + out.filename + '" SHA256';
+                    }
+                    var vt = out && out.vt;
+                    if (!vt || !vt.available) {
+                        var why = !vt ? 'indisponível' :
+                            vt.reason === 'never_scanned' ? 'arquivo ainda não analisado' :
+                            vt.reason === 'not_configured' ? 'verificação em configuração' : 'temporariamente indisponível';
+                        box.innerHTML = '<p style="font-size:0.85rem;margin:0.2rem 0 0;">Laudo ' + esc(why) + ' — confira pelo hash SHA256 acima.</p>';
+                        return;
+                    }
+                    var pct = vt.total ? Math.round(((vt.harmless + vt.undetected) / vt.total) * 100) : 0;
+                    box.innerHTML =
+                        '<div style="display:flex;align-items:center;gap:0.6rem;margin:0.45rem 0;">' +
+                        '<span class="material-symbols-rounded" style="font-size:1.5rem;color:' + (vt.clean ? '#22c55e' : '#ef4444') + ';">' +
+                        (vt.clean ? 'verified_user' : 'warning') + '</span>' +
+                        '<strong>' + (vt.clean ? '0 detecções em ' + vt.total + ' antivírus' : vt.malicious + vt.suspicious + ' detecções em ' + vt.total + ' antivírus') + '</strong>' +
+                        '</div>' +
+                        '<div style="height:8px;border-radius:6px;background:var(--surface-3);overflow:hidden;">' +
+                        '<div style="height:100%;width:' + pct + '%;background:' + (vt.clean ? '#22c55e' : '#ef4444') + ';"></div></div>' +
+                        '<p style="font-size:0.78rem;margin:0.35rem 0 0;">Limpos: ' + vt.harmless + ' • Não detectado: ' + vt.undetected +
+                        (vt.scannedAt ? ' • Análise: ' + esc(new Date(vt.scannedAt).toLocaleDateString('pt-BR')) : '') + '</p>';
+                })
+                .catch(function () {
+                    box.innerHTML = '<p style="font-size:0.85rem;margin:0.2rem 0 0;">Não foi possível carregar o laudo — confira pelo hash SHA256 acima.</p>';
+                });
+        })();
     </script>
 </body>
 </html>

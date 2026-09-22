@@ -44,6 +44,7 @@ Copie `.env.example` para `.env`. As principais:
 | `ADMIN_USER` / `ADMIN_PASS` | **Email válido** + senha 8+; cria/atualiza o admin no boot |
 | `SMTP_HOST/PORT/USER/PASS/FROM` | Email de licença/recuperação (sem isso, a chave aparece só na success page) |
 | `SMTP_HOST/PORT/USER/PASS/FROM` | Emails de licença e recuperação |
+| `VT_API_KEY` + `INSTALLER_SHA256` | Laudo VirusTotal inline em `/download.html` (atualizar o hash a cada release) |
 
 Preços e planos vivem em `src/products.js` (fonte única: site, checkout e backend leem dali).
 
