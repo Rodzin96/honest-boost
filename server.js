@@ -587,13 +587,44 @@ app.get('/auth/google/callback',
     res.redirect('/dashboard');
   }
 );
+/* Instalador sempre atual: 1) arquivo local em public/downloads (dev);
+ * 2) última Release do GitHub (lida do latest.yml do auto-update, cache 1h).
+ * O binário de 75MB nunca entra no git — o Render não teria como servi-lo. */
+const GH_OWNER = 'Rodzin96';
+const GH_REPO = 'honest-boost';
+let _dlCache = { at: 0, url: null, filename: null };
+async function resolveInstallerAsset() {
+  if (Date.now() - _dlCache.at < 3600000 && _dlCache.url) return _dlCache;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const resp = await fetch(`https://github.com/${GH_OWNER}/${GH_REPO}/releases/latest/download/latest.yml`, { signal: ctrl.signal });
+    if (!resp.ok) return _dlCache.url ? _dlCache : null;
+    const yml = await resp.text();
+    const version = (yml.match(/^version:\s*(.+)$/m) || [])[1];
+    const asset = (yml.match(/^path:\s*(.+)$/m) || [])[1];
+    if (!version || !asset) return _dlCache.url ? _dlCache : null;
+    _dlCache = {
+      at: Date.now(),
+      url: `https://github.com/${GH_OWNER}/${GH_REPO}/releases/download/v${version.trim()}/${asset.trim()}`,
+      filename: asset.trim(),
+    };
+    return _dlCache;
+  } catch {
+    return _dlCache.url ? _dlCache : null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 app.get('/api/download', requireAuth, asyncRoute(async (req, res) => {
   const downloadsDir = path.join(__dirname, 'public', 'downloads');
-  const installer = ['HonestBoostSetup.exe', 'honest-boost-setup.exe', 'Honest Boost Setup 2.0.0.exe'].find((name) =>
+  const local = ['HonestBoostSetup.exe', 'honest-boost-setup.exe'].find((name) =>
     require('fs').existsSync(path.join(downloadsDir, name))
   );
-  if (!installer) return res.status(503).json({ error: 'download_not_available' });
-  return res.json({ ok: true, url: `/downloads/${installer}`, filename: installer });
+  if (local) return res.json({ ok: true, url: `/downloads/${local}`, filename: local });
+  const asset = await resolveInstallerAsset();
+  if (!asset || !asset.url) return res.status(503).json({ error: 'download_not_available' });
+  return res.json({ ok: true, url: asset.url, filename: asset.filename });
 }));
 
 /* API Keys */
