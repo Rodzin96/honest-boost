@@ -1486,7 +1486,7 @@ function renderAppGrid(category, query) {
            <button class="btn btn-ghost btn-sm" data-uninstall="${app.id}">Desinstalar</button>`;
     return `
     <div class="app-card">
-      <div class="app-card-header"><div class="app-card-icon${app.art ? ' has-art' : ''}">${app.art ? `<img src="https://cdn.simpleicons.org/${app.art}/E8ECF4" alt="" width="26" height="26" loading="eager" draggable="false" onload="this.nextElementSibling.style.display='none'" onerror="this.remove()">` : ''}<span>${app.icon}</span></div>${statusTag}</div>
+      <div class="app-card-header"><div class="app-card-icon${app.art ? ' has-art' : ''}">${app.art ? `<img src="https://cdn.simpleicons.org/${app.art}/E8ECF4" alt="" width="26" height="26" loading="eager" draggable="false">` : ''}<span>${app.icon}</span></div>${statusTag}</div>
       <div class="app-card-name">${esc(app.name)}</div>
       <div class="app-card-desc">${esc(app.desc)}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-bottom:10px;font-family:var(--font-mono);">${esc(app.size)}</div>
@@ -1494,6 +1494,18 @@ function renderAppGrid(category, query) {
     </div>`;
   }).join('');
 
+  // Ícones: esconde o fallback de texto quando a imagem carrega de verdade
+  // (listeners via JS — handlers inline são bloqueados pelo CSP).
+  grid.querySelectorAll('.app-card-icon.has-art').forEach(box => {
+    const img = box.querySelector('img'), label = box.querySelector('span');
+    if (!img || !label) return;
+    const hideLabel = () => { label.style.display = 'none'; };
+    if (img.complete && img.naturalWidth > 0) hideLabel();
+    else {
+      img.addEventListener('load', hideLabel, { once: true });
+      img.addEventListener('error', () => img.remove(), { once: true });
+    }
+  });
   const rerender = () => {
     const activeTab = document.querySelector('#apps-tabs-bar .tab-btn.active');
     if (activeTab) renderAppGrid(activeTab.dataset.apptab, ($('app-search') || {}).value || '');
@@ -1798,7 +1810,7 @@ function renderGames() {
     return `
     <div class="game-card card" data-game-card="${esc(e.title)}">
       <div class="game-top">
-        <div class="game-avatar game-cover" title="${esc(e.title)}" style="background:linear-gradient(135deg,hsl(${gameHue(e.title)},55%,38%),hsl(${(gameHue(e.title) + 40) % 360},55%,24%));">${art ? `<img src="${art}" alt="${esc(e.title)}" width="104" height="48" loading="eager" draggable="false" onerror="this.remove()" onload="this.nextElementSibling.style.display='none'">` : ''}<span>${esc(gameInitials(e.title))}</span></div>
+        <div class="game-avatar game-cover" title="${esc(e.title)}" style="background:linear-gradient(135deg,hsl(${gameHue(e.title)},55%,38%),hsl(${(gameHue(e.title) + 40) % 360},55%,24%));">${art ? `<img src="${art}" alt="${esc(e.title)}" width="104" height="48" loading="eager" draggable="false" >` : ''}<span>${esc(gameInitials(e.title))}</span></div>
         <div style="flex:1;min-width:0;"><div class="game-name">${esc(e.title)}</div><div class="game-src">perfil pronto • 1 clique</div></div>
       </div>
       <div class="game-profile">
@@ -1813,6 +1825,16 @@ function renderGames() {
       </div>
     </div>`;
   }).join('');
+  grid.querySelectorAll('.game-avatar.game-cover').forEach(box => {
+    const img = box.querySelector('img'), label = box.querySelector('span');
+    if (!img || !label) return;
+    const hideLabel = () => { label.style.display = 'none'; };
+    if (img.complete && img.naturalWidth > 0) hideLabel();
+    else {
+      img.addEventListener('load', hideLabel, { once: true });
+      img.addEventListener('error', () => img.remove(), { once: true });
+    }
+  });
   grid.querySelectorAll('[data-game-apply]').forEach(btn => btn.addEventListener('click', async () => {
     if (!licenseGate('aplicar perfis de jogos')) return;
     const title = btn.dataset.gameApply;
