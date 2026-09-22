@@ -520,7 +520,9 @@ app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res
  * Requer VT_API_KEY (gratuita) e INSTALLER_SHA256 da release atual.
  * Cache 24h (falhas 1h); limite free do VT é 4 req/min — o cache cobre. */
 const VT_API_KEY = (process.env.VT_API_KEY || '').trim() || null;
-const INSTALLER_SHA256 = (process.env.INSTALLER_SHA256 || '').trim().toLowerCase() || null;
+// Aceita com ou sem prefixo "sha256:"; exige 64 hex (evita consulta lixo).
+const _rawSha = (process.env.INSTALLER_SHA256 || '').trim().toLowerCase().replace(/^sha256:/, '');
+const INSTALLER_SHA256 = /^[0-9a-f]{64}$/.test(_rawSha) ? _rawSha : null;
 let _vtCache = { at: 0, payload: null };
 async function fetchVtReport() {
   if (!VT_API_KEY || !INSTALLER_SHA256) return { available: false, reason: 'not_configured' };
