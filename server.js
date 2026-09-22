@@ -589,8 +589,10 @@ app.get('/api/security/report', asyncRoute(async (req, res) => {
  * O binário de 75MB nunca entra no git — o Render não teria como servi-lo. */
 const GH_OWNER = 'Rodzin96';
 const GH_REPO = 'honest-boost';
-let _dlCache = { at: 0, url: null, filename: null };
-async function resolveInstallerAsset() {
+let _dlCache = { at: 0, url: null, filename: null, version: null };
+// Última Release (via latest.yml do auto-update). Fonte única p/ download,
+// versão do site e checagens. Cache 1h; em falha, devolve o último válido.
+async function getLatestRelease() {
   if (Date.now() - _dlCache.at < 3600000 && _dlCache.url) return _dlCache;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 12000);
@@ -598,13 +600,13 @@ async function resolveInstallerAsset() {
     const resp = await fetch(`https://github.com/${GH_OWNER}/${GH_REPO}/releases/latest/download/latest.yml`, { signal: ctrl.signal });
     if (!resp.ok) return _dlCache.url ? _dlCache : null;
     const yml = await resp.text();
-    const version = (yml.match(/^version:\s*(.+)$/m) || [])[1];
-    const asset = (yml.match(/^path:\s*(.+)$/m) || [])[1];
+    const version = ((yml.match(/^version:\s*(.+)$/m) || [])[1] || '').trim();
+    const asset = ((yml.match(/^path:\s*(.+)$/m) || [])[1] || '').trim();
     if (!version || !asset) return _dlCache.url ? _dlCache : null;
     _dlCache = {
-      at: Date.now(),
-      url: `https://github.com/${GH_OWNER}/${GH_REPO}/releases/download/v${version.trim()}/${asset.trim()}`,
-      filename: asset.trim(),
+      at: Date.now(), version,
+      url: `https://github.com/${GH_OWNER}/${GH_REPO}/releases/download/v${version}/${asset}`,
+      filename: asset,
     };
     return _dlCache;
   } catch {
@@ -612,6 +614,13 @@ async function resolveInstallerAsset() {
   } finally {
     clearTimeout(timer);
   }
+}
+app.get('/api/app-version', asyncRoute(async (req, res) => {
+  const rel = await getLatestRelease().catch(() => null);
+  return res.json({ ok: true, version: rel ? rel.version : null });
+}));
+async function resolveInstallerAsset() {
+  return getLatestRelease().catch(() => null);
 }
 /* Download PÚBLICO (sem login): o instalador sozinho não faz nada — a licença
  * é fiscalizada no app (ativação + seats). Travar download só criava atrito

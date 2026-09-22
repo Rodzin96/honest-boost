@@ -31,6 +31,19 @@
     return el;
   }
 
+  // Barra de versão sempre atual (lê a Release vigente, com fallback estático).
+  (function () {
+    var el = document.getElementById('version-bar-text');
+    var bar = document.getElementById('version-bar');
+    if (!el) return;
+    window.HB.api('/api/app-version').then(function (out) {
+      var v = out && out.data && out.data.version;
+      if (!v) return;
+      el.textContent = 'V' + v + ' Disponível — ver o que mudou';
+      if (bar) bar.setAttribute('aria-label', 'Versão ' + v + ' disponível — ver novidades');
+    }).catch(function () {});
+  })();
+
   window.HB.api('/api/products').then(function (out) {
     if (!out.res.ok || !Array.isArray(out.data)) throw new Error('catalog_unavailable');
     grid.innerHTML = '';
