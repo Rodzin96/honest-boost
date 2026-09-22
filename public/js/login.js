@@ -6,6 +6,16 @@
   var btn = document.getElementById('loginBtn');
   var msgEl = document.getElementById('msg');
 
+  // Esconde o botão Google quando o OAuth está desligado no servidor.
+  HB.api('/api/auth-methods').then(function (out) {
+    if (out.res.ok && out.data && out.data.google === false) {
+      document.querySelectorAll('a[href="/auth/google"]').forEach(function (a) {
+        var wrap = a.closest('.social-login, .social-row') || a;
+        wrap.style.display = 'none';
+      });
+    }
+  }).catch(function () {});
+
   // Surface OAuth failures passed back as query params.
   var params = new URLSearchParams(location.search);
   var oauthError = params.get('error');

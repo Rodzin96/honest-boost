@@ -2,6 +2,15 @@
 (function () {
   'use strict';
   var HB = window.HB;
+  // Esconde o botão Google quando o OAuth está desligado no servidor.
+  HB.api('/api/auth-methods').then(function (out) {
+    if (out.res.ok && out.data && out.data.google === false) {
+      document.querySelectorAll('a[href="/auth/google"]').forEach(function (a) {
+        var wrap = a.closest('.social-login, .social-row') || a;
+        wrap.style.display = 'none';
+      });
+    }
+  }).catch(function () {});
   var form = document.getElementById('regForm');
   var btn = document.getElementById('regBtn');
   var msgEl = document.getElementById('msg');

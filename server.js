@@ -566,13 +566,22 @@ app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res
   return res.json({ ok: true });
 }));
 
-/* Google OAuth routes */
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+/* Google OAuth routes. Sem as 3 env vars a strategy nem é registrada — sem esta
+ * guarda o passport estoura "Unknown authentication strategy" (500 internal_error).
+ * Desligado: volta ao login com mensagem amigável (login.js já trata). */
+const GOOGLE_ENABLED = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL);
+app.get('/api/auth-methods', (req, res) => {
+  res.json({ google: GOOGLE_ENABLED });
+});
+app.get('/auth/google', (req, res, next) => {
+  if (!GOOGLE_ENABLED) return res.redirect('/login.html?error=google_not_configured');
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login.html' }),
+app.get('/auth/google/callback', (req, res, next) => {
+  if (!GOOGLE_ENABLED) return res.redirect('/login.html?error=google_not_configured');
+  passport.authenticate('google', { failureRedirect: '/login.html?error=google_failed' })(req, res, next);
+},
   async (req, res) => {
     if (!req.user) return res.redirect('/login.html');
     try {
