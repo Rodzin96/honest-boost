@@ -2409,6 +2409,33 @@ function initAutoUpdate() {
       if (res && res.ok && res.available) toast(`⬇ ${res.message}`, 'info');
     } catch (e) {}
   }, 8000);
+  // Botão manual em Configurações → Geral
+  $('btn-check-updates')?.addEventListener('click', async () => {
+    const btn = $('btn-check-updates'), st = $('update-status');
+    const say = (t) => { if (st) st.textContent = t; };
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Verificando…'; }
+    say('consultando o GitHub…');
+    try {
+      const res = await window.hbDesktop.checkForUpdates();
+      if (!res) throw new Error('sem resposta');
+      if (res.dev) { say('modo dev — só no app instalado'); toast('Verificação disponível apenas no app instalado', 'warning'); }
+      else if (res.ok && res.available) { say('nova versão: ' + (res.version || '')); toast(`⬇ ${res.message}`, 'success'); }
+      else if (res.ok) { say('em dia ✓'); toast(`✔ ${res.message || 'Em dia'}`, 'success'); }
+      else { say('falha na verificação'); toast('Atualização: ' + (res.error || 'falha'), 'error'); }
+    } catch (e) { say('erro de conexão'); toast('Erro: ' + e.message, 'error'); }
+    finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Verificar atualizações agora'; }
+      setTimeout(() => { const s = $('update-status'); if (s && s.textContent !== 'em dia ✓') s.textContent = '—'; }, 15000);
+    }
+  });
+  // Progresso do download refletido no status (quando disponível)
+  try {
+    window.hbDesktop.onUpdateStatus((ev) => {
+      const s = $('update-status');
+      if (!s) return;
+      if (ev && ev.stage === 'progress') s.textContent = `baixando… ${ev.percent || 0}%`;
+    });
+  } catch (e) {}
 }
 async function handleQuickAction(action, el) {
   if (el) { el.style.transform = 'scale(.94)'; setTimeout(() => el.style.transform = '', 160); }
