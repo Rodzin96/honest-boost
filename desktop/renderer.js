@@ -1796,9 +1796,9 @@ function renderGames() {
     const appid = GAME_ART[e.title] || 0;
     const art = appid ? STEAM_ART + appid + '/header.jpg' : '';
     return `
-    <div class="game-card card">
+    <div class="game-card card" data-game-card="${esc(e.title)}">
       <div class="game-top">
-        <div class="game-avatar game-cover" title="${esc(e.title)}" style="background:linear-gradient(135deg,hsl(${gameHue(e.title)},55%,38%),hsl(${(gameHue(e.title) + 40) % 360},55%,24%));">${art ? `<img src="${art}" alt="${esc(e.title)}" loading="lazy" onerror="this.remove()">` : ''}<span>${esc(gameInitials(e.title))}</span></div>
+        <div class="game-avatar game-cover" title="${esc(e.title)}" style="background:linear-gradient(135deg,hsl(${gameHue(e.title)},55%,38%),hsl(${(gameHue(e.title) + 40) % 360},55%,24%));">${art ? `<img src="${art}" alt="${esc(e.title)}" width="104" height="48" loading="eager" draggable="false" onerror="this.remove()">` : ''}<span>${esc(gameInitials(e.title))}</span></div>
         <div style="flex:1;min-width:0;"><div class="game-name">${esc(e.title)}</div><div class="game-src">perfil pronto • 1 clique</div></div>
       </div>
       <div class="game-profile">
@@ -1835,7 +1835,25 @@ function renderGames() {
       }
     } catch (e) { toast('Erro: ' + e.message, 'error'); }
     await refreshCatalog();
-    renderGames();
+    // Atualiza SÓ o card (sem reconstruir o grid = sem pulo/recarregamento dos ícones)
+    try {
+      const card = grid.querySelector(`[data-game-card="${CSS.escape(title)}"]`);
+      const entry2 = GAME_CATALOG.map(t => ({ title: t[0], profile: _profileByName[t[1]] || GENERIC_GAME_PROFILE })).find(x => x.title === title);
+      const prof2 = entry2 ? entry2.profile : profile;
+      const total2 = prof2.ids.length;
+      const done2 = prof2.ids.filter(id => isOptApplied(id)).length;
+      if (card) {
+        const bar = card.querySelector('.game-progress div');
+        const label = card.querySelector('.game-progress-label');
+        const btn2 = card.querySelector('[data-game-apply]');
+        if (bar) bar.style.width = Math.round((done2 / total2) * 100) + '%';
+        if (label) label.textContent = `${done2}/${total2} aplicadas`;
+        if (btn2) {
+          if (done2 === total2) { btn2.disabled = true; btn2.textContent = 'Perfil ativo ✓'; }
+          else { btn2.disabled = false; btn2.textContent = done2 > 0 ? 'Completar perfil' : 'Aplicar perfil'; }
+        }
+      }
+    } catch (e) { renderGames(); }
   }));
   bindTips(grid);
 }
