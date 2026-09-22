@@ -61,6 +61,7 @@ const SVG = {
   performance: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
   cleaning: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
   monitor: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  games: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><line x1="15" y1="12" x2="15.01" y2="12"/><line x1="18" y1="10" x2="18.01" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59l-.7 5.6a2 2 0 0 0 3.47 1.7L7 14.5h10l1.53 1.39a2 2 0 0 0 3.47-1.7l-.7-5.6A4 4 0 0 0 17.32 5z"/></svg>',
   apps: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
   services: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
   internet: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z"/></svg>',
@@ -79,6 +80,7 @@ const NAV_GROUPS = [
   ]},
   { label: 'Sistema', items: [
     { id: 'monitor', label: 'Monitor', tip: 'Processos e inicialização' },
+    { id: 'games', label: 'Jogos', tip: 'Biblioteca e perfis por jogo' },
     { id: 'apps', label: 'Apps', tip: 'Loja de utilitários' },
     { id: 'services', label: 'Serviços', tip: 'Serviços do Windows' },
     { id: 'internet', label: 'Internet', tip: 'Rede, DNS e latência' },
@@ -125,6 +127,7 @@ function navigate(id) {
     case 'performance': renderPerformance(); break;
     case 'cleaning': renderCleaning(); break;
     case 'monitor': renderMonitorPanel(); break;
+    case 'games': renderGames(); break;
     case 'apps': renderApps(); break;
     case 'services': renderServicesPanel(); break;
     case 'internet': renderInternetPanel(); break;
@@ -1509,6 +1512,123 @@ function renderAppGrid(category, query) {
 }
 
 // ============================================================
+// Jogos — biblioteca detectada + perfil de otimização por jogo
+// (IDs validados contra o catálogo real em auditoria)
+// ============================================================
+const GAME_PROFILES = [
+  { match: ['counter-strike', 'cs2', 'csgo'], name: 'Perfil CS2 Competitivo', ids: ['cs2-cvars', 'game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
+  { match: ['valorant'], name: 'Perfil Valorant', ids: ['game-dvr', 'system-responsiveness', 'mpo-disable', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
+  { match: ['league of legends', 'leagueoflegends'], name: 'Perfil LoL', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
+  { match: ['fortnite'], name: 'Perfil Fortnite', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
+  { match: ['apex'], name: 'Perfil Apex Legends', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
+  { match: ['warzone', 'call of duty', 'modern warfare', 'black ops'], name: 'Perfil CoD', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects', 'telemetry'] },
+  { match: ['overwatch'], name: 'Perfil Overwatch', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
+  { match: ['gta', 'five m', 'fivem', 'red dead', 'rdr'], name: 'Perfil Mundo Aberto', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
+  { match: ['minecraft'], name: 'Perfil Minecraft', ids: ['visual-effects', 'power-plan-ultimate', 'system-responsiveness'] },
+  { match: ['roblox'], name: 'Perfil Roblox', ids: ['visual-effects', 'power-plan-ultimate'] },
+  { match: ['fifa', 'ea sports fc', 'fc 24', 'fc 25', 'fc 26'], name: 'Perfil EA FC', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] },
+];
+const GENERIC_GAME_PROFILE = { name: 'Perfil Performance Geral', ids: ['game-dvr', 'system-responsiveness', 'power-plan-ultimate', 'visual-effects'] };
+function gameProfileFor(name) {
+  const n = String(name || '').toLowerCase();
+  return GAME_PROFILES.find(p => p.match.some(k => n.includes(k))) || GENERIC_GAME_PROFILE;
+}
+function gameHue(name) {
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+function gameInitials(name) {
+  const words = String(name || '?').replace(/[^A-Za-z0-9 ]/g, ' ').trim().split(/\s+/);
+  return ((words[0] || '?')[0] + (words.length > 1 ? words[1][0] : '')).toUpperCase();
+}
+
+async function renderGames() {
+  const grid = $('games-grid');
+  if (!grid) return;
+  if (!state.games) {
+    grid.innerHTML = Array.from({ length: 6 }).map(() => `
+      <div class="game-card card"><div class="game-top"><div class="skeleton" style="width:48px;height:48px;border-radius:14px;"></div>
+      <div style="flex:1;"><div class="skeleton" style="height:16px;width:60%;margin-bottom:8px;"></div><div class="skeleton" style="height:11px;width:40%;"></div></div></div>
+      <div class="skeleton" style="height:64px;"></div></div>`).join('');
+    try {
+      const res = await window.hbDesktop.scanGames();
+      const list = (res.ok && res.games) ? res.games : [];
+      // Agrupa por jogo (o scanner retorna 1 linha por .exe)
+      const byGame = new Map();
+      for (const g of list) {
+        const key = String(g.appId || '') + '|' + String(g.name || 'Desconhecido').toLowerCase();
+        if (!byGame.has(key)) byGame.set(key, { name: g.name || 'Desconhecido', source: g.source || '?', dir: g.dir || '', exes: 0 });
+        byGame.get(key).exes++;
+      }
+      state.games = [...byGame.values()].sort((a, b) => a.name.localeCompare(b.name));
+    } catch (e) {
+      state.games = [];
+      toast('Falha ao escanear jogos: ' + e.message, 'error');
+    }
+  }
+  const count = $('games-count');
+  if (count) count.textContent = `${state.games.length} jogo(s) detectado(s)`;
+  if (!state.games.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎮</div><div class="empty-state-title">Nenhum jogo detectado</div><div class="empty-state-desc">Instalamos via Steam, Riot, Epic e pastas de jogos. Clique em escanear novamente.</div></div>';
+    return;
+  }
+  grid.innerHTML = state.games.map((g, i) => {
+    const profile = gameProfileFor(g.name);
+    const total = profile.ids.length;
+    const done = profile.ids.filter(id => isOptApplied(id)).length;
+    const pct = Math.round((done / total) * 100);
+    return `
+    <div class="game-card card">
+      <div class="game-top">
+        <div class="game-avatar" style="background:linear-gradient(135deg,hsl(${gameHue(g.name)},55%,38%),hsl(${(gameHue(g.name) + 40) % 360},55%,24%));">${esc(gameInitials(g.name))}</div>
+        <div style="flex:1;min-width:0;"><div class="game-name">${esc(g.name)}</div><div class="game-src">${esc(g.source)} • ${g.exes} executável(eis)</div></div>
+      </div>
+      <div class="game-profile">
+        <div class="game-profile-name">⚡ ${esc(profile.name)}</div>
+        <div class="game-profile-tags">${profile.ids.slice(0, 4).map(id => `<span class="badge-sm">${esc(shortOptName(id))}</span>`).join('')}${total > 4 ? `<span class="badge-sm">+${total - 4}</span>` : ''}</div>
+      </div>
+      <div class="game-progress"><div style="width:${pct}%"></div></div>
+      <div class="game-progress-label">${done}/${total} aplicadas</div>
+      <div class="game-footer">
+        <button class="btn btn-primary btn-sm" data-game-apply="${i}" ${done === total ? 'disabled' : ''}>${done === total ? 'Perfil ativo ✓' : done > 0 ? 'Completar perfil' : 'Aplicar perfil'}</button>
+      </div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('[data-game-apply]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!licenseGate('aplicar perfis de jogos')) return;
+    const g = state.games[Number(btn.dataset.gameApply)];
+    const profile = gameProfileFor(g.name);
+    const pending = profile.ids.filter(id => !isOptApplied(id));
+    if (!pending.length) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Aplicando…';
+    toast(`⚡ Aplicando ${profile.name}…`, 'info');
+    try {
+      const res = await window.hbDesktop.applyBatch(pending);
+      const r = res.result || {};
+      if ((r.applied || 0) > 0) {
+        toast(`✔ ${r.applied}/${pending.length} do perfil aplicadas`, r.failed ? 'warning' : 'success');
+        addHistory('preset', g.name, r.failed ? 'success' : 'success', `${r.applied} aplicadas`);
+      } else {
+        toast('⚠️ ' + (((r.results || []).find(x => !x.ok) || {}).message || 'Nada aplicado — tente como administrador'), 'warning');
+        addHistory('preset', g.name, 'error');
+      }
+    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    await refreshCatalog();
+    const keep = state.games;
+    state.games = keep;
+    renderGames();
+  }));
+  bindTips(grid);
+}
+function shortOptName(id) {
+  const found = allOptItems().find(o => o.id === id);
+  if (!found) return id;
+  return found.name.length > 26 ? found.name.slice(0, 26) + '…' : found.name;
+}
+
+// ============================================================
 // Configurações
 // ============================================================
 function renderSettings() {
@@ -1957,9 +2077,16 @@ function searchAll(query) {
   const panels = [
     { nav: 'dashboard', icon: '📊', label: 'Painel', desc: 'Visão geral do sistema em tempo real' },
     { nav: 'optimizations', icon: '⚡', label: 'Otimizações', desc: 'Aplique otimizações por categoria' },
+    { nav: 'performance', icon: '🚀', label: 'Performance', desc: 'Presets e boost de FPS' },
     { nav: 'cleaning', icon: '🧹', label: 'Limpeza', desc: 'Remova arquivos desnecessários' },
-    { nav: 'restoration', icon: '🛡', label: 'Restauração', desc: 'Gerencie backups e restauração' },
+    { nav: 'monitor', icon: '🖥️', label: 'Monitor', desc: 'Processos e inicialização' },
+    { nav: 'games', icon: '🎮', label: 'Jogos', desc: 'Biblioteca e perfis por jogo' },
     { nav: 'apps', icon: '📦', label: 'Loja de Apps', desc: 'Instale e gerencie utilitários' },
+    { nav: 'services', icon: '⚙️', label: 'Serviços', desc: 'Serviços do Windows' },
+    { nav: 'internet', icon: '🌐', label: 'Internet', desc: 'Rede, DNS e latência' },
+    { nav: 'security', icon: '🛡️', label: 'Segurança', desc: 'Defender e integridade' },
+    { nav: 'restoration', icon: '🛡', label: 'Restauração', desc: 'Gerencie backups e restauração' },
+    { nav: 'history', icon: '📋', label: 'Histórico', desc: 'Auditoria de operações' },
     { nav: 'settings', icon: '⚙️', label: 'Configurações', desc: 'Personalize o Honest Boost' },
     { nav: 'auth', icon: '🔐', label: 'Autenticação', desc: 'Gerencie sua licença' },
   ];
@@ -2306,6 +2433,11 @@ function initPremium() {
   $('btn-sidebar-boost')?.addEventListener('click', () => handleQuickAction('quick-boost'));
   $('btn-perf-boost')?.addEventListener('click', () => handleQuickAction('quick-boost'));
   $('btn-benchmark')?.addEventListener('click', runBenchmark);
+  $('btn-scan-games')?.addEventListener('click', async () => {
+    state.games = null;
+    await renderGames();
+    toast('✔ Biblioteca atualizada', 'success');
+  });
   $('btn-optimize-now')?.addEventListener('click', () => paintHealth(state.health ? state.health.score : 0));
   const optSearch = $('opt-search');
   if (optSearch) optSearch.addEventListener('input', () => {
