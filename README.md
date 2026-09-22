@@ -43,7 +43,7 @@ Copie `.env.example` para `.env`. As principais:
 | `INFINITEPAY_HANDLE` | Pix (checkout + `POST /webhook/infinitepay`) |
 | `ADMIN_USER` / `ADMIN_PASS` | **Email válido** + senha 8+; cria/atualiza o admin no boot |
 | `SMTP_HOST/PORT/USER/PASS/FROM` | Email de licença/recuperação (sem isso, a chave aparece só na success page) |
-| `GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL` | Login com Google (opcional) |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | Emails de licença e recuperação |
 
 Preços e planos vivem em `src/products.js` (fonte única: site, checkout e backend leem dali).
 
@@ -104,7 +104,7 @@ com o banco acordando (orçamento de 3s para o `SELECT 1`).
 | Método/Rota | Acesso | Descrição |
 |---|---|---|
 | `GET /health` | público | Liveness + flag `db` |
-| `POST /api/register` / `/api/login` / `/api/logout` | público | Conta (sessão; login aceita Google) |
+| `POST /api/register` / `/api/login` / `/api/logout` | público | Conta email+senha (sessão) |
 | `GET /api/me` | sessão | Usuário autenticado |
 | `POST /api/create-checkout-session` | público | Checkout Stripe/Pix |
 | `POST /webhook` | Stripe (assinatura) | Ativa pedido + licença |

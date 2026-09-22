@@ -6,8 +6,6 @@ const path = require('path');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const session = require('express-session');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -117,56 +115,7 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* Passport + Google OAuth */
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser(async (id, done) => {
-  try {
-    try { await ensureDbReady(); } catch (e) { /* ignore */ }
-    const user = await getDb().dbGet('SELECT id, username, nickname, role, avatar_url, auth_provider FROM users WHERE id = $1', [id]);
-    done(null, user || false);
-  } catch (err) {
-    done(err);
-  }
-});
-
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL) {
-  passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
-  }, async (accessToken, refreshToken, profile, done) => {
-    try {
-      const email = profile.emails && profile.emails[0] && profile.emails[0].value;
-      if (!email) return done(null, false, { message: 'no_email' });
-      const googleId = profile.id;
-      const avatarUrl = profile.photos && profile.photos[0] && profile.photos[0].value;
-      const nickname = profile.displayName || email.split('@')[0];
-
-      // Try to find by google_id first, then by email
-      let user = await getDb().dbGet('SELECT * FROM users WHERE google_id = $1', [googleId]);
-      if (!user) {
-        user = await getDb().dbGet('SELECT * FROM users WHERE username = $1', [email]);
-        if (user) {
-          // Link Google to existing account
-          await getDb().dbRun('UPDATE users SET google_id = $1, avatar_url = $2, auth_provider = $3 WHERE id = $4', [googleId, avatarUrl, 'google', user.id]);
-        } else {
-          // Create new user
-          await getDb().dbRun(
-            'INSERT INTO users (username, nickname, role, auth_provider, google_id, avatar_url, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [email, nickname, 'user', 'google', googleId, avatarUrl, new Date().toISOString()]
-          );
-          user = await getDb().dbGet('SELECT * FROM users WHERE google_id = $1', [googleId]);
-        }
-      }
-      return done(null, user);
-    } catch (err) {
-      return done(err);
-    }
-  }));
-}
+/* Sessão manual via express-session (req.session.user). Sem Passport/Google OAuth. */
 
 async function provisionConfiguredAdmin() {
   const email = normalizeEmail(process.env.ADMIN_USER);
@@ -566,36 +515,7 @@ app.post('/api/password-reset-confirm', resetLimiter, asyncRoute(async (req, res
   return res.json({ ok: true });
 }));
 
-/* Google OAuth routes. Sem as 3 env vars a strategy nem é registrada — sem esta
- * guarda o passport estoura "Unknown authentication strategy" (500 internal_error).
- * Desligado: volta ao login com mensagem amigável (login.js já trata). */
-const GOOGLE_ENABLED = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL);
-app.get('/api/auth-methods', (req, res) => {
-  res.json({ google: GOOGLE_ENABLED });
-});
-app.get('/auth/google', (req, res, next) => {
-  if (!GOOGLE_ENABLED) return res.redirect('/login.html?error=google_not_configured');
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
-});
-
-app.get('/auth/google/callback', (req, res, next) => {
-  if (!GOOGLE_ENABLED) return res.redirect('/login.html?error=google_not_configured');
-  passport.authenticate('google', { failureRedirect: '/login.html?error=google_failed' })(req, res, next);
-},
-  async (req, res) => {
-    if (!req.user) return res.redirect('/login.html');
-    try {
-      const user = await getDb().dbGet('SELECT id, username, nickname, role, avatar_url, auth_provider FROM users WHERE id = $1', [req.user.id]);
-      if (user) {
-        req.session.user = { id: user.id, username: user.username, nickname: user.nickname || null, role: user.role, avatar: user.avatar_url };
-        await audit(req, 'login_google', { email: user.username });
-      }
-    } catch (err) {
-      console.error('Google callback error:', err.message);
-    }
-    res.redirect('/dashboard');
-  }
-);
+/* Login exclusivamente email + senha (Google OAuth removido do produto). */
 /* Instalador sempre atual: 1) arquivo local em public/downloads (dev);
  * 2) última Release do GitHub (lida do latest.yml do auto-update, cache 1h).
  * O binário de 75MB nunca entra no git — o Render não teria como servi-lo. */
