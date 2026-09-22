@@ -290,6 +290,7 @@ const RECOMMENDED = [
     category: 'Manutenção',
     admin: true,
     reversible: false,
+    slow: true, // até ~30min — fora do 1-clique; rode individualmente
     risk: 'LOW',
     evidence: 'Reparo real de arquivos corrompidos. Útil quando o PC já apresenta erros (item 33 da auditoria).',
     summary: 'sfc /scannow e depois DISM /Online /Cleanup-Image /RestoreHealth. Pode demorar vários minutos.',
@@ -421,6 +422,7 @@ const RECOMMENDED = [
     category: 'Ferramentas',
     admin: true,
     risk: 'LOW',
+    slow: true, // download winget — fora do 1-clique
     reversible: true,
     evidence: 'Ferramenta portátil para visualizar ocupação de disco. Instala via winget (item 16 da auditoria).',
     summary: 'Instala SpaceSniffer via winget. Remove com "Remover".',
@@ -446,6 +448,7 @@ const RECOMMENDED = [
     category: 'Ferramentas',
     admin: true,
     risk: 'LOW',
+    slow: true, // download winget — fora do 1-clique
     reversible: true,
     evidence: 'Gerencia prioridade/afinidade de processos automaticamente. Instala via winget (item 20 da auditoria).',
     summary: 'Instala Process Lasso (Bitsum) via winget.',
@@ -471,6 +474,7 @@ const RECOMMENDED = [
     category: 'Ferramentas',
     admin: true,
     risk: 'LOW',
+    slow: true, // downloads winget — fora do 1-clique
     reversible: false,
     evidence: 'Visual C++ Runtimes e DirectX End-User Runtime são pré-requisitos reais para jogos. Instala via winget (item 37 da auditoria).',
     summary: 'Instala todos os VC++ Runtimes (TechPowerUp) e DirectX via winget.',
@@ -500,6 +504,7 @@ const RECOMMENDED = [
     category: 'Sistema',
     admin: true,
     risk: 'LOW',
+    slow: true, // DISM minutos — fora do 1-clique
     reversible: true,
     evidence: 'Adiciona pacotes de Group Policy ao Windows Home via DISM (item 40 da auditoria).',
     summary: 'Instala pacotes Microsoft-Windows-GroupPolicy via DISM. Revert remove os pacotes.',

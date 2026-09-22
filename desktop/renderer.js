@@ -794,13 +794,43 @@ function hideProgress(doneText) {
 // (aplicadas, puladas por hardware, bloqueadas por falta de admin).
 async function runOptimizeNow() {
   if (!licenseGate('otimizar o Windows')) return;
-  showProgress('Otimizando o Windows', 'Aplicando otimizações recomendadas…', 'Isso pode levar 1–2 minutos. Não feche o app.');
+  showProgress('Otimizando o Windows', 'Aplicando otimizações recomendadas…', 'Ajustes rápidos (sem SFC/DISM — rode Reparar à parte).');
+  const cancelBtn = $('progress-cancel');
+  if (cancelBtn) {
+    cancelBtn.classList.remove('hidden');
+    cancelBtn.onclick = async () => {
+      cancelBtn.disabled = true;
+      cancelBtn.innerHTML = '<span class="spinner"></span> Cancelando…';
+      try { await window.hbDesktop.cancelBatch(); } catch (e) {}
+      $('progress-text').textContent = 'Cancelando após o item atual…';
+    };
+  }
+  let offProgress = null;
   try {
+    offProgress = window.hbDesktop.onOptProgress((p) => {
+      if (!p) return;
+      const bar = $('progress-bar'), txt = $('progress-text'), det = $('progress-detail');
+      const pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
+      if (bar) bar.style.width = Math.max(4, pct) + '%';
+      if (txt) txt.textContent = p.total ? `Aplicando ${p.done + 1 > p.total ? p.total : p.done + 1}/${p.total}…` : 'Aplicando…';
+      if (det && p.id) {
+        const meta = allOptItems().find(o => o.id === p.id);
+        det.textContent = meta ? meta.name : p.id;
+      }
+    });
     const res = await window.hbDesktop.applyRecommended();
     if (!res.ok) throw new Error(res.error || 'Falha');
     const r = res.result || {};
     const applied = r.applied || 0, failed = r.failed || 0;
     const adminBlocked = r.adminBlocked || 0, skipped = r.skipped || 0;
+    const cancelled = r.cancelled || 0;
+    if (cancelled > 0) {
+      hideProgress();
+      toast(`⏹ Cancelado — ${applied} aplicadas antes de parar`, 'warning');
+      addHistory('recommended', '', 'success', `cancelado: ${applied} aplicadas`);
+      await refreshCatalog();
+      return;
+    }
     hideProgress(`Concluído — ${applied} aplicadas`);
     if (applied > 0 && failed === 0) {
       toast(`✔ ${applied} otimizações aplicadas com sucesso`, 'success');
@@ -832,6 +862,10 @@ async function runOptimizeNow() {
   } catch (e) {
     hideProgress();
     toast('Erro: ' + e.message, 'error');
+  } finally {
+    try { if (offProgress) offProgress(); } catch (e) {}
+    const cb = $('progress-cancel');
+    if (cb) { cb.classList.add('hidden'); cb.disabled = false; cb.textContent = 'Cancelar'; }
   }
 }
 async function applyRecommended() { await runOptimizeNow(); }

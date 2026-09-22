@@ -350,12 +350,35 @@ ipcMain.handle('opt:apply-batch', async (event, ids) => {
   }
 });
 
+let _batchCancel = false;
+ipcMain.handle('opt:cancel-batch', async () => {
+  _batchCancel = true;
+  return { ok: true };
+});
+
 ipcMain.handle('opt:apply-recommended', async () => {
+  _batchCancel = false;
   try {
-    const result = await optimizationEngine.applyRecommended({ admin: isAdmin() });
-    showNotification('Honest Boost', `${result.applied || 0} otimizações recomendadas aplicadas!`);
-    return { ok: true, result };
+    const send = (p) => {
+      try {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('opt:progress', p);
+        }
+      } catch {}
+    };
+    const result = await optimizationEngine.applyRecommended({
+      admin: isAdmin(),
+      onProgress: send,
+      isCancelled: () => _batchCancel,
+    });
+    _batchCancel = false;
+    const cancelled = (result.results || []).filter(r => r.cancelled).length;
+    if (!cancelled) {
+      showNotification('Honest Boost', `${result.applied || 0} otimizações recomendadas aplicadas!`);
+    }
+    return { ok: true, result: { ...result, cancelled } };
   } catch (e) {
+    _batchCancel = false;
     return { ok: false, error: e.message };
   }
 });

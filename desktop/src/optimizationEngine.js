@@ -62,8 +62,20 @@ async function applyBatch(ids, options = {}) {
     try { sharedSystem = await fullSystemScan(); } catch { sharedSystem = null; }
   }
   const results = [];
-  for (const id of ids) {
-    results.push(await executeRecipe(id, { ...options, system: sharedSystem }));
+  for (let i = 0; i < ids.length; i++) {
+    if (typeof options.isCancelled === 'function' && options.isCancelled()) {
+      for (let j = i; j < ids.length; j++) {
+        results.push({ ok: false, id: ids[j], cancelled: true, message: 'Cancelado pelo usuário.' });
+      }
+      break;
+    }
+    if (typeof options.onProgress === 'function') {
+      try { options.onProgress({ done: i, total: ids.length, id: ids[i] }); } catch {}
+    }
+    results.push(await executeRecipe(ids[i], { ...options, system: sharedSystem }));
+  }
+  if (typeof options.onProgress === 'function') {
+    try { options.onProgress({ done: ids.length, total: ids.length, id: null }); } catch {}
   }
   const okCount = results.filter(r => r.ok).length;
   return {
@@ -77,8 +89,10 @@ async function applyBatch(ids, options = {}) {
 }
 
 async function applyRecommended(options = {}) {
+  // 1-clique = só ajustes rápidos. Receitas `slow` (SFC/DISM 30min, downloads
+  // winget) ficam como opt-in individual — era isso que travava o modal.
   return applyBatch(
-    catalog.RECOMMENDED.filter(isApplicable).map(r => r.id),
+    catalog.RECOMMENDED.filter(r => isApplicable(r) && !r.slow).map(r => r.id),
     options
   );
 }

@@ -44,6 +44,12 @@ const hbDesktop = {
   applyOptimization: (id) => ipcRenderer.invoke('opt:apply', id),
   applyBatch: (ids) => ipcRenderer.invoke('opt:apply-batch', ids),
   applyRecommended: () => ipcRenderer.invoke('opt:apply-recommended'),
+  cancelBatch: () => ipcRenderer.invoke('opt:cancel-batch'),
+  onOptProgress: (cb) => {
+    const listener = (_event, payload) => { try { cb(payload); } catch {} };
+    ipcRenderer.on('opt:progress', listener);
+    return () => ipcRenderer.removeListener('opt:progress', listener);
+  },
   applyAll: () => ipcRenderer.invoke('opt:apply-all'),
   applyPreset: (presetId) => ipcRenderer.invoke('opt:apply-preset', presetId),
   removeOptimization: (id) => ipcRenderer.invoke('opt:remove', id),
