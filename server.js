@@ -171,6 +171,8 @@ const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next
   const appAuthLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
 const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10 });
 const resetLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5 });
+// Download público e abundante (instalador inútil sem licença); só anti-abuso.
+const downloadLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
 
 /* Validation */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -611,7 +613,10 @@ async function resolveInstallerAsset() {
     clearTimeout(timer);
   }
 }
-app.get('/api/download', requireAuth, asyncRoute(async (req, res) => {
+/* Download PÚBLICO (sem login): o instalador sozinho não faz nada — a licença
+ * é fiscalizada no app (ativação + seats). Travar download só criava atrito
+ * no pós-compra (convidado clicava em baixar e caía no login). */
+app.get('/api/download', downloadLimiter, asyncRoute(async (req, res) => {
   const downloadsDir = path.join(__dirname, 'public', 'downloads');
   const local = ['HonestBoostSetup.exe', 'honest-boost-setup.exe'].find((name) =>
     require('fs').existsSync(path.join(downloadsDir, name))
