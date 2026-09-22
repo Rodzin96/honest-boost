@@ -162,19 +162,22 @@ function processCount() {
 
 function startupApps() {
   if (!IS_WIN) return [];
-  try {
-    const HKCU = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
-    const HKLM = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run';
-    const items = [];
-    const cmd = (key) => `reg query "${key}" /S /FO LIST 2>nul`;
-    const out = execSync(cmd(HKCU) + ' && ' + cmd(HKLM), { encoding: 'utf8', windowsHide: true, timeout: 5000 });
-    const seen = new Set();
-    for (const l of out.split('\n')) {
-      const m = l.match(/^REG_SZ\\s+(.+)/i);
-      if (m && !seen.has(m[1])) { seen.add(m[1]); items.push(m[1]); }
-    }
-    return items.slice(0, 20);
-  } catch { return []; }
+  // Sem /FO (sintaxe inválida), sem && (uma chave ausente matava as outras),
+  // uma query por hive com parser tolerante (usa RUN_KEYS/_parseRegRun abaixo).
+  const seen = new Set();
+  const items = [];
+  let anyOk = false;
+  for (const key of RUN_KEYS) {
+    try {
+      const out = execSync(`reg query "${key}"`, { encoding: 'utf8', windowsHide: true, timeout: 5000 });
+      anyOk = true;
+      for (const name of _parseRegRun(out)) {
+        if (!seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); items.push(name); }
+      }
+    } catch { /* chave inexistente — próxima */ }
+  }
+  if (!items.length && !anyOk) return _slow.startup.slice();
+  return items.slice(0, 20);
 }
 
 // ============================================================
@@ -256,6 +259,37 @@ function _col(parsed, row, name) {
   const i = parsed.header.indexOf(name);
   return i >= 0 ? (row[i] ?? '').replace(/^"|"$/g, '').trim() : '';
 }
+// Chaves Run do Windows (HKCU + HKLM 64/32 bits). Saída padrão do reg.exe:
+//     Nome    REG_SZ    dados   (SEM /FO — "/FO LIST" dá "sintaxe inválida"
+//     neste reg.exe e quebrava a detecção: sempre 0 startups).
+const RUN_KEYS = [
+  'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+  'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run',
+  'HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run',
+];
+function _parseRegRun(out) {
+  const items = [];
+  const seen = new Set();
+  for (const raw of String(out).split('\n')) {
+    const l = raw.replace(/\r$/, '');
+    if (!l.trim() || /^HKEY_/i.test(l.trim()) || /^ERROR:/i.test(l.trim())) continue;
+    const m = l.match(/^\s*(\S.*?)\s+REG_\w+\s*(.*)$/);
+    if (m) {
+      const name = m[1].trim();
+      if (name && !seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); items.push(name); }
+    }
+  }
+  return items;
+}
+// Preserva stdout mesmo com exit != 0 (chave inexistente = exit 1, sem saída útil;
+// mas saída parcial válida não pode ser descartada como o _runAsync faz).
+function _runReg(key) {
+  return new Promise((resolve) => {
+    execFile(path.join(SYS_ROOT, 'System32', 'reg.exe'), ['query', key], { windowsHide: true, timeout: 10000, maxBuffer: 1 * 1024 * 1024 }, (err, stdout) => {
+      resolve({ ok: !err, out: String(stdout || '') });
+    });
+  });
+}
 // typeperf com múltiplos contadores retorna 1 linha de cabeçalho + 1 de dados,
 // com N colunas citadas ("..." , "..."). O parse antigo filtrava linhas por nome
 // e lia a 1ª coluna citada — que no cabeçalho é o caminho do contador (NaN → 0).
@@ -317,10 +351,11 @@ async function _refreshSlow() {
   if (_slowInFlight || !IS_WIN) return;
   _slowInFlight = true;
   try {
-    const [tasklist, regHKCU, regHKLM, scOut, typeperf, smi, cimOS, cimGPU, cimTemp, cimDisk, netStats] = await Promise.all([
+    const [tasklist, regHKCU, regW64, regW32, scOut, typeperf, smi, cimOS, cimGPU, cimTemp, cimDisk, netStats] = await Promise.all([
       _runAsync(path.join(SYS_ROOT, 'System32', 'tasklist.exe'), ['/FO', 'CSV', '/NH']),
-      _runAsync(path.join(SYS_ROOT, 'System32', 'reg.exe'), ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run', '/S', '/FO', 'LIST']),
-      _runAsync(path.join(SYS_ROOT, 'System32', 'reg.exe'), ['query', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run', '/S', '/FO', 'LIST']),
+      _runReg(RUN_KEYS[0]),
+      _runReg(RUN_KEYS[1]),
+      _runReg(RUN_KEYS[2]),
       _runAsync(path.join(SYS_ROOT, 'System32', 'sc.exe'), ['query', 'WinDefend']),
       _runAsync(path.join(SYS_ROOT, 'System32', 'typeperf.exe'), ['-sc', '1', '\\PhysicalDisk(_Total)\\Disk Read Bytes/sec', '\\PhysicalDisk(_Total)\\Disk Write Bytes/sec', '\\Network Interface(*)\\Bytes Received/sec', '\\Network Interface(*)\\Bytes Sent/sec', '\\GPU Engine(*)\\Utilization Percentage'], 20000),
       _runAsync('nvidia-smi', ['--query-gpu=temperature.gpu,utilization.gpu', '--format=csv,noheader,nounits'], 8000),
@@ -335,26 +370,19 @@ async function _refreshSlow() {
     const procLines = tasklist.trim().split('\n').filter(Boolean);
     if (procLines.length) _slow.processes = { count: procLines.length };
 
-    // Startup (mesmo parsing da versão sync)
+    // Startup: 3 hives independentes (sem && — se uma chave não existe as
+    // outras ainda contam). Só sobrescreve com [] se ao menos uma respondeu.
     try {
+      const outs = [regHKCU, regW64, regW32].map((r) => (r && r.out) || '');
+      const anyOk = [regHKCU, regW64, regW32].some((r) => r && r.ok);
       const seen = new Set();
       const items = [];
-      for (const out of [regHKCU, regHKLM]) {
-        for (const l of String(out).split('\n')) {
-          const m = l.match(/^REG_SZ\s+(.+)/i);
-          if (m && !seen.has(m[1])) { seen.add(m[1]); items.push(m[1]); }
+      for (const out of outs) {
+        for (const name of _parseRegRun(out)) {
+          if (!seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); items.push(name); }
         }
       }
-      // Fallback: formato LIST "nome    REG_SZ    dado"
-      if (!items.length) {
-        for (const out of [regHKCU, regHKLM]) {
-          for (const l of String(out).split('\n')) {
-            const m = l.match(/^\s{2,}\S.*REG_SZ\s+(.+)\s*$/);
-            if (m && !seen.has(m[1].trim())) { seen.add(m[1].trim()); items.push(m[1].trim()); }
-          }
-        }
-      }
-      if (items.length) _slow.startup = items.slice(0, 20);
+      if (items.length || anyOk) _slow.startup = items.slice(0, 20);
     } catch {}
 
     // Defender
