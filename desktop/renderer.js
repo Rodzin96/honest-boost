@@ -1344,37 +1344,37 @@ function renderTogsBackup() {
 // type: 'official' abre a página oficial (sem pacote winget confiável).
 const APPS_CATALOG = [
   { category: 'Navegadores', icon: '🌐', items: [
-    { id: 'chrome', name: 'Google Chrome', desc: 'Navegador mais usado do mundo', icon: '🌐', size: 'via winget', type: 'winget' },
-    { id: 'firefox', name: 'Mozilla Firefox', desc: 'Navegador open-source da Mozilla', icon: '🦊', size: 'via winget', type: 'winget' },
+    { id: 'chrome', name: 'Google Chrome', desc: 'Navegador mais usado do mundo', icon: '🌐', size: 'via winget', type: 'winget' , art: 'googlechrome'},
+    { id: 'firefox', name: 'Mozilla Firefox', desc: 'Navegador open-source da Mozilla', icon: '🦊', size: 'via winget', type: 'winget' , art: 'firefox'},
     { id: 'edge', name: 'Microsoft Edge', desc: 'Navegador baseado em Chromium', icon: '🌐', size: 'via winget', type: 'winget' },
-    { id: 'opera', name: 'Opera Browser', desc: 'Navegador com VPN integrada', icon: '🔴', size: 'via winget', type: 'winget' },
-    { id: 'brave', name: 'Brave Browser', desc: 'Navegador focado em privacidade', icon: '🦁', size: 'via winget', type: 'winget' },
+    { id: 'opera', name: 'Opera Browser', desc: 'Navegador com VPN integrada', icon: '🔴', size: 'via winget', type: 'winget' , art: 'opera'},
+    { id: 'brave', name: 'Brave Browser', desc: 'Navegador focado em privacidade', icon: '🦁', size: 'via winget', type: 'winget' , art: 'brave'},
   ]},
   { category: 'Jogos', icon: '🎮', items: [
-    { id: 'steam', name: 'Steam', desc: 'Plataforma de jogos mais popular', icon: '🎮', size: 'via winget', type: 'winget' },
-    { id: 'epic', name: 'Epic Games Launcher', desc: 'Jogos gratuitos semanais', icon: '🏰', size: 'via winget', type: 'winget' },
-    { id: 'battle', name: 'Battle.net', desc: 'Launcher da Blizzard Entertainment', icon: '⚔️', size: 'via winget', type: 'winget' },
-    { id: 'discord', name: 'Discord', desc: 'Comunicação para gamers', icon: '🎤', size: 'via winget', type: 'winget' },
-    { id: 'obs', name: 'OBS Studio', desc: 'Gravação e streaming de jogos', icon: '📹', size: 'via winget', type: 'winget' },
+    { id: 'steam', name: 'Steam', desc: 'Plataforma de jogos mais popular', icon: '🎮', size: 'via winget', type: 'winget' , art: 'steam'},
+    { id: 'epic', name: 'Epic Games Launcher', desc: 'Jogos gratuitos semanais', icon: '🏰', size: 'via winget', type: 'winget' , art: 'epicgames'},
+    { id: 'battle', name: 'Battle.net', desc: 'Launcher da Blizzard Entertainment', icon: '⚔️', size: 'via winget', type: 'winget' , art: 'battledotnet'},
+    { id: 'discord', name: 'Discord', desc: 'Comunicação para gamers', icon: '🎤', size: 'via winget', type: 'winget' , art: 'discord'},
+    { id: 'obs', name: 'OBS Studio', desc: 'Gravação e streaming de jogos', icon: '📹', size: 'via winget', type: 'winget' , art: 'obsstudio'},
   ]},
   { category: 'Utilitários', icon: '🧰', items: [
-    { id: '7zip', name: '7-Zip', desc: 'Compactador open-source', icon: '📦', size: 'via winget', type: 'winget' },
+    { id: '7zip', name: '7-Zip', desc: 'Compactador open-source', icon: '📦', size: 'via winget', type: 'winget' , art: '7zip'},
     { id: 'everything', name: 'Everything', desc: 'Busca de arquivos instantânea', icon: '🔍', size: 'via winget', type: 'winget' },
     { id: 'rufus', name: 'Rufus', desc: 'Criação de pen drives bootáveis', icon: '💾', size: 'via winget', type: 'winget' },
-    { id: 'notion', name: 'Notion', desc: 'Workspace todo-em-um', icon: '📝', size: 'via winget', type: 'winget' },
-    { id: 'obsidian', name: 'Obsidian', desc: 'Editor de notas com links', icon: '📓', size: 'via winget', type: 'winget' },
+    { id: 'notion', name: 'Notion', desc: 'Workspace todo-em-um', icon: '📝', size: 'via winget', type: 'winget' , art: 'notion'},
+    { id: 'obsidian', name: 'Obsidian', desc: 'Editor de notas com links', icon: '📓', size: 'via winget', type: 'winget' , art: 'obsidian'},
   ]},
   { category: 'Drivers', icon: '🔧', items: [
-    { id: 'nvidia', name: 'NVIDIA GeForce Driver', desc: 'Driver oficial — abre a página da NVIDIA', icon: 'NVIDIA', size: 'site oficial', type: 'official' },
-    { id: 'amd', name: 'AMD Adrenalin Driver', desc: 'Driver oficial — abre a página da AMD', icon: 'AMD', size: 'site oficial', type: 'official' },
-    { id: 'intel', name: 'Intel Driver & Support', desc: 'Drivers e atualizações Intel', icon: 'Intel', size: 'via winget', type: 'winget' },
+    { id: 'nvidia', name: 'NVIDIA GeForce Driver', desc: 'Driver oficial — abre a página da NVIDIA', icon: 'NVIDIA', size: 'site oficial', type: 'official' , art: 'nvidia'},
+    { id: 'amd', name: 'AMD Adrenalin Driver', desc: 'Driver oficial — abre a página da AMD', icon: 'AMD', size: 'site oficial', type: 'official' , art: 'amd'},
+    { id: 'intel', name: 'Intel Driver & Support', desc: 'Drivers e atualizações Intel', icon: 'Intel', size: 'via winget', type: 'winget' , art: 'intel'},
   ]},
   { category: 'Runtime', icon: '⚙️', items: [
     { id: 'vcredist', name: 'Visual C++ Redistributable', desc: 'Runtimes x64 + x86 para jogos', icon: 'MS', size: 'via winget', type: 'winget' },
     { id: 'directx', name: 'DirectX End-User', desc: 'Runtime DirectX para jogos', icon: 'DX', size: 'via winget', type: 'winget' },
-    { id: 'dotnet', name: '.NET Desktop Runtime 9', desc: 'Runtime .NET para apps Windows', icon: '.NET', size: 'via winget', type: 'winget' },
-    { id: 'java', name: 'Java Runtime (JRE)', desc: 'Ambiente Java para apps e jogos', icon: 'Java', size: 'via winget', type: 'winget' },
-    { id: 'python', name: 'Python 3.13', desc: 'Linguagem de programação versátil', icon: 'Py', size: 'via winget', type: 'winget' },
+    { id: 'dotnet', name: '.NET Desktop Runtime 9', desc: 'Runtime .NET para apps Windows', icon: '.NET', size: 'via winget', type: 'winget' , art: 'dotnet'},
+    { id: 'java', name: 'Java Runtime (JRE)', desc: 'Ambiente Java para apps e jogos', icon: 'Java', size: 'via winget', type: 'winget' , art: 'openjdk'},
+    { id: 'python', name: 'Python 3.13', desc: 'Linguagem de programação versátil', icon: 'Py', size: 'via winget', type: 'winget' , art: 'python'},
   ]},
   { category: 'Ferramentas', icon: '🛠️', items: [
     { id: 'afterburner', name: 'MSI Afterburner', desc: 'Overclock e monitoramento GPU', icon: '🔧', size: 'via winget', type: 'winget' },
@@ -1486,7 +1486,7 @@ function renderAppGrid(category, query) {
            <button class="btn btn-ghost btn-sm" data-uninstall="${app.id}">Desinstalar</button>`;
     return `
     <div class="app-card">
-      <div class="app-card-header"><div class="app-card-icon">${app.icon}</div>${statusTag}</div>
+      <div class="app-card-header"><div class="app-card-icon${app.art ? ' has-art' : ''}">${app.art ? `<img src="https://cdn.simpleicons.org/${app.art}/E8ECF4" alt="${esc(app.name)}" loading="lazy" width="28" height="28" onerror="this.remove()">` : ''}<span>${app.icon}</span></div>${statusTag}</div>
       <div class="app-card-name">${esc(app.name)}</div>
       <div class="app-card-desc">${esc(app.desc)}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-bottom:10px;font-family:var(--font-mono);">${esc(app.size)}</div>
