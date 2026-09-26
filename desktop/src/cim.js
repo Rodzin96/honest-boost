@@ -13,10 +13,11 @@ const POWERSHELL = process.env.SystemRoot
   ? path.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
   : 'powershell.exe';
 
-function psStdout(script) {
+function psStdout(script, timeoutMs) {
   return new Promise((resolve, reject) => {
     execFile(POWERSHELL, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', script], {
       windowsHide: true,
+      timeout: timeoutMs || 45000,
       maxBuffer: 4 * 1024 * 1024
     }, (err, stdout, stderr) => {
       if (err) return reject(new Error((stderr || '').trim() || err.message));

@@ -810,6 +810,12 @@ async function runOptimizeNow() {
     offProgress = window.hbDesktop.onOptProgress((p) => {
       if (!p) return;
       const bar = $('progress-bar'), txt = $('progress-text'), det = $('progress-detail');
+      if (p.phase === 'scan') {
+        if (bar) bar.style.width = '8%';
+        if (txt) txt.textContent = 'Analisando seu sistema…';
+        if (det) det.textContent = 'Leitura de hardware (uma vez só)';
+        return;
+      }
       const pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
       if (bar) bar.style.width = Math.max(4, pct) + '%';
       if (txt) txt.textContent = p.total ? `Aplicando ${p.done + 1 > p.total ? p.total : p.done + 1}/${p.total}…` : 'Aplicando…';

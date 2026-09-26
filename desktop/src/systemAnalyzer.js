@@ -166,7 +166,7 @@ async function getWindowsInfo() {
 async function getPowerPlan() {
   const { execFile: exec } = require('child_process');
   return new Promise((resolve) => {
-    exec('C:\\Windows\\System32\\powercfg.exe', ['/getactivescheme'], { windowsHide: true }, (err, stdout) => {
+    exec('C:\\Windows\\System32\\powercfg.exe', ['/getactivescheme'], { windowsHide: true, timeout: 20000 }, (err, stdout) => {
       if (err) {
         resolve({ name: 'Unknown', guid: 'Unknown', isHighPerformance: false });
         return;
@@ -184,7 +184,7 @@ async function getPowerPlan() {
 async function getGameDVRStatus() {
   const { execFile: exec } = require('child_process');
   return new Promise((resolve) => {
-    exec('C:\\Windows\\System32\\reg.exe', ['query', 'HKCU\\System\\GameConfigStore', '/v', 'GameDVR_Enabled'], { windowsHide: true }, (err, stdout) => {
+    exec('C:\\Windows\\System32\\reg.exe', ['query', 'HKCU\\System\\GameConfigStore', '/v', 'GameDVR_Enabled'], { windowsHide: true, timeout: 15000 }, (err, stdout) => {
       if (err) {
         resolve({ enabled: false, exists: false });
         return;
@@ -200,7 +200,7 @@ async function getGameDVRStatus() {
 async function getMouseAcceleration() {
   const { execFile: exec } = require('child_process');
   return new Promise((resolve) => {
-    exec('C:\\Windows\\System32\\reg.exe', ['query', 'HKCU\\Control Panel\\Mouse', '/v', 'MouseSpeed'], { windowsHide: true }, (err, stdout) => {
+    exec('C:\\Windows\\System32\\reg.exe', ['query', 'HKCU\\Control Panel\\Mouse', '/v', 'MouseSpeed'], { windowsHide: true, timeout: 15000 }, (err, stdout) => {
       if (err) {
         resolve({ enabled: false, exists: false });
         return;

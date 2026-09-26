@@ -59,7 +59,17 @@ async function applyBatch(ids, options = {}) {
     return r && r.condition;
   });
   if (needsScan) {
-    try { sharedSystem = await fullSystemScan(); } catch { sharedSystem = null; }
+    // Fase visível no modal + teto de 120s: scan travado não congela o batch
+    // (prossegue sem conditions em vez de pendurar para sempre).
+    if (typeof options.onProgress === 'function') {
+      try { options.onProgress({ phase: 'scan', done: 0, total: ids.length, id: null }); } catch {}
+    }
+    try {
+      sharedSystem = await Promise.race([
+        fullSystemScan(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('scan-timeout')), 120000)),
+      ]);
+    } catch { sharedSystem = null; }
   }
   const results = [];
   for (let i = 0; i < ids.length; i++) {
