@@ -718,7 +718,8 @@ function renderOptCategory(tabId) {
   content.querySelectorAll('[data-apply]').forEach(btn => btn.addEventListener('click', async () => { await doApply(btn.dataset.apply); }));
   content.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', async () => { await doRemove(btn.dataset.remove); }));
 
-  if (applyBtn) applyBtn.disabled = state.selectedOpt.size === 0;
+  const applySelectedBtn = $('btn-apply-selected-opt');
+  if (applySelectedBtn) applySelectedBtn.disabled = state.selectedOpt.size === 0;
 }
 
 function optStatusOf(id) {
