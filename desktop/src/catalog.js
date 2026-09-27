@@ -58,8 +58,13 @@ function ps(script, opts) {
 async function regHex(key, name) {
   try {
     const out = await regQuery(key, name);
-    const m = out.match(/0x([0-9a-f]+)/i);
-    return m ? parseInt(m[1], 16) : null;
+    const hexMatch = out.match(/0x([0-9a-f]+)/i);
+    if (hexMatch) return parseInt(hexMatch[1], 16);
+    const decMatch = out.match(/REG_DWORD\s+(\d+)/i);
+    if (decMatch) return parseInt(decMatch[1], 10);
+    const bareMatch = out.match(/\b(\d{1,10})\s*$/m);
+    if (bareMatch) return parseInt(bareMatch[1], 10);
+    return null;
   } catch {
     return null;
   }
