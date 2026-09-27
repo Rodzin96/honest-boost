@@ -28,7 +28,13 @@ async function loadSnapshot() {
 
 async function saveSnapshot() {
   if (!snapshot) return;
-  await fs.promises.writeFile(snapshotFile(), JSON.stringify(snapshot, null, 2), 'utf8');
+  const tmpFile = snapshotFile() + '.tmp';
+  try {
+    await fs.promises.writeFile(tmpFile, JSON.stringify(snapshot, null, 2), 'utf8');
+    await fs.promises.rename(tmpFile, snapshotFile());
+  } catch (err) {
+    console.error('Failed to save registry snapshot atomically:', err);
+  }
 }
 
 function regCmd(args) {

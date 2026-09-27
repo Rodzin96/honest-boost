@@ -8,13 +8,27 @@ const path = require('path');
 const { execFile } = require('child_process');
 const { cimCsv } = require('./cim');
 
+// Helper para execução assíncrona de comandos shell
+function runAsync(exe, args, opts = {}) {
+  return new Promise((resolve) => {
+    execFile(exe, args, {
+      windowsHide: true,
+      timeout: opts.timeout || 30000,
+      maxBuffer: 8 * 1024 * 1024,
+      ...opts
+    }, (err, stdout, stderr) => {
+      resolve({ ok: !err, stdout: stdout || '', stderr: stderr || err?.message || '', code: err?.code });
+    });
+  });
+}
+
 // ==================== CPU ====================
 async function getCPUInfo() {
   try {
     const output = await cimCsv('Win32_Processor', 'Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) return null;
-    
+
     const parts = lines[1].split(',');
     return {
       name: parts[1]?.trim() || 'Unknown',
@@ -40,7 +54,7 @@ async function getGPUInfo() {
     const output = await cimCsv('Win32_VideoController', 'Name,AdapterRAM,DriverVersion');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const gpus = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
       const parts = lines[i].split(',');
       if (parts.length >= 4) {
@@ -61,13 +75,13 @@ async function getGPUInfo() {
 async function getRAMInfo() {
   const total = os.totalmem();
   const free = os.freemem();
-  
+
   try {
     const output = await cimCsv('Win32_PhysicalMemory', 'Capacity,Speed,Manufacturer');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const sticks = [];
     let totalCapacity = 0;
-    
+
     for (let i = 1; i < lines.length; i++) {
       const parts = lines[i].split(',');
       if (parts.length >= 4) {
@@ -97,7 +111,7 @@ async function getStorageInfo() {
     const output = await cimCsv('Win32_LogicalDisk', 'DeviceID,Size,FreeSpace,FileSystem,VolumeName,DriveType');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const drives = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
       const parts = lines[i].split(',');
       if (parts.length >= 7) {
@@ -131,7 +145,7 @@ async function getMonitorInfo() {
     const output = await cimCsv('Win32_VideoController', 'CurrentRefreshRate,CurrentHorizontalResolution,CurrentVerticalResolution');
     const lines = output.split(/\r?\n/).filter(l => l.trim());
     const monitors = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
       const parts = lines[i].split(',');
       if (parts.length >= 4) {
@@ -151,7 +165,7 @@ async function getMonitorInfo() {
 async function getWindowsInfo() {
   const release = os.release();
   const build = release.split('.')[2] || 'Unknown';
-  
+
   return {
     version: release,
     build,
@@ -319,7 +333,7 @@ async function scanGames() {
       const libraryFolders = path.join(steamPath, 'steamapps', 'libraryfolders.vdf');
       if (fs.existsSync(libraryFolders)) {
         const content = fs.readFileSync(libraryFolders, 'utf8');
-        const paths = [...content.matchAll(/"path"\s+"([^"]+)"/g)].map(m => m[1].replace(/\\\\/g, '\\'));
+        const paths = [...content.matchAll(/"path"\\s+"([^"]+)"/g)].map(m => m[1].replace(/\\\\/g, '\\'));
         paths.push(steamPath);
         for (const lib of paths) {
           const steamApps = path.join(lib, 'steamapps');
@@ -327,9 +341,9 @@ async function scanGames() {
             const acfFiles = fs.readdirSync(steamApps).filter(f => f.endsWith('.acf'));
             for (const acf of acfFiles) {
               const acfContent = fs.readFileSync(path.join(steamApps, acf), 'utf8');
-              const nameMatch = acfContent.match(/"name"\s+"([^"]+)"/);
-              const appidMatch = acfContent.match(/"appid"\s+"(\d+)"/);
-              const installdirMatch = acfContent.match(/"installdir"\s+"([^"]+)"/);
+              const nameMatch = acfContent.match(/"name"\\s+"([^"]+)"/);
+              const appidMatch = acfContent.match(/"appid"\\s+"(\\d+)"/);
+              const installdirMatch = acfContent.match(/"installdir"\\s+"([^"]+)"/);
               if (nameMatch && appidMatch && installdirMatch) {
                 const exeDir = path.join(steamApps, 'common', installdirMatch[1]);
                 if (fs.existsSync(exeDir)) {
@@ -559,9 +573,6 @@ async function cleanItem(id) {
       'chrome-cache': () => deleteChromeCache(),
       'chrome-cookies': () => deleteChromeCookies(),
       'chrome-history': () => deleteChromeHistory(),
-      // 'chrome-downloads' REMOVIDO: o alvo antigo era o arquivo Preferences
-      // (apagava CONFIGURAÇÕES do Chrome, não a lista de downloads). Sem alvo
-      // seguro, a ação foi desativada — chamar retorna "não reconhecida".
       'edge-cache': () => deleteEdgeCache(),
       'edge-cookies': () => deleteEdgeCookies(),
       'firefox-cache': () => deleteFirefoxCache(),
@@ -585,83 +596,65 @@ async function cleanItem(id) {
       'amd-cache': () => deleteAmdCache(),
     };
     const action = actions[id];
-    if (!action) return { ok: false, error: `Ação não reconhecida: ${id}` };
+    if (!action) return { ok: false, error: \`Ação não reconhecida: \${id}\` };
     await action();
-    return { ok: true, message: `Item "${id}" limpo com sucesso.` };
+    return { ok: true, message: \`Item "\${id}" limpo com sucesso.\` };
   } catch (e) {
     return { ok: false, error: e.message };
   }
 }
 
-function deleteTempFiles() {
-  const { execSync } = require('child_process');
+async function deleteTempFiles() {
   const tmpPaths = [
     '%TEMP%',
     '%USERPROFILE%\\AppData\\Local\\Temp',
     '%SYSTEMROOT%\\Temp',
   ];
   for (const p of tmpPaths) {
-    execSync(`powershell -Command "Get-ChildItem -Path '${p.replace(/%([^%]+)%/g, (_, g) => process.env[g] || '')}' -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue"`,
-      { windowsHide: true, stdio: 'ignore', timeout: 30000 });
+    await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Get-ChildItem -Path '\${p.replace(/%([^%]+)%/g, (_, g) => process.env[g] || '')}' -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue\`], { timeout: 30000 });
   }
 }
 
-function deletePrefetch() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path C:\\Windows\\Prefetch\\* -Force -Recurse -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+async function deletePrefetch() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path C:\\Windows\\Prefetch\\* -Force -Recurse -ErrorAction SilentlyContinue'], { timeout: 15000 });
 }
 
-function deleteWindowsUpdateCache() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path C:\\Windows\\SoftwareDistribution\\Download\\* -Force -Recurse -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+async function deleteWindowsUpdateCache() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path C:\\Windows\\SoftwareDistribution\\Download\\* -Force -Recurse -ErrorAction SilentlyContinue'], { timeout: 15000 });
 }
 
-function deleteThumbnails() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*.db\" -Force -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+async function deleteThumbnails() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path "$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*.db" -Force -ErrorAction SilentlyContinue'], { timeout: 15000 });
 }
 
-function clearEventLogs() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "wevtutil cl System; wevtutil cl Application; wevtutil cl Setup; wevtutil cl Security; wevtutil cl ForwardedEvents"',
-    { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+async function clearEventLogs() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'wevtutil cl System; wevtutil cl Application; wevtutil cl Setup; wevtutil cl Security; wevtutil cl ForwardedEvents'], { timeout: 15000 });
 }
 
-function flushDNS() {
-  const { execSync } = require('child_process');
-  execSync('ipconfig /flushdns', { windowsHide: true, stdio: 'ignore' });
+async function flushDNS() {
+  await runAsync('ipconfig', ['/flushdns']);
 }
 
-function clearClipboard() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "[System.Windows.Clipboard]::Clear()"',
-    { windowsHide: true, stdio: 'ignore', timeout: 5000 });
+async function clearClipboard() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', '[System.Windows.Clipboard]::Clear()'], { timeout: 5000 });
 }
 
-function emptyRecycleBin() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 30000 });
+async function emptyRecycleBin() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'], { timeout: 30000 });
 }
 
 function getAppDataPaths(appName) {
   const base = process.env.LOCALAPPDATA || '';
   const paths = {};
-  // Chrome (NOTA: nunca apontar 'downloads' para Preferences — ver deleteChromeDownloads)
   if (appName === 'chrome' || appName === 'chrome-cache' || appName === 'chrome-cookies' || appName === 'chrome-history') {
     paths.cache = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'Cache');
     paths.cookies = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'Network', 'Cookies');
     paths.history = path.join(base, 'Google', 'Chrome', 'User Data', 'Default', 'History');
   }
-  // Edge
   if (appName === 'edge' || appName === 'edge-cache' || appName === 'edge-cookies') {
     paths.cache = path.join(base, 'Microsoft', 'Edge', 'User Data', 'Default', 'Cache');
     paths.cookies = path.join(base, 'Microsoft', 'Edge', 'User Data', 'Default', 'Network', 'Cookies');
   }
-  // Firefox
   if (appName === 'firefox' || appName === 'firefox-cache' || appName === 'firefox-cookies') {
     const profiles = path.join(base, 'Mozilla', 'Firefox', 'Profiles');
     if (fs.existsSync(profiles)) {
@@ -672,168 +665,159 @@ function getAppDataPaths(appName) {
       }
     }
   }
-  // Opera
   if (appName === 'opera' || appName === 'opera-cache') {
     paths.cache = path.join(base, 'Opera Software', 'Opera Stable', 'Cache');
   }
-  // Brave
   if (appName === 'brave' || appName === 'brave-cache') {
     paths.cache = path.join(base, 'BraveSoftware', 'Brave-Browser', 'User Data', 'Default', 'Cache');
   }
-  // Discord
   if (appName === 'discord-cache') {
     paths.cache = path.join(base, 'Discord', 'Cache');
     paths['app-data'] = path.join(base, 'Discord', 'app-0', 'Cache');
   }
-  // Steam
   if (appName === 'steam-cache') {
     paths.cache = path.join(base, 'Steam', 'appcache');
     paths['shader'] = path.join(base, 'Steam', 'shader');
   }
-  // Epic
   if (appName === 'epic-cache') {
     paths.cache = path.join(base, 'Epic Games', 'UnrealEngineLauncher', 'Cache');
   }
-  // Battle.net
   if (appName === 'battlecache') {
     paths.cache = path.join(base, 'Battle.net', 'Cache');
   }
-  // Adobe
   if (appName === 'adobe-cache') {
     paths.cache = path.join(base, 'Adobe', 'Common', 'Media Cache Files');
   }
-  // Office
   if (appName === 'office-cache') {
     paths.cache = path.join(base, 'Microsoft', 'Office', '16.0', 'OfficeFileCache');
   }
   return paths;
 }
 
-function deleteBrowserCache(appName, subpath) {
+async function deleteBrowserCache(appName, subpath) {
   const paths = getAppDataPaths(appName);
   const target = paths[subpath] || paths.cache;
   if (!target) return;
-  const { execSync } = require('child_process');
-  try { execSync(`powershell -Command "Remove-Item -Path '${target.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue"`,
-    { windowsHide: true, stdio: 'ignore', timeout: 30000 }); } catch {}
+  try {
+    await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${target.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue\`], { timeout: 30000 });
+  } catch {}
 }
 
-function deleteChromeCache() { deleteBrowserCache('chrome', 'cache'); }
-function deleteChromeCookies() { deleteBrowserCache('chrome', 'cookies'); }
-function deleteChromeHistory() {
-  const { execSync } = require('child_process');
+async function deleteChromeCache() { await deleteBrowserCache('chrome', 'cache'); }
+async function deleteChromeCookies() { await deleteBrowserCache('chrome', 'cookies'); }
+async function deleteChromeHistory() {
   const paths = getAppDataPaths('chrome');
   if (paths.history) {
-    try { execSync(`powershell -Command "Remove-Item -Path '${paths.history.replace(/'/g, "''")}' -Force -ErrorAction SilentlyContinue"`,
-      { windowsHide: true, stdio: 'ignore', timeout: 10000 }); } catch {}
+    try {
+      await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${paths.history.replace(/'/g, "''")}' -Force -ErrorAction SilentlyContinue\`], { timeout: 10000 });
+    } catch {}
   }
 }
+
 function deleteChromeDownloads() {
-  // Desativada (ver actions acima): o histórico de downloads do Chrome vive
-  // dentro do arquivo History (SQLite) — não há alvo isolado seguro.
   throw new Error('Ação desativada por segurança.');
 }
-function deleteEdgeCache() { deleteBrowserCache('edge', 'cache'); }
-function deleteEdgeCookies() { deleteBrowserCache('edge', 'cookies'); }
-function deleteFirefoxCache() { const p = getAppDataPaths('firefox-cache'); deleteBrowserCache('firefox', 'cache'); }
-function deleteFirefoxCookies() { const p = getAppDataPaths('firefox-cookies'); deleteBrowserCache('firefox', 'cookies'); }
-function deleteOperaCache() { deleteBrowserCache('opera', 'cache'); }
-function deleteBraveCache() { deleteBrowserCache('brave', 'cache'); }
 
-function deleteDiscordCache() {
+async function deleteEdgeCache() { await deleteBrowserCache('edge', 'cache'); }
+async function deleteEdgeCookies() { await deleteBrowserCache('edge', 'cookies'); }
+async function deleteFirefoxCache() { await deleteBrowserCache('firefox', 'cache'); }
+async function deleteFirefoxCookies() { await deleteBrowserCache('firefox', 'cookies'); }
+async function deleteOperaCache() { await deleteBrowserCache('opera', 'cache'); }
+async function deleteBraveCache() { await deleteBrowserCache('brave', 'cache'); }
+
+async function deleteDiscordCache() {
   const paths = getAppDataPaths('discord-cache');
-  const { execSync } = require('child_process');
   for (const t of [paths.cache, paths['app-data']]) {
     if (t && fs.existsSync(t)) {
-      try { execSync(`powershell -Command "Remove-Item -Path '${t.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue"`,
-        { windowsHide: true, stdio: 'ignore', timeout: 30000 }); } catch {}
+      try {
+        await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${t.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue\`], { timeout: 30000 });
+      } catch {}
     }
   }
 }
-function deleteSteamCache() {
+
+async function deleteSteamCache() {
   const paths = getAppDataPaths('steam-cache');
-  const { execSync } = require('child_process');
   for (const t of [paths.cache, paths['shader']]) {
     if (t && fs.existsSync(t)) {
-      try { execSync(`powershell -Command "Remove-Item -Path '${t.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue"`,
-        { windowsHide: true, stdio: 'ignore', timeout: 30000 }); } catch {}
+      try {
+        await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${t.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue\`], { timeout: 30000 });
+      } catch {}
     }
   }
 }
-function deleteEpicCache() { deleteBrowserCache('epic-cache', 'cache'); }
-function deleteBattleNetCache() { deleteBrowserCache('battlecache', 'cache'); }
-function deleteAdobeCache() { deleteBrowserCache('adobe-cache', 'cache'); }
-function deleteOfficeCache() { deleteBrowserCache('office-cache', 'cache'); }
 
-function cleanupWinsxs() {
-  const { execSync } = require('child_process');
-  execSync('DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase',
-    { windowsHide: true, stdio: 'ignore', timeout: 300000 });
+async function deleteEpicCache() { await deleteBrowserCache('epic-cache', 'cache'); }
+async function deleteBattleNetCache() { await deleteBrowserCache('battlecache', 'cache'); }
+async function deleteAdobeCache() { await deleteBrowserCache('adobe-cache', 'cache'); }
+async function deleteOfficeCache() { await deleteBrowserCache('office-cache', 'cache'); }
+
+async function cleanupWinsxs() {
+  await runAsync('DISM', ['/Online', '/Cleanup-Image', '/StartComponentCleanup', '/ResetBase'], { timeout: 300000 });
 }
 
-function cleanupComponentStore() {
-  const { execSync } = require('child_process');
-  execSync('DISM /Online /Cleanup-Image /StartComponentCleanup',
-    { windowsHide: true, stdio: 'ignore', timeout: 300000 });
+async function cleanupComponentStore() {
+  await runAsync('DISM', ['/Online', '/Cleanup-Image', '/StartComponentCleanup'], { timeout: 300000 });
 }
 
-function deleteUserTemp() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 30000 });
+async function deleteUserTemp() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path "$env:TEMP\\*" -Recurse -Force -ErrorAction SilentlyContinue'], { timeout: 30000 });
 }
 
-function deleteSystemTemp() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path C:\\Windows\\Temp\\* -Recurse -Force -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 30000 });
+async function deleteSystemTemp() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path C:\\Windows\\Temp\\* -Recurse -Force -ErrorAction SilentlyContinue'], { timeout: 30000 });
 }
 
-function deleteMsiCache() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path \"$env:TEMP\\*.msi\" -Force -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+async function deleteMsiCache() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path "$env:TEMP\\*.msi" -Force -ErrorAction SilentlyContinue'], { timeout: 15000 });
 }
 
-function deleteDeliveryOptimization() {
-  const { execSync } = require('child_process');
-  execSync('powershell -Command "Remove-Item -Path \"$env:LOCALAPPDATA\\Microsoft\\DeliveryOptimization\\*\" -Recurse -Force -ErrorAction SilentlyContinue"',
-    { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+async function deleteDeliveryOptimization() {
+  await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', 'Remove-Item -Path "$env:LOCALAPPDATA\\Microsoft\\DeliveryOptimization\\* -Recurse -Force -ErrorAction SilentlyContinue'], { timeout: 15000 });
 }
 
-function deleteDirectXShaderCache() {
-  const { execSync } = require('child_process');
+async function deleteDirectXShaderCache() {
   const dxCache = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'Windows', 'DirectX', 'ShaderCache');
   if (fs.existsSync(dxCache)) {
-    execSync(`powershell -Command "Remove-Item -Path '${dxCache.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue"`,
-      { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+    await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${dxCache.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue\`], { timeout: 15000 });
   }
 }
 
-function deleteNvidiaCache() {
-  const { execSync } = require('child_process');
+async function deleteNvidiaCache() {
   const nvPaths = [
     path.join(process.env.LOCALAPPDATA || '', 'NVIDIA', 'NVStreamTemp'),
     path.join(process.env.LOCALAPPDATA || '', 'NVIDIA', 'GeForce Experience', 'Cache'),
   ];
   for (const p of nvPaths) {
     if (fs.existsSync(p)) {
-      execSync(`powershell -Command "Remove-Item -Path '${p.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue"`,
-        { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+      await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${p.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue\`], { timeout: 15000 });
     }
   }
 }
 
-function deleteAmdCache() {
-  const { execSync } = require('child_process');
+async function deleteAmdCache() {
   const amdPaths = [
     path.join(process.env.LOCALAPPDATA || '', 'AMD', 'CN', 'Temp'),
     path.join(process.env.LOCALAPPDATA || '', 'AMD', 'CN', 'Logs'),
   ];
   for (const p of amdPaths) {
     if (fs.existsSync(p)) {
-      execSync(`powershell -Command "Remove-Item -Path '${p.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue"`,
-        { windowsHide: true, stdio: 'ignore', timeout: 15000 });
+      await runAsync('powershell', ['-NoProfile', '-NonInteractive', '-Command', \`Remove-Item -Path '\${p.replace(/'/g, "''")}' -Recurse -Force -ErrorAction SilentlyContinue\`], { timeout: 15000 });
     }
   }
 }
+
+module.exports = {
+  getCPUInfo,
+  getGPUInfo,
+  getRAMInfo,
+  getStorageInfo,
+  getMonitorInfo,
+  getWindowsInfo,
+  getPowerPlan,
+  getGameDVRStatus,
+  getMouseAcceleration,
+  fullSystemScan,
+  scanGames,
+  cleanItem,
+};

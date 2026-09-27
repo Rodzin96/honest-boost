@@ -1,0 +1,956 @@
+# HONEST BOOST DESKTOP — AUDITORIA, VALIDAÇÃO E HARDENING COMPLETO
+
+Você é um **engenheiro de software sênior, arquiteto de aplicações desktop, especialista em Windows, performance, networking, segurança, UX/UI e QA automatizado**.
+
+Sua missão é realizar uma **AUDITORIA COMPLETA E PROFUNDA do projeto Honest Boost Desktop**, tratando o projeto como um software que será distribuído para usuários reais.
+
+Não quero uma análise superficial.
+
+Você deve **inspecionar o projeto inteiro, entender sua arquitetura, executar testes quando possível, identificar problemas, corrigir o que for seguro corrigir e validar novamente após as correções**.
+
+---
+
+# 1. REGRA PRINCIPAL
+
+NÃO presuma que algo funciona apenas porque:
+
+* o código compila;
+* existe uma função com determinado nome;
+* existe uma interface para determinada funcionalidade;
+* o README afirma que funciona;
+* uma API está implementada;
+* um botão existe na interface.
+
+Para considerar uma funcionalidade válida, procure evidências de que ela:
+
+1. está implementada;
+2. está conectada ao fluxo real da aplicação;
+3. funciona em condições normais;
+4. possui tratamento de erro;
+5. não quebra funcionalidades existentes;
+6. não gera efeitos colaterais inesperados;
+7. consegue ser revertida quando necessário;
+8. possui feedback adequado ao usuário.
+
+---
+
+# 2. PRIMEIRO PASSO — MAPEAR O PROJETO
+
+Antes de modificar qualquer coisa:
+
+* examine toda a árvore de arquivos;
+* identifique a tecnologia utilizada;
+* identifique framework desktop;
+* identifique linguagem principal;
+* identifique sistema de build;
+* identifique dependências;
+* identifique APIs externas;
+* identifique serviços locais;
+* identifique banco de dados, se existir;
+* identifique arquivos de configuração;
+* identifique scripts;
+* identifique módulos;
+* identifique entry points;
+* identifique componentes de UI;
+* identifique processos executados com privilégios elevados;
+* identifique comunicação entre frontend e backend;
+* identifique componentes responsáveis por otimização de rede/sistema;
+* identifique mecanismos de atualização;
+* identifique telemetria/logs, se existirem.
+
+Crie mentalmente um mapa arquitetural do sistema antes de começar as correções.
+
+---
+
+# 3. CLASSIFICAÇÃO DAS FUNCIONALIDADES
+
+Faça um inventário de todas as funcionalidades encontradas.
+
+Classifique cada uma como:
+
+* FUNCIONANDO
+* FUNCIONANDO PARCIALMENTE
+* IMPLEMENTADA MAS NÃO CONECTADA
+* MOCK
+* PLACEHOLDER
+* QUEBRADA
+* AUSENTE
+* INSEGURA
+* IMPOSSÍVEL DE VALIDAR
+
+Para cada funcionalidade, descubra:
+
+* onde começa;
+* quais módulos utiliza;
+* quais dependências possui;
+* qual estado modifica;
+* como desfaz a alteração;
+* como trata falhas;
+* como informa o usuário.
+
+---
+
+# 4. VALIDAÇÃO DO CORE DO HONEST BOOST
+
+O Honest Boost deve ser tratado como uma aplicação de otimização e diagnóstico para Windows.
+
+Valide cuidadosamente:
+
+## Sistema
+
+* identificação correta do Windows;
+* versão do sistema;
+* arquitetura x64/x86;
+* CPU;
+* GPU;
+* RAM;
+* armazenamento;
+* processos;
+* serviços;
+* adaptadores de rede;
+* configurações relevantes;
+* permissões necessárias.
+
+## Rede
+
+Verifique:
+
+* latência;
+* jitter;
+* packet loss;
+* DNS;
+* rota;
+* gateway;
+* adaptador utilizado;
+* estado da conexão;
+* métricas antes/depois;
+* tratamento de timeout;
+* falhas de conexão;
+* múltiplas interfaces de rede.
+
+Não permita que o aplicativo apresente como "otimização" algo que simplesmente não tenha evidência de alteração.
+
+---
+
+# 5. OTIMIZAÇÕES DO WINDOWS
+
+Audite todas as otimizações implementadas.
+
+Para cada tweak:
+
+* descubra exatamente o que ele modifica;
+* identifique registro, serviço, política ou configuração afetada;
+* valide se a alteração realmente foi aplicada;
+* valide se é compatível com a versão atual do Windows;
+* identifique possíveis efeitos colaterais;
+* implemente backup quando necessário;
+* implemente rollback;
+* registre o estado anterior;
+* não aplique alterações irreversíveis sem necessidade;
+* não utilize hacks obscuros sem justificativa técnica.
+
+IMPORTANTE:
+
+Nunca apresentar uma alteração como melhoria de performance sem evidência técnica.
+
+Se uma otimização for potencialmente placebo ou depender do hardware/configuração, deixe isso explícito.
+
+---
+
+# 6. GAMING / FPS / INPUT LAG
+
+Audite funcionalidades relacionadas a jogos.
+
+Verifique:
+
+* detecção de processos;
+* detecção de jogos;
+* prioridade de processos;
+* afinidade de CPU;
+* Game Mode;
+* configurações relacionadas a GPU;
+* processos em segundo plano;
+* overlays;
+* captura;
+* timers;
+* input;
+* polling;
+* latência;
+* comportamento em jogos competitivos.
+
+NÃO faça alterações perigosas em processos críticos do Windows.
+
+NÃO matar processos arbitrariamente.
+
+NÃO desabilitar serviços essenciais apenas para aumentar um benchmark artificial.
+
+Priorize estabilidade.
+
+---
+
+# 7. CS2
+
+Como o público principal pode utilizar Counter-Strike 2, audite especificamente:
+
+* detecção do CS2;
+* Steam;
+* processo do jogo;
+* parâmetros de inicialização;
+* configurações;
+* prioridade;
+* afinidade;
+* rede;
+* FPS;
+* frame pacing;
+* input latency;
+* processos em segundo plano;
+* compatibilidade com atualizações do jogo.
+
+Não invente comandos ou configurações.
+
+Não aplique configurações automaticamente sem explicar seus efeitos.
+
+---
+
+# 8. SEGURANÇA
+
+Faça uma auditoria de segurança completa.
+
+Procure:
+
+* hardcoded secrets;
+* API keys;
+* tokens;
+* senhas;
+* credenciais;
+* endpoints inseguros;
+* HTTP sem necessidade;
+* comandos shell vulneráveis;
+* command injection;
+* path traversal;
+* DLL hijacking;
+* execução arbitrária;
+* elevação de privilégio;
+* permissões excessivas;
+* arquivos temporários inseguros;
+* downloads não verificados;
+* atualização insegura;
+* validação insuficiente de entrada;
+* dependências vulneráveis.
+
+Analise especialmente qualquer código que execute:
+
+* PowerShell;
+* CMD;
+* reg.exe;
+* netsh;
+* sc.exe;
+* taskkill;
+* processos externos;
+* scripts;
+* alterações no Registry.
+
+---
+
+# 9. PRIVILÉGIOS ADMINISTRATIVOS
+
+O aplicativo deve solicitar privilégios elevados somente quando realmente necessário.
+
+Verifique:
+
+* quais operações precisam de administrador;
+* quais não precisam;
+* quando o UAC é acionado;
+* se o aplicativo roda inteiro como administrador sem necessidade;
+* se componentes privilegiados podem ser isolados.
+
+Objetivo:
+
+REDUZIR o código executado com privilégios elevados.
+
+---
+
+# 10. PERFORMANCE DO PRÓPRIO HONEST BOOST
+
+O aplicativo não pode ser pesado enquanto promete otimizar o PC.
+
+Analise:
+
+* consumo de CPU;
+* RAM;
+* processos;
+* threads;
+* inicialização;
+* tempo de startup;
+* chamadas repetitivas;
+* polling;
+* timers;
+* vazamentos de memória;
+* listeners;
+* processos em background;
+* utilização de disco;
+* utilização de rede.
+
+Procure especialmente:
+
+* loops infinitos;
+* polling excessivo;
+* chamadas desnecessárias;
+* processos que nunca encerram;
+* memory leaks;
+* handles não liberados.
+
+---
+
+# 11. UI/UX
+
+Audite toda a interface.
+
+Verifique:
+
+* consistência visual;
+* navegação;
+* hierarquia;
+* feedback;
+* loading states;
+* empty states;
+* error states;
+* confirmação de ações destrutivas;
+* mensagens de erro;
+* acessibilidade;
+* responsividade;
+* escalabilidade;
+* DPI;
+* diferentes resoluções;
+* dark mode, se existir;
+* estados de botão;
+* animações;
+* travamentos durante operações.
+
+Nenhuma ação importante deve parecer que "não aconteceu nada".
+
+Toda operação demorada deve possuir estado visual apropriado.
+
+---
+
+# 12. DASHBOARD
+
+Valide se os dados exibidos são reais.
+
+Para cada métrica apresentada:
+
+* descubra sua origem;
+* valide o cálculo;
+* confirme unidade;
+* confirme atualização;
+* trate ausência de dados;
+* não invente valores;
+* não exiba métricas falsas apenas para preencher UI.
+
+Se uma métrica não puder ser medida com confiabilidade:
+
+substitua por uma indicação clara de que ela não está disponível.
+
+---
+
+# 13. DIAGNÓSTICO
+
+Crie/valide um sistema de diagnóstico capaz de identificar:
+
+* internet indisponível;
+* DNS problemático;
+* packet loss;
+* jitter elevado;
+* adaptador desconectado;
+* driver potencialmente problemático;
+* CPU saturada;
+* RAM insuficiente;
+* disco saturado;
+* processos consumindo recursos;
+* configuração inconsistente.
+
+O diagnóstico deve distinguir:
+
+PROBLEMA DETECTADO
+
+de
+
+POSSÍVEL PROBLEMA
+
+de
+
+INFORMAÇÃO.
+
+Não transforme uma hipótese em diagnóstico definitivo.
+
+---
+
+# 14. BACKUP E ROLLBACK
+
+Toda alteração relevante no sistema deve possuir estratégia de reversão.
+
+Crie, quando apropriado:
+
+* snapshot da configuração;
+* backup de Registry;
+* estado anterior;
+* restore individual;
+* restore completo;
+* histórico das alterações.
+
+O usuário deve conseguir voltar ao estado anterior.
+
+---
+
+# 15. LOGGING
+
+Implemente ou audite logs.
+
+Os logs devem permitir descobrir:
+
+* quando algo aconteceu;
+* qual ação foi executada;
+* qual módulo executou;
+* resultado;
+* erro;
+* duração;
+* contexto relevante.
+
+Evite registrar:
+
+* senhas;
+* tokens;
+* chaves privadas;
+* dados sensíveis desnecessários.
+
+---
+
+# 16. TRATAMENTO DE ERROS
+
+Procure todos os pontos capazes de falhar.
+
+Cada operação deve possuir:
+
+* try/catch ou equivalente;
+* timeout quando necessário;
+* fallback;
+* mensagem amigável;
+* logging técnico;
+* recuperação quando possível.
+
+Nunca deixar:
+
+* crash silencioso;
+* tela congelada;
+* promessa eternamente pendente;
+* processo órfão.
+
+---
+
+# 17. CONCORRÊNCIA
+
+Analise:
+
+* threads;
+* workers;
+* async/await;
+* race conditions;
+* deadlocks;
+* chamadas concorrentes;
+* acesso simultâneo a arquivos;
+* alterações simultâneas de configuração.
+
+Garanta que duas ações do usuário não possam corromper o estado da aplicação.
+
+---
+
+# 18. BANCO / CONFIGURAÇÕES
+
+Se existir armazenamento local:
+
+verifique:
+
+* schema;
+* migrations;
+* corrupção;
+* concorrência;
+* backup;
+* recuperação;
+* validação;
+* versionamento;
+* compatibilidade entre versões.
+
+---
+
+# 19. ATUALIZAÇÃO DO APLICATIVO
+
+Audite completamente o sistema de atualização.
+
+Verifique:
+
+* integridade do pacote;
+* HTTPS;
+* validação de versão;
+* rollback;
+* instalação interrompida;
+* pacote corrompido;
+* compatibilidade;
+* segurança;
+* atualização parcial.
+
+Nunca confiar cegamente em arquivos baixados da internet.
+
+---
+
+# 20. INSTALADOR
+
+Valide a experiência de instalação.
+
+O instalador deve:
+
+* instalar corretamente;
+* criar atalhos;
+* registrar desinstalação;
+* instalar dependências necessárias;
+* funcionar em instalação limpa;
+* funcionar após atualização;
+* desinstalar corretamente;
+* não deixar lixo desnecessário.
+
+Teste também:
+
+* caminho com espaços;
+* usuário sem privilégios;
+* UAC;
+* Windows Defender;
+* Windows atualizado;
+* instalação sobre versão antiga.
+
+---
+
+# 21. BUILD DE PRODUÇÃO
+
+Execute ou valide:
+
+* build development;
+* build production;
+* empacotamento;
+* geração do executável;
+* assets;
+* dependências;
+* assinatura, se houver;
+* versão;
+* metadata;
+* arquitetura;
+* installer.
+
+Procure arquivos desnecessários dentro do pacote final.
+
+---
+
+# 22. TESTES
+
+Crie ou melhore testes para:
+
+### Unitários
+
+* funções;
+* cálculos;
+* parsers;
+* validações;
+* utilitários.
+
+### Integração
+
+* frontend ↔ backend;
+* backend ↔ Windows;
+* backend ↔ APIs;
+* armazenamento;
+* diagnóstico.
+
+### E2E
+
+Teste fluxos completos:
+
+1. instalar;
+2. abrir;
+3. detectar hardware;
+4. executar diagnóstico;
+5. aplicar otimização;
+6. validar alteração;
+7. executar rollback;
+8. fechar;
+9. abrir novamente.
+
+---
+
+# 23. TESTE DE FALHAS
+
+Simule:
+
+* internet desligada;
+* DNS indisponível;
+* processo inexistente;
+* permissão negada;
+* arquivo ausente;
+* arquivo corrompido;
+* API offline;
+* timeout;
+* Windows incompatível;
+* serviço parado;
+* Registry inacessível;
+* disco cheio;
+* instalação interrompida.
+
+A aplicação deve falhar de forma controlada.
+
+---
+
+# 24. COMPATIBILIDADE
+
+Avalie compatibilidade com:
+
+* Windows 10;
+* Windows 11;
+* x64;
+* diferentes resoluções;
+* diferentes escalas de DPI;
+* diferentes configurações de hardware.
+
+Se alguma funcionalidade depender de uma versão específica:
+
+documente explicitamente.
+
+---
+
+# 25. CÓDIGO
+
+Faça uma revisão de qualidade.
+
+Procure:
+
+* código duplicado;
+* funções gigantes;
+* classes gigantes;
+* nomes ruins;
+* abstrações desnecessárias;
+* acoplamento excessivo;
+* dependências circulares;
+* código morto;
+* imports desnecessários;
+* TODOs críticos;
+* hacks;
+* workarounds;
+* comentários incorretos.
+
+Refatore somente quando isso reduzir complexidade ou risco.
+
+Não refatore apenas por estética.
+
+---
+
+# 26. DEPENDÊNCIAS
+
+Analise todas as dependências.
+
+Para cada uma:
+
+* necessidade;
+* versão;
+* compatibilidade;
+* vulnerabilidades conhecidas;
+* licença;
+* tamanho;
+* dependências transitivas.
+
+Remova dependências não utilizadas.
+
+---
+
+# 27. TELEMETRIA E PRIVACIDADE
+
+Se houver coleta de dados:
+
+identifique exatamente:
+
+* o que é coletado;
+* onde é enviado;
+* por que é necessário;
+* quando é enviado.
+
+Não adicionar coleta de dados desnecessária.
+
+---
+
+# 28. REGRAS CONTRA "FAKE OPTIMIZATION"
+
+Esta é uma regra crítica do projeto.
+
+O Honest Boost NÃO deve:
+
+* inventar ganhos de FPS;
+* inventar redução de ping;
+* inventar benchmark;
+* mostrar porcentagens sem metodologia;
+* chamar qualquer alteração de "boost";
+* afirmar causalidade sem evidência.
+
+Sempre diferencie:
+
+MEDIDO
+
+de
+
+ESTIMADO
+
+de
+
+CONFIGURADO
+
+de
+
+RECOMENDADO.
+
+---
+
+# 29. SISTEMA DE SCORE
+
+Se existir algum score de otimização, audite:
+
+* fórmula;
+* pesos;
+* origem dos dados;
+* consistência;
+* limites;
+* casos extremos.
+
+Não permitir que o score seja apenas uma animação visual sem relação com dados reais.
+
+---
+
+# 30. DOCUMENTAÇÃO
+
+Verifique:
+
+* README;
+* instalação;
+* requisitos;
+* desenvolvimento;
+* build;
+* troubleshooting;
+* arquitetura;
+* changelog;
+* licença;
+* instruções de contribuição.
+
+Atualize documentação que esteja desatualizada após correções.
+
+---
+
+# 31. CRITÉRIO DE APROVAÇÃO
+
+Depois da auditoria, classifique cada problema:
+
+### P0 — CRÍTICO
+
+Pode causar:
+
+* perda de dados;
+* comprometimento de segurança;
+* corrupção do Windows;
+* execução arbitrária;
+* falha total do aplicativo.
+
+### P1 — ALTO
+
+Quebra funcionalidade importante ou compromete seriamente a experiência.
+
+### P2 — MÉDIO
+
+Problema relevante, mas com workaround.
+
+### P3 — BAIXO
+
+Melhoria ou problema menor.
+
+---
+
+# 32. CORREÇÕES
+
+Depois de identificar os problemas:
+
+1. corrija P0;
+2. corrija P1;
+3. corrija P2 quando possível;
+4. corrija P3 somente se não aumentar complexidade.
+
+Após cada correção:
+
+* recompile;
+* execute testes;
+* valide novamente;
+* procure regressões.
+
+NÃO apenas altere código e declare "resolvido".
+
+---
+
+# 33. REGRA DE OURO
+
+Se você não consegue validar uma funcionalidade, NÃO diga que ela funciona.
+
+Use:
+
+"Não foi possível validar."
+
+Se encontrar uma implementação incompleta:
+
+"Implementação parcial."
+
+Se encontrar código simulado:
+
+"Mock/placeholder."
+
+Se encontrar comportamento potencialmente perigoso:
+
+"Requer revisão antes de produção."
+
+---
+
+# 34. ENTREGA FINAL
+
+Ao terminar, produza um relatório com exatamente esta estrutura:
+
+## HONEST BOOST — AUDITORIA FINAL
+
+### 1. Estado geral
+
+* arquitetura;
+* stack;
+* build;
+* estado atual.
+
+### 2. Funcionalidades
+
+Tabela:
+
+| Funcionalidade | Estado | Evidência | Problemas |
+| -------------- | ------ | --------- | --------- |
+
+### 3. Segurança
+
+* vulnerabilidades;
+* riscos;
+* correções.
+
+### 4. Performance
+
+* gargalos;
+* consumo;
+* problemas encontrados.
+
+### 5. UX/UI
+
+* problemas;
+* melhorias.
+
+### 6. Windows
+
+* otimizações;
+* compatibilidade;
+* rollback.
+
+### 7. Testes
+
+* testes executados;
+* resultados;
+* falhas.
+
+### 8. Problemas encontrados
+
+Ordenados por:
+
+P0 → P1 → P2 → P3
+
+### 9. Correções realizadas
+
+Liste arquivo + alteração + motivo.
+
+### 10. Problemas restantes
+
+Não esconda problemas.
+
+### 11. Checklist de produção
+
+Marque:
+
+[PASS]
+[FAIL]
+[WARNING]
+[NOT TESTED]
+
+Para:
+
+* Build
+* Installer
+* Startup
+* Hardware detection
+* Network diagnostics
+* Optimization engine
+* Rollback
+* Logging
+* Security
+* Performance
+* UI
+* Error handling
+* Update system
+* Uninstaller
+* Windows compatibility
+* Clean installation
+* Upgrade installation
+
+### 12. Veredito técnico
+
+Escolha SOMENTE uma destas classificações:
+
+READY FOR PRODUCTION
+
+ou
+
+READY WITH WARNINGS
+
+ou
+
+NOT READY
+
+Não considere o projeto pronto apenas porque a interface funciona.
+
+O objetivo é determinar se o **software realmente funciona de ponta a ponta e está tecnicamente preparado para usuários reais**.
+
+---
+
+# COMPORTAMENTO OBRIGATÓRIO
+
+Durante todo o processo:
+
+* não invente resultados;
+* não invente testes executados;
+* não invente métricas;
+* não esconda problemas;
+* não remova funcionalidades sem justificar;
+* não altere arquitetura sem necessidade;
+* não faça mudanças destrutivas sem backup;
+* não trate warnings como sucesso;
+* não trate ausência de erro como prova de funcionamento.
+
+Se encontrar algo importante, investigue a causa raiz.
+
+Se puder corrigir com segurança, corrija.
+
+Se não puder validar, marque como NOT TESTED.
+
+Se uma decisão arquitetural for necessária, explique o trade-off.
+
+O objetivo NÃO é fazer o relatório parecer bonito.
+
+O objetivo é descobrir a verdade sobre o estado do Honest Boost Desktop e deixá-lo o mais próximo possível de um **produto desktop real, estável, seguro, mensurável e pronto para distribuição**.
