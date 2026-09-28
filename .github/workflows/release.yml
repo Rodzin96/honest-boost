@@ -1,7 +1,6 @@
 # Release do instalador Windows (NSIS) + publicação no GitHub Releases.
 # Uso: git tag v2.0.1 && git push origin v2.0.1
-# O electron-builder anexa o .exe/.blockmap + latest.yml à Release, e o
-# auto-update do app passa a encontrar novas versões sozinho.
+# O workflow compila o NSIS, cria a Release via GitHub CLI e anexa .exe/.blockmap + latest.yml
 name: Release desktop (Windows)
 
 on:
@@ -22,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node 20
         uses: actions/setup-node@v4
@@ -33,7 +34,36 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Build + publish NSIS
-        run: npm run build:win -- --publish always
+      - name: Build NSIS (sem publish)
+        run: npm run build:win
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: vars
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Create Release and upload assets
+        uses: softprops/action-gh-release@v2
+        if: always()
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.vars.outputs.version }}
+          body: |
+            ## Honest Boost ${{ steps.vars.outputs.version }}
+            
+            Instalador Windows (NSIS) para o otimizador Honest Boost.
+            
+            ### Auto-update
+            O app detecta automaticamente esta versão via `latest.yml`.
+          files: |
+            dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe
+            dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe.blockmap
+            dist/latest.yml
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
