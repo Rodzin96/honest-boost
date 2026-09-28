@@ -17,7 +17,7 @@
     "publish": "electron-builder --win --publish always"
   },
   "devDependencies": {
-    "electron": "^33.0.0",
+    "electron": "^31.7.7",
     "electron-builder": "^25.1.8"
   },
   "dependencies": {
