@@ -44,8 +44,18 @@ let dbInitPromise = null;
 
 function getDb() {
   if (!db) {
-    const { initSchema, get: dbGet, all: dbAll, run: dbRun } = require('./src/db');
-    db = { initSchema, dbGet, dbAll, dbRun };
+    const { initSchema, get: dbGet, all: dbAll, run: dbRun, hasLicenseOrderUnique } = require('./src/db');
+    db = {
+      initSchema,
+      dbGet,
+      dbAll,
+      dbRun,
+      /* O índice único de licenses(order_id) pode não existir quando há
+       * duplicatas legadas (a migração o cria em try/catch e segue). Sem o
+       * índice, um "ON CONFLICT (order_id)" no INSERT de licenças lançaria
+       * erro e derrubaria o webhook — então ele só é usado se o índice existir. */
+      licenseConflict: () => (hasLicenseOrderUnique() ? ' ON CONFLICT (order_id) DO NOTHING' : ''),
+    };
   }
   return db;
 }
@@ -115,7 +125,16 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* Sessão manual via express-session (req.session.user). Sem Passport/Google OAuth. */
+/* Sessão manual via express-session (req.session.user). Sem Passport/Google OAuth.
+ *
+ * Alguns trechos (checkout Stripe) leem `req.user`, que NADA populava — o
+ * vínculo de Customer e o metadata.userId eram código morto. Espelhamos a
+ * sessão em req.user aqui, num único ponto. */
+app.use((req, res, next) => {
+  const user = (req.session && req.session.user) || null;
+  if (user) req.user = { id: user.id, email: user.username, username: user.username, role: user.role };
+  return next();
+});
 
 async function provisionConfiguredAdmin() {
   const email = normalizeEmail(process.env.ADMIN_USER);
@@ -286,38 +305,82 @@ async function webhookHandler(req, res) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
+
+      /* `checkout.session.completed` NÃO significa necessariamente que o
+       * dinheiro entrou: em métodos com confirmação assíncrona (boleto, e
+       * alguns fluxos de Pix) a sessão chega aqui com payment_status 'unpaid',
+       * e o pagamento só se confirma depois. Sem esta guarda, a licença era
+       * emitida e enviada por e-mail sem pagamento. O evento de confirmação
+       * posterior (async_payment_succeeded) reenvia a sessão e provisiona. */
+      const paymentStatus = session.payment_status;
+      if (paymentStatus && paymentStatus !== 'paid' && paymentStatus !== 'no_payment_required') {
+        console.warn('⚠ Stripe: sessão concluída sem pagamento confirmado — aguardando confirmação', {
+          sessionId: session.id, paymentStatus
+        });
+        return res.json({ received: true, deferred: true, paymentStatus });
+      }
+
       const email = normalizeEmail(
         (session.metadata && session.metadata.email) || session.customer_email
       );
       const { getProduct } = require('./src/products');
-      const product = email && session.metadata && session.metadata.product
-        ? getProduct(session.metadata.product)
-        : null;
-      if (product) {
-        await ensureDbReady();
-        const paidAt = new Date(session.paid_at ? session.paid_at * 1000 : Date.now()).toISOString();
+      const productId = session.metadata && session.metadata.product;
+      const product = productId ? getProduct(productId) : null;
+
+      /* Um pagamento concluído que não conseguimos provisionar NÃO pode
+       * responder 200: o Stripe pararia de reenviar e o cliente ficaria sem a
+       * licença. Responder 5xx faz o Stripe retentar o evento. */
+      if (!product || !email) {
+        console.error('✗ Stripe webhook: pagamento sem provisionamento', {
+          sessionId: session.id,
+          hasEmail: Boolean(email),
+          productId: productId || null,
+          metadata: session.metadata || null
+        });
+        return res.status(500).json({
+          error: 'provisioning_failed',
+          reason: !email ? 'missing_email' : 'unknown_product'
+        });
+      }
+
+      await ensureDbReady();
+      const paidAt = new Date(session.paid_at ? session.paid_at * 1000 : Date.now()).toISOString();
+      const paidAmount = Number.isInteger(session.amount_total) ? session.amount_total : product.amount;
+
+      /* Confere o valor pago contra o catálogo (o InfinitePay já faz isso).
+       * Divergência indica preço desatualizado no Stripe — registra sem
+       * bloquear a entrega, para não deixar o cliente sem licença. */
+      if (Number.isInteger(session.amount_total) && session.amount_total !== product.amount) {
+        console.warn('⚠ Stripe: valor pago difere do catálogo', {
+          sessionId: session.id, pago: session.amount_total, catalogo: product.amount, product: product.id
+        });
+      }
+
+      await getDb().dbRun(
+        `INSERT INTO orders (order_id, email, product, amount, status, provider, paid_at, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT (order_id)
+         DO UPDATE SET status = EXCLUDED.status, paid_at = EXCLUDED.paid_at, provider = EXCLUDED.provider`,
+        [session.id, email, product.id, paidAmount, 'paid', 'stripe', paidAt, paidAt]
+      );
+      const existing = await getDb().dbGet('SELECT id FROM licenses WHERE order_id = $1', [session.id]);
+      if (!existing) {
+        const license = newLicenseKey();
         await getDb().dbRun(
-          `INSERT INTO orders (order_id, email, product, amount, status, provider, paid_at, created_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-           ON CONFLICT (order_id)
-           DO UPDATE SET status = EXCLUDED.status, paid_at = EXCLUDED.paid_at, provider = EXCLUDED.provider`,
-          [session.id, email, product.id,
-           Number.isInteger(session.amount_total) ? session.amount_total : product.amount,
-           'paid', 'stripe', paidAt, paidAt]
+          `INSERT INTO licenses (license_key, email, product, status, order_id, activated_at, created_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7)` + getDb().licenseConflict(),
+          [license, email, product.id, 'active', session.id, paidAt, paidAt]
         );
-        const existing = await getDb().dbGet('SELECT id FROM licenses WHERE order_id = $1', [session.id]);
-        if (!existing) {
-          const license = newLicenseKey();
-          await getDb().dbRun(
-            `INSERT INTO licenses (license_key, email, product, status, order_id, activated_at, created_at)
-             VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-            [license, email, product.id, 'active', session.id, paidAt, paidAt]
-          );
-          await audit(req, 'payment.completed', {
-            orderId: session.id, email, product: product.id, amount: session.amount_total
+        await audit(req, 'payment.completed', {
+          orderId: session.id, email, product: product.id, amount: session.amount_total
+        });
+        // Falha de email não pode ser silenciosa: a chave já está no banco e o
+        // cliente precisa conseguir recuperá-la.
+        sendLicenseEmail(email, license, product).catch((err) => {
+          console.error('✗ Falha ao enviar email da licença (Stripe)', {
+            orderId: session.id, email, erro: err && err.message ? err.message : String(err)
           });
-          sendLicenseEmail(email, license, product).catch(() => {});
-        }
+        });
       }
     }
 
@@ -1077,14 +1140,28 @@ app.post('/webhook/infinitepay', asyncRoute(async (req, res) => {
     const license = newLicenseKey();
     await getDb().dbRun(
       `INSERT INTO licenses (license_key, email, product, status, order_id, activated_at, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)` + getDb().licenseConflict(),
       [license, order.email, order.product, 'active', orderNsu, paidAt, paidAt]
     );
     await audit(req, 'payment.completed', {
       orderId: orderNsu, email: order.email, product: order.product,
       amount: order.amount, captureMethod: body.capture_method, provider: 'infinitepay'
     });
-    sendLicenseEmail(order.email, license, require('./src/products').getProduct(order.product)).catch(() => {});
+    // O produto vem do pedido gravado no banco; se for legado/desconhecido,
+    // getProduct devolve null e sendLicenseEmail acessaria product.name —
+    // por isso a validação antes, e o log em vez de descarte silencioso.
+    const emailProduct = require('./src/products').getProduct(order.product);
+    if (!emailProduct) {
+      console.error('✗ InfinitePay: produto do pedido não está no catálogo — email não enviado', {
+        orderId: orderNsu, product: order.product, email: order.email
+      });
+    } else {
+      sendLicenseEmail(order.email, license, emailProduct).catch((err) => {
+        console.error('✗ Falha ao enviar email da licença (InfinitePay)', {
+          orderId: orderNsu, email: order.email, erro: err && err.message ? err.message : String(err)
+        });
+      });
+    }
   }
 
   return res.json({ received: true });

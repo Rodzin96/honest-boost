@@ -3,6 +3,9 @@ const { Pool } = require('pg');
 
 let pool;
 let connected = false;
+// Fica true quando o índice único de licenses(order_id) existe. O server.js usa
+// esta flag para decidir se pode confiar em ON CONFLICT (order_id).
+let licenseOrderUnique = false;
 
 /** Railway (and most managed Postgres providers) require SSL on their public
  * and private hostnames; only plain localhost connections should skip it.
@@ -11,11 +14,15 @@ let connected = false;
 function resolveSslConfig(connectionString) {
   if (!connectionString) return false;
   // Plain localhost and Railway's private network hostname (*.railway.internal)
-  // are unencrypted-by-default connections; only public/external hosts need
-  // the relaxed TLS handshake below.
+  // are unencrypted-by-default connections; only public/external hosts need TLS.
   const isUnencryptedHost = /(^|@)(localhost|127\.0\.0\.1)(:|\/)/.test(connectionString)
     || /\.railway\.internal(:|\/)/.test(connectionString);
-  return isUnencryptedHost ? false : { rejectUnauthorized: false };
+  if (isUnencryptedHost) return false;
+  // rejectUnauthorized:false aceitava QUALQUER certificado — um MITM na rota
+  // até o Postgres veria credenciais, hashes de senha e chaves de licença.
+  // Para CA privada, aponte PGSSLROOTCERT (ou DATABASE_CA_CERT) com o PEM.
+  const ca = process.env.DATABASE_CA_CERT || process.env.PGSSLROOTCERT;
+  return ca ? { rejectUnauthorized: true, ca } : { rejectUnauthorized: true };
 }
 
 function getPool() {
@@ -193,10 +200,48 @@ async function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
     CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
   `);
-  
+
+  /* A unicidade por pedido é aplicada à parte, de propósito.
+   *
+   * O CREATE UNIQUE INDEX falha se já existirem licenças duplicadas por
+   * order_id. Se estivesse no bloco acima, essa falha abortaria a migração
+   * inteira e a API ficaria em 503 (dbReady nunca vira true). Aqui a falha é
+   * contida: o schema sobe e o que fica indisponível é apenas a garantia de
+   * unicidade, com aviso explícito no log. */
+  licenseOrderUnique = await enforceLicenseOrderUniqueness();
+
   connected = true;
   console.log('✓ Schema initialized');
 }
+
+/**
+ * Tenta criar o índice único em licenses(order_id).
+ * @returns {Promise<boolean>} true se o índice existe ao final (novo ou prévio).
+ */
+async function enforceLicenseOrderUniqueness() {
+  try {
+    await getPool().query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_licenses_order
+        ON licenses(order_id) WHERE order_id IS NOT NULL;
+    `);
+    console.log('✓ Unicidade de licenses(order_id) garantida');
+    return true;
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err);
+    console.error('⚠ NÃO foi possível criar o índice único de licenses(order_id).');
+    console.error('  Motivo:', msg);
+    if (/duplicate key|não é possível|not possible|could not create unique/i.test(msg)) {
+      console.error('  Causa provável: existem licenças duplicadas por pedido.');
+      console.error('  Investigue com:');
+      console.error("    SELECT order_id, COUNT(*) FROM licenses WHERE order_id IS NOT NULL");
+      console.error('    GROUP BY order_id HAVING COUNT(*) > 1;');
+      console.error('  Enquanto isso o app segue funcionando, mas duas entregas concorrentes');
+      console.error('  do mesmo webhook ainda podem emitir licenças duplicadas.');
+    }
+    return false;
+  }
+}
+
 
 function get(sql, params = []) {
   return getPool().query(sql, params).then(r => r.rows[0] || null);
@@ -210,4 +255,14 @@ function run(sql, params = []) {
   return getPool().query(sql, params);
 }
 
-module.exports = { initSchema, get, all, run, getPool, testConnection, isConnected };
+module.exports = {
+  initSchema,
+  get,
+  all,
+  run,
+  getPool,
+  testConnection,
+  isConnected,
+  /** @returns {boolean} true se o índice único de licenses(order_id) está ativo. */
+  hasLicenseOrderUnique: () => licenseOrderUnique,
+};

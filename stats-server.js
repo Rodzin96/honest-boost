@@ -15,7 +15,7 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 const DB = path.join(__dirname, 'data', 'optimizations.sqlite');
-const db = new sqlite3.Database(db);
+const db = new sqlite3.Database(DB);
 
 // Initialize schema
 db.serialize(() => {
@@ -71,17 +71,25 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// API Key validation
+// API Key validation — fail-closed: sem STATS_API_KEY o serviço não aceita
+// escrita nem leitura autenticada, em vez de liberar tudo (era `return next()`).
 const apiKeyMiddleware = (req, res, next) => {
     const expected = process.env.STATS_API_KEY;
-    if (!expected) return next();
-    
+    if (!expected) {
+        console.error('✗ STATS_API_KEY não configurada — requisição recusada.');
+        return res.status(503).json({ error: 'stats_api_key_not_configured' });
+    }
+
     const provided = (req.get('x-api-key') || req.get('authorization') || '').trim();
     if (!provided) return res.status(401).json({ error: 'missing_api_key' });
-    
+
     const token = provided.startsWith('Bearer ') ? provided.slice(7).trim() : provided;
-    if (token === expected) return next();
-    
+    // Comparação em tempo constante, com guarda de tamanho: timingSafeEqual
+    // lança se os buffers tiverem tamanhos diferentes.
+    const a = Buffer.from(token);
+    const b = Buffer.from(expected);
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return next();
+
     return res.status(401).json({ error: 'invalid_api_key' });
 };
 
