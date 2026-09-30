@@ -190,6 +190,27 @@
                 .replace(/'/g, '&#39;');
         }
 
+        // Valor para dentro de um atributo HTML. Diferente de escapeHtml, este
+        // é seguro no contexto de atributo e é o único aceito para data-*.
+        function escapeAttr(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // O parser HTML decodifica entidades ao ler o atributo; este passo
+        // desfaz a codificação e remove metacaracteres. machine_id/hostname vêm
+        // do cliente via POST /api/app/auth, então nunca são confiáveis.
+        function cleanAttr(value) {
+            var s = String(value == null ? '' : value);
+            var ta = document.createElement('textarea');
+            ta.innerHTML = s;
+            return ta.value.replace(/[<>"'`\\]/g, '').trim();
+        }
+
         function statusBadge(status) {
             if (status === 'active') {
                 return '<span class="status-badge status-active"><span class="material-symbols-rounded" style="font-size:14px;">check_circle</span>Ativa</span>';
@@ -255,7 +276,7 @@
                     '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.expires_at || '-') + '</td>' +
                     '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.last_used_at || '-') + '</td>' +
                     '<td>' + (r.status === 'active'
-                        ? '<button class="btn btn-outlined" style="padding:0.4rem 0.7rem;" onclick="revokeAdminKey(\'' + escapeHtml(r.id) + '\')"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button>'
+                        ? '<button class="btn btn-outlined js-revoke-key" data-key-id="' + escapeAttr(String(r.id || '')) + '" style="padding:0.4rem 0.7rem;" title="Revogar key"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button>'
                         : '') + '</td>' +
                     '</tr>';
             });
@@ -377,7 +398,7 @@
                     '<td>' + escapeHtml(r.hostname || '-') + '</td>' +
                     '<td>' + escapeHtml(r.platform || '-') + '</td>' +
                     '<td style="font-size:0.82rem;color:var(--on-surface-variant);">' + escapeHtml(r.last_seen || '-') + '</td>' +
-                    '<td><button class="btn btn-outlined" style="padding:0.4rem 0.7rem;" title="Remover e liberar vaga" onclick="removeDevice(\'' + escapeHtml(r.key_ref) + '\',\'' + escapeHtml(r.machine_id) + '\')"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button></td>' +
+                    '<td><button class="btn btn-outlined js-remove-device" data-key-ref="' + escapeAttr(String(r.key_ref || '')) + '" data-machine-id="' + escapeAttr(String(r.machine_id || '')) + '" style="padding:0.4rem 0.7rem;" title="Remover e liberar vaga"><span class="material-symbols-rounded" style="font-size:16px;">delete</span></button></td>' +
                     '</tr>';
             });
             html += '</tbody></table>';
@@ -413,6 +434,20 @@
             document.getElementById('refreshBtn').addEventListener('click', load);
             document.getElementById('refreshKeysBtn').addEventListener('click', loadKeys);
             document.getElementById('refreshDevicesBtn').addEventListener('click', loadDevices);
+
+            // Delegação de eventos: substitui onclick inline, que interpolava
+            // dados do cliente dentro de um literal JavaScript no atributo.
+            document.addEventListener('click', function (ev) {
+                var revoke = ev.target.closest ? ev.target.closest('.js-revoke-key') : null;
+                if (revoke) {
+                    revokeAdminKey(cleanAttr(revoke.dataset.keyId));
+                    return;
+                }
+                var remove = ev.target.closest ? ev.target.closest('.js-remove-device') : null;
+                if (remove) {
+                    removeDevice(cleanAttr(remove.dataset.keyRef), cleanAttr(remove.dataset.machineId));
+                }
+            });
         });
     </script>
 </body>

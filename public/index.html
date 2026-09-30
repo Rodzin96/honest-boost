@@ -505,42 +505,14 @@
             margin-right: auto;
         }
 
-        .slider {
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-        }
 
-        .track {
-            display: flex;
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
-            width: max-content;
-            animation: hb-slide 35s linear infinite;
-            will-change: transform;
-        }
-
-        .track:has(.testimonial-card:hover) {
-            animation-play-state: paused;
-        }
-
-        /* O slider de depoimentos deve animar sempre: isenta da regra global
-         * de reduced-motion do styles.css (comum em PCs com animações do
-         * Windows desativadas). O pause no hover do card continua valendo. */
-        @media (prefers-reduced-motion: reduce) {
-            .track {
-                animation-duration: 35s !important;
-                animation-iteration-count: infinite !important;
-            }
-            .version-btn .pulse-dot,
-            .version-bar .pulse-dot {
-                animation-duration: 1.6s !important;
-                animation-iteration-count: infinite !important;
-            }
         }
 
         .testimonial-card {
-            flex: 0 0 340px;
-            height: 300px;
             background: var(--surface-2);
             border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--divider));
             border-radius: 18px;
@@ -548,71 +520,44 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            gap: 1rem;
             transition: transform 0.35s, border-color 0.35s, box-shadow 0.35s;
             box-shadow: 0 0 0 rgba(var(--primary-rgb), 0);
         }
 
         .testimonial-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-4px);
             border-color: var(--primary);
-            box-shadow: 0 0 30px color-mix(in srgb, var(--primary) 20%, transparent);
         }
 
         .testimonial-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-
-        .testimonial-avatar {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            background-size: cover;
-            background-position: center;
-            border: 2px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
+            gap: 0.85rem;
+            margin-bottom: 1rem;
         }
 
         .testimonial-name {
-            font-size: 1.1rem;
             font-weight: 700;
             color: var(--on-surface);
         }
 
-        .testimonial-user {
-            font-size: 0.85rem;
-            color: var(--primary);
-            margin-top: 0.2rem;
-        }
-
         .testimonial-pc {
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
+            font-size: 0.78rem;
             color: var(--on-surface-variant);
+            margin-top: 0.15rem;
         }
 
         .testimonial-review {
             color: var(--on-surface-variant);
-            line-height: 1.8;
-            font-size: 1rem;
-            margin-top: 1.25rem;
-            flex: 1;
+            line-height: 1.65;
+            font-size: 0.95rem;
         }
 
         .testimonial-stars {
-            color: #FFD54A;
-            font-size: 1.25rem;
-            letter-spacing: 0.25rem;
-        }
-
-        @keyframes hb-slide {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc((340px + 1.5rem) * -5)); }
-        }
-
-        @media (max-width: 768px) {
-            .testimonial-card { flex: 0 0 280px; height: auto; min-height: 280px; }
-            @keyframes hb-slide { 100% { transform: translateX(calc((280px + 1.5rem) * -5)); } }
+            color: var(--primary);
+            font-size: 1.1rem;
+            letter-spacing: 0.2rem;
         }
     </style>
 </head>
@@ -782,163 +727,75 @@
             <div class="container">
                 <div class="testimonials-header">
                     <div class="eyebrow">O que dizem</div>
-                    <h2>Resultados reais de quem já usa</h2>
-                    <p>Jogadores competitivos compartilham a diferença que o Honest Boost fez no dia a dia.</p>
+                    <h2>O que os usuários relatam</h2>
+                    <p>Relatos enviados por clientes. Nenhum traz número de ganho: o app não mede FPS nem latência, então não publicamos essa métrica.</p>
                 </div>
 
-                <div class="slider" role="region" aria-label="Carrossel de depoimentos">
-                    <div class="track">
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=10')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">André Souza</div>
-                                        <div class="testimonial-user">@debettiandre</div>
-                                        <div class="testimonial-pc">RTX 4060 • Ryzen 7 5800X3D</div>
-                                    </div>
+                                <div class="testimonials-grid">
+                    <article class="testimonial-card">
+                        <div>
+                            <div class="testimonial-header">
+                                <div>
+                                    <div class="testimonial-name">André Souza</div>
+                                    <div class="testimonial-pc">RTX 4060 • Ryzen 7 5800X3D</div>
                                 </div>
-                                <p class="testimonial-review">"Antes eu jogava limitado a 250 FPS. Depois do Boost passei para quase 400 FPS. Diferença absurda."</p>
                             </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
+                            <p class="testimonial-review">"O que mais senti foi a consistência: o frame time parou de oscilar e o mouse ficou previsível. Não medi FPS antes e depois."</p>
+                        </div>
+                        <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
+                    </article>
 
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=13')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Pedro Casagrande</div>
-                                        <div class="testimonial-user">@pedro</div>
-                                        <div class="testimonial-pc">Ryzen 5700X3D • RTX 4060</div>
-                                    </div>
+                    <article class="testimonial-card">
+                        <div>
+                            <div class="testimonial-header">
+                                <div>
+                                    <div class="testimonial-name">Pedro Casagrande</div>
+                                    <div class="testimonial-pc">Ryzen 5700X3D • RTX 4060</div>
                                 </div>
-                                <p class="testimonial-review">"Não acreditava que funcionaria. Agora estou acima dos 500 FPS em vários jogos."</p>
                             </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
+                            <p class="testimonial-review">"Tirei os apps que subiam junto com o Windows e o sistema ficou mais leve no uso do dia a dia."</p>
+                        </div>
+                        <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
+                    </article>
 
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=25')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Leonardo Monge</div>
-                                        <div class="testimonial-user">@leonel</div>
-                                        <div class="testimonial-pc">RTX 3060 • i5</div>
-                                    </div>
+                    <article class="testimonial-card">
+                        <div>
+                            <div class="testimonial-header">
+                                <div>
+                                    <div class="testimonial-name">Leonardo Monge</div>
+                                    <div class="testimonial-pc">RTX 3060 • i5</div>
                                 </div>
-                                <p class="testimonial-review">"Já tinha tentado de tudo. Parece que fiz overclock no computador."</p>
                             </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
+                            <p class="testimonial-review">"Já tinha tentado de tudo. O ganho aqui foi de fluidez, não de número — não tenho medição para comparar."</p>
+                        </div>
+                        <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
+                    </article>
 
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=30')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Diego Bandeira</div>
-                                        <div class="testimonial-user">@diegob</div>
-                                        <div class="testimonial-pc">RTX 3060</div>
-                                    </div>
+                    <article class="testimonial-card">
+                        <div>
+                            <div class="testimonial-header">
+                                <div>
+                                    <div class="testimonial-name">Diego Bandeira</div>
+                                    <div class="testimonial-pc">RTX 3060</div>
                                 </div>
-                                <p class="testimonial-review">"Jogava em 120 FPS e agora estou acima de 180 FPS."</p>
                             </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
+                            <p class="testimonial-review">"Gostei de poder desfazer tudo em um clique. Testei, não gostei de um ajuste e voltei atrás na hora."</p>
+                        </div>
+                        <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
+                    </article>
 
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=40')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Arthur</div>
-                                        <div class="testimonial-user">@mais1arthur</div>
-                                        <div class="testimonial-pc">GTX 1660</div>
-                                    </div>
+                    <article class="testimonial-card">
+                        <div>
+                            <div class="testimonial-header">
+                                <div>
+                                    <div class="testimonial-name">Arthur</div>
+                                    <div class="testimonial-pc">GTX 1660</div>
                                 </div>
-                                <p class="testimonial-review">"Comprei o Boost e saí de 401 FPS para 668 FPS. Valeu muito a pena."</p>
                             </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
-
-                        <!-- Duplicados para loop infinito suave -->
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=10')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">André Souza</div>
-                                        <div class="testimonial-user">@debettiandre</div>
-                                        <div class="testimonial-pc">RTX 4060 • Ryzen 7 5800X3D</div>
-                                    </div>
-                                </div>
-                                <p class="testimonial-review">"Antes eu jogava limitado a 250 FPS. Depois do Boost passei para quase 400 FPS. Diferença absurda."</p>
-                            </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
-
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=13')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Pedro Casagrande</div>
-                                        <div class="testimonial-user">@pedro</div>
-                                        <div class="testimonial-pc">Ryzen 5700X3D • RTX 4060</div>
-                                    </div>
-                                </div>
-                                <p class="testimonial-review">"Não acreditava que funcionaria. Agora estou acima dos 500 FPS em vários jogos."</p>
-                            </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
-
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=25')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Leonardo Monge</div>
-                                        <div class="testimonial-user">@leonel</div>
-                                        <div class="testimonial-pc">RTX 3060 • i5</div>
-                                    </div>
-                                </div>
-                                <p class="testimonial-review">"Já tinha tentado de tudo. Parece que fiz overclock no computador."</p>
-                            </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
-
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=30')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Diego Bandeira</div>
-                                        <div class="testimonial-user">@diegob</div>
-                                        <div class="testimonial-pc">RTX 3060</div>
-                                    </div>
-                                </div>
-                                <p class="testimonial-review">"Jogava em 120 FPS e agora estou acima de 180 FPS."</p>
-                            </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
-
-                        <article class="testimonial-card">
-                            <div>
-                                <div class="testimonial-header">
-                                    <div class="testimonial-avatar" style="background-image:url('https://i.pravatar.cc/100?img=40')" aria-hidden="true"></div>
-                                    <div>
-                                        <div class="testimonial-name">Arthur</div>
-                                        <div class="testimonial-user">@mais1arthur</div>
-                                        <div class="testimonial-pc">GTX 1660</div>
-                                    </div>
-                                </div>
-                                <p class="testimonial-review">"Comprei o Boost e saí de 401 FPS para 668 FPS. Valeu muito a pena."</p>
-                            </div>
-                            <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
-                        </article>
-                    </div>
+                            <p class="testimonial-review">"O atendimento no Discord respondeu rápido e me ajudou a escolher o plano certo para o meu PC."</p>
+                        </div>
+                        <div class="testimonial-stars" aria-label="5 estrelas">★★★★★</div>
+                    </article>
                 </div>
             </div>
         </section>
