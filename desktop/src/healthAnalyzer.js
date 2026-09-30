@@ -13,7 +13,20 @@ const IS_WIN = process.platform === 'win32';
 
 // ============================================================
 // Pontuação: cada check retorna { points, label, severity, fixId }
+// MAX_POINTS é o teto de cada check — usado para normalizar o score.
 // ============================================================
+const MAX_POINTS = {
+  'cpu-usage': 15,
+  'ram-usage': 15,
+  'disk-space': 10,
+  'process-count': 10,
+  'startup-count': 5,
+  'gpu-temp': 5,
+  'security-status': 10,
+  'network-health': 5,
+  'uptime': 5,
+};
+
 function analyzeHealth() {
   const checks = [];
   const cpu = sys.cpuUsage();
@@ -144,13 +157,19 @@ function analyzeHealth() {
   const hasGPU = gpu.name !== 'Desconhecida' && gpu.vram > 0;
 
   const totalPoints = checks.reduce((s, c) => s + c.points, 0);
-  const maxPoints = 100; // normalizar
-  const healthScore = Math.min(100, Math.round((totalPoints / maxPoints) * 100));
+  // Normaliza pela soma REAL dos máximos (80), não por um 100 fixo. Com o
+  // divisor antigo, um sistema impecável era exibido como 80/100 — ou seja,
+  // todo usuário via 20 pontos de "problema" que não existia.
+  const maxPoints = checks.reduce((s, c) => s + (MAX_POINTS[c.id] || 0), 0) || 100;
+  const healthScore = Math.max(0, Math.min(100, Math.round((totalPoints / maxPoints) * 100)));
 
-  // Recomendações baseadas nos checks com severity alta e média e baixa points
+  // Recomendações: as de maior severidade primeiro. O comparador antigo
+  // (b.severity === 'high' ? 1 : -1) não era uma ordenação válida — podia
+  // devolver qualquer ordem conforme o motor de sort.
+  const SEVERITY_WEIGHT = { high: 3, medium: 2, low: 1 };
   const recommendations = checks
     .filter(c => c.severity !== 'low' && c.points < 8)
-    .sort((a, b) => b.severity === 'high' ? 1 : -1)
+    .sort((a, b) => (SEVERITY_WEIGHT[b.severity] || 0) - (SEVERITY_WEIGHT[a.severity] || 0))
     .map(c => ({
       id: c.id,
       label: c.label,

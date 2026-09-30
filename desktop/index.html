@@ -99,8 +99,8 @@
         <div class="sidebar-footer">
           <div class="sidebar-card">
             <div class="sidebar-card-glow"></div>
-            <p class="sidebar-card-title">Performance +<span id="sidebar-fps">—</span></p>
-            <p class="sidebar-card-sub">Boost estimado de FPS</p>
+            <p class="sidebar-card-title">CPU livre: <span id="sidebar-fps">—</span></p>
+            <p class="sidebar-card-sub">Folga de processamento agora</p>
             <button class="btn btn-primary btn-sm sidebar-boost" id="btn-sidebar-boost"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Boost</button>
           </div>
           <div class="sidebar-meta"><span class="sidebar-version" id="sidebar-version">v… • FREE</span><span class="update-dot" id="update-dot" title="Atualização automática ativa"></span></div>
@@ -144,7 +144,7 @@
           <div class="section-head"><h2>Ações rápidas</h2><button class="link-btn" id="btn-all-quick">Ver todas →</button></div>
           <div class="qa-grid" id="qa-grid">
             <button class="qa-card" data-action="quick-boost" data-tip="Aplica o preset recomendado instantly"><span class="qa-ico blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="qa-label">Boost</span><span class="qa-sub">1 clique</span></button>
-            <button class="qa-card" data-action="quick-clean" data-tip="Limpa temporários e cache"><span class="qa-ico green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span><span class="qa-label">Limpeza</span><span class="qa-sub">~2 GB</span></button>
+            <button class="qa-card" data-action="quick-clean" data-tip="Limpa temporários e cache"><span class="qa-ico green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span><span class="qa-label">Limpeza</span><span class="qa-sub">seleção</span></button>
             <button class="qa-card" data-action="quick-flush-dns" data-tip="Limpa cache DNS e renova rede"><span class="qa-ico cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z"/></svg></span><span class="qa-label">DNS</span><span class="qa-sub">Rede</span></button>
             <button class="qa-card" data-action="quick-game-boost" data-tip="Modo competitivo: latência mínima"><span class="qa-ico violet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><line x1="15" y1="12" x2="15.01" y2="12"/><line x1="18" y1="10" x2="18.01" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59l-.7 5.6a2 2 0 0 0 3.47 1.7L7 14.5h10l1.53 1.39a2 2 0 0 0 3.47-1.7l-.7-5.6A4 4 0 0 0 17.32 5z"/></svg></span><span class="qa-label">Game Mode</span><span class="qa-sub">FPS+</span></button>
             <button class="qa-card" data-action="goto-apps" data-tip="Abrir loja de apps"><span class="qa-ico amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="qa-label">Apps</span><span class="qa-sub">Loja</span></button>
@@ -185,7 +185,7 @@
                 <div class="sys-info-card card"><div class="sys-info-label">Processos Ativos</div><div class="sys-info-value" id="sys-info-processes">—</div></div>
                 <div class="sys-info-card card"><div class="sys-info-label">Apps de Inicialização</div><div class="sys-info-value" id="sys-info-startup">—</div></div>
                 <div class="sys-info-card card"><div class="sys-info-label">Espaço Livre (C:)</div><div class="sys-info-value" id="sys-info-freespace">—</div></div>
-                <div class="sys-info-card card highlight"><div class="sys-info-label">Est. FPS Boost</div><div class="sys-info-value" id="sys-info-fps" style="color:var(--green);">—</div></div>
+                <div class="sys-info-card card highlight"><div class="sys-info-label">CPU livre</div><div class="sys-info-value" id="sys-info-fps" style="color:var(--green);">—</div></div>
                 <div class="sys-info-card card"><div class="sys-info-label">Hostname</div><div class="sys-info-value" id="sys-info-hostname">—</div></div>
                 <div class="sys-info-card card"><div class="sys-info-label">Arquitetura</div><div class="sys-info-value" id="sys-info-arch">—</div></div>
                 <div class="sys-info-card card"><div class="sys-info-label">Sistema Operacional</div><div class="sys-info-value" id="sys-info-os">—</div></div>
@@ -210,13 +210,13 @@
             <div class="panel-actions"><button class="btn btn-primary btn-lg btn-glow" id="btn-perf-boost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Boost de Performance</span><span class="btn-shine"></span></button></div></header>
           <div class="preset-grid" id="preset-grid"></div>
           <div class="section-head"><h2>Métricas ao vivo</h2></div>
-          <div class="perf-live-grid"><div class="perf-live-card card"><span class="perf-live-label">CPU Load</span><span class="perf-live-val" id="perf-cpu">—</span><div class="perf-live-bar"><div id="perf-cpu-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">RAM</span><span class="perf-live-val" id="perf-ram">—</span><div class="perf-live-bar"><div id="perf-ram-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">GPU</span><span class="perf-live-val" id="perf-gpu">—</span><div class="perf-live-bar"><div id="perf-gpu-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">FPS Boost est.</span><span class="perf-live-val green" id="perf-fps">—</span><div class="perf-live-bar"><div id="perf-fps-bar"></div></div></div></div>
+          <div class="perf-live-grid"><div class="perf-live-card card"><span class="perf-live-label">CPU Load</span><span class="perf-live-val" id="perf-cpu">—</span><div class="perf-live-bar"><div id="perf-cpu-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">RAM</span><span class="perf-live-val" id="perf-ram">—</span><div class="perf-live-bar"><div id="perf-ram-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">GPU</span><span class="perf-live-val" id="perf-gpu">—</span><div class="perf-live-bar"><div id="perf-gpu-bar"></div></div></div><div class="perf-live-card card"><span class="perf-live-label">CPU livre</span><span class="perf-live-val green" id="perf-fps">—</span><div class="perf-live-bar"><div id="perf-fps-bar"></div></div></div></div>
         </section>
 
         <!-- LIMPEZA -->
         <section id="panel-cleaning" class="panel">
           <header class="panel-header"><div class="panel-title-wrap"><p class="eyebrow">Espaço • Cache • Temporários</p><h1 class="panel-title">Limpeza do Sistema</h1><p class="panel-subtitle">Remova arquivos desnecessários e libere espaço</p></div>
-            <div class="panel-actions"><div class="space-recovered" id="space-recovered" style="display:none;"><span class="space-label">Recuperável:</span><span id="space-value">—</span></div><button id="btn-clean-selected" class="btn btn-primary btn-lg" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span>Limpar Selecionados</span></button></div>
+            <div class="panel-actions"><div class="space-recovered" id="space-recovered" style="display:none;"><span class="space-label">Selecionados:</span><span id="space-value">—</span></div><button id="btn-clean-selected" class="btn btn-primary btn-lg" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span>Limpar Selecionados</span></button></div>
           </header>
           <div class="tabs-bar" id="clean-tabs-bar"></div>
           <div id="clean-content"></div>
@@ -322,7 +322,7 @@
             <div class="settings-tab card" id="tab-about">
               <div class="about-hero"><span class="about-bolt">⚡</span><div><h2>Honest Boost</h2><p id="about-version">Versão … — Performance Intelligence Platform</p></div></div>
               <p class="about-desc">Software completo de otimização para Windows. Presets validados, rollback seguro e telemetria local.</p>
-              <div class="about-grid"><div><span>Engine</span><strong>v3.1 validado</strong></div><div><span>Canal</span><strong>Stable • auto-update</strong></div><div><span>Licença</span><strong id="about-copyright">© 2025 Honest Boost</strong></div></div>
+              <div class="about-grid"><div><span>Engine</span><strong id="about-engine">—</strong></div><div><span>Canal</span><strong>Stable • auto-update</strong></div><div><span>Licença</span><strong id="about-copyright">© 2025 Honest Boost</strong></div></div>
             </div>
           </div>
         </section>

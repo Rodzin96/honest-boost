@@ -31,6 +31,17 @@ jobs:
           cache: npm
           cache-dependency-path: desktop/package-lock.json
 
+      - name: Release guard (tag x versão do pacote)
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $tagVersion = $tag.TrimStart('v')
+          $pkg = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          Write-Host "Tag: $tagVersion | package.json: $pkg"
+          if ($tagVersion -ne $pkg) {
+            Write-Error "A tag ($tagVersion) não corresponde à version do desktop/package.json ($pkg). O latest.yml sairia com a versão errada e nenhum cliente veria a atualização. Suba a version antes de taggear."
+            exit 1
+          }
+
       - name: Install deps
         run: npm ci
 
@@ -46,9 +57,27 @@ jobs:
           $version = $tag.TrimStart('v')
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
+      # O electron-builder já publica (há "publish" no desktop/package.json).
+      # Este passo confere que os 3 assets realmente existem; se o build falhar,
+      # o job para — uma Release pública sem instalador quebraria o auto-update.
+      - name: Verify release assets
+        run: |
+          $v = "${{ steps.vars.outputs.version }}"
+          $expected = @(
+            "dist/Honest-Boost-Setup-$v.exe",
+            "dist/Honest-Boost-Setup-$v.exe.blockmap",
+            "dist/latest.yml"
+          )
+          $missing = @()
+          foreach ($f in $expected) { if (-not (Test-Path $f)) { $missing += $f } }
+          if ($missing.Count -gt 0) {
+            Write-Error "Assets ausentes: $($missing -join ', ')"
+            exit 1
+          }
+          Write-Host "Assets presentes:"; Get-ChildItem dist | Select-Object Name, Length | Format-Table
+
       - name: Create Release and upload assets
         uses: softprops/action-gh-release@v2
-        if: always()
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.vars.outputs.version }}
@@ -63,6 +92,7 @@ jobs:
             dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe
             dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe.blockmap
             dist/latest.yml
+          fail_on_unmatched_files: true
           draft: false
           prerelease: false
         env:

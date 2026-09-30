@@ -273,7 +273,7 @@ function renderDashboard() {
       <div class="sys-info-card"><div class="sys-info-label">Processos Ativos</div><div class="sys-info-value">${s.processes ? s.processes.count : '—'}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Apps de Start</div><div class="sys-info-value">${s.startup ? s.startup.length : 0}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Espaço Livre C:</div><div class="sys-info-value">${diskFreeGB} GB</div></div>
-      <div class="sys-info-card"><div class="sys-info-label">FPS Boost Est.</div><div class="sys-info-value" style="color:var(--green);">+${(Math.max(0, Math.round((100 - cpuPct) * 0.15))).toString()}%</div></div>
+      <div class="sys-info-card"><div class="sys-info-label">CPU livre</div><div class="sys-info-value" style="color:var(--green);">${Math.max(0, Math.round(100 - cpuPct))}%</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Hostname</div><div class="sys-info-value">${esc(s.os.hostname || 'N/A')}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Arquitetura</div><div class="sys-info-value">${esc(s.os.arch || 'N/A')}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Sistema</div><div class="sys-info-value">${esc(s.os.type || '')} ${esc(s.os.release || '')}</div></div>
@@ -289,7 +289,7 @@ function renderDashboard() {
       <div class="sys-info-card"><div class="sys-info-label">Processos Ativos</div><div class="sys-info-value">${s.processes ? s.processes.count : '—'}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Apps de Start</div><div class="sys-info-value">${s.startup ? s.startup.length : 0}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Espaço Livre C:</div><div class="sys-info-value">${diskFreeGB} GB</div></div>
-      <div class="sys-info-card"><div class="sys-info-label">FPS Boost Est.</div><div class="sys-info-value" style="color:var(--green);">+${(Math.max(0, Math.round((100 - cpuPct) * 0.15))).toString()}%</div></div>
+      <div class="sys-info-card"><div class="sys-info-label">CPU livre</div><div class="sys-info-value" style="color:var(--green);">${Math.max(0, Math.round(100 - cpuPct))}%</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Hostname</div><div class="sys-info-value">${esc(s.os.hostname || 'N/A')}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Arquitetura</div><div class="sys-info-value">${esc(s.os.arch || 'N/A')}</div></div>
       <div class="sys-info-card"><div class="sys-info-label">Sistema</div><div class="sys-info-value">${esc(s.os.type || '')} ${esc(s.os.release || '')}</div></div>
@@ -507,17 +507,20 @@ function updateStatCardValues(snap) {
   if (tempInd) { const v = gpuTemp !== null ? gpuTemp + '°' : '—'; if (tempInd.textContent !== v) tempInd.textContent = v; }
   if (gpuInd) { const v = gpuKnown ? gpuUsage.toFixed(0) + '%' : '—'; if (gpuInd.textContent !== v) gpuInd.textContent = v; }
   if (ssdInd) { const v = diskFreeGB + 'GB'; if (ssdInd.textContent !== v) ssdInd.textContent = v; }
-  try { syncPremiumWidgets(snap, { cpuPct, ramPct, gpuUsage, diskFreeGB, netRx, netTx, gpuTemp, fpsBoost: 0 }); } catch (e) {}
+  try { syncPremiumWidgets(snap, { cpuPct, ramPct, gpuUsage, diskFreeGB, netRx, netTx, gpuTemp }); } catch (e) {}
 
   // Atualiza info grid (sistema) — só no dashboard e com guard de escrita
   if (document.querySelector('.panel.active')?.id === 'panel-dashboard') {
-    const fpsBoost = Math.max(0, Math.round((100 - cpuPct) * 0.15));
+    // Folga de CPU — NÃO é FPS. Antes daqui saía um "FPS Boost" obtido de uma
+    // fórmula sobre o uso de CPU, sem nenhuma medição de frames no app. Isso
+    // contradizia a regra central do produto (nunca inventar ganho).
+    const cpuHeadroom = Math.max(0, Math.round(100 - cpuPct));
     setText('sys-info-state', snap.windows ? snap.windows.state : 'N/A');
     setText('sys-info-uptime', snap.os.uptime ? snap.os.uptime.label : 'N/A');
     setText('sys-info-processes', String(snap.processes ? snap.processes.count : '—'));
     setText('sys-info-startup', String(snap.startup ? snap.startup.length : 0));
     setText('sys-info-freespace', diskFreeGB + ' GB');
-    setText('sys-info-fps', '+' + fpsBoost + '%');
+    setText('sys-info-fps', cpuHeadroom + '%');
     if (slow) {
       setText('sys-info-hostname', snap.os.hostname || 'N/A');
       setText('sys-info-arch', snap.os.arch || 'N/A');
@@ -969,18 +972,10 @@ const CLEAN_GROUPS = [
   },
 ];
 
-const CLEAN_SIZE_MAP = {
-  'temp-files': 5e9, 'prefetch': 1e8, 'wu-cache': 5e9, 'thumbnails': 3e8,
-  'error-logs': 5e7, 'dns-cache': 1e6, 'clipboard': 1e7, 'recycle-bin': 1e9,
-  'chrome-cache': 5e8, 'chrome-cookies': 1e8, 'chrome-history': 1e8,
-  'edge-cache': 5e8, 'edge-cookies': 1e8,
-  'firefox-cache': 5e8, 'firefox-cookies': 1e8,
-  'opera-cache': 5e8, 'brave-cache': 5e8,
-  'discord-cache': 1e9, 'steam-cache': 3e9, 'epic-cache': 8e8, 'battlecache': 3e8,
-  'adobe-cache': 1e9, 'office-cache': 3e8,
-  'winsxs': 5e9, 'component-store': 3e9, 'user-temp': 2e9, 'system-temp': 3e9,
-  'msi-cache': 2e8, 'delivery-opt': 1e8, 'directx-shader': 1e8, 'nvidia-cache': 2e8, 'amd-cache': 1e8,
-};
+// O antigo CLEAN_SIZE_MAP (bytes por item) foi removido: alimentava
+// "Espaço Recuperável" e "Tempo Estimado", que eram apresentados como medição
+// sem que nada medisse o disco. As faixas mostradas em cada item continuam
+// sendo rótulos de tamanho típico, não leituras reais.
 
 function renderCleaning() {
   const tabsBar = $('clean-tabs-bar');
@@ -989,6 +984,12 @@ function renderCleaning() {
   const spaceVal = $('space-value');
   const cleanBtn = $('btn-clean-selected');
   if (!tabsBar || !content) return;
+
+  // Sincroniza a classificação de risco do backend (admin/risky). Sem isso o
+  // renderer chamaria o canal genérico para um item destrutivo e a limpeza
+  // falharia com "exige confirmação explícita" sem explicação útil.
+  const allCleanIds = CLEAN_GROUPS.flatMap(g => g.items.map(i => i.id));
+  syncCleanClasses(allCleanIds);
 
   tabsBar.innerHTML = CLEAN_GROUPS.map(g => `
     <button class="tab-btn active" data-cleantab="${g.id}">${g.icon} ${g.label}</button>
@@ -1002,22 +1003,23 @@ function renderCleaning() {
     });
   });
 
-  const totalBytes = estimateTotalSpace();
-  if (spaceEl && spaceVal) {
-    if (totalBytes > 0) { spaceEl.style.display = 'flex'; spaceVal.textContent = formatBytes(totalBytes); }
-    else { spaceEl.style.display = 'none'; }
-  }
+  // Indicador de seleção: mostra QUANTOS itens foram escolhidos. Antes exibia
+  // uma estimativa de bytes (mapa fixo) apresentada como "espaço recuperável" —
+  // nada mede o espaço liberado, então o número era inventado.
+  updateCleanSelectionIndicator();
   if (cleanBtn) cleanBtn.disabled = state.selectedClean.size === 0;
 
   renderCleanCategory('windows');
 }
 
-function estimateTotalSpace() {
-  let total = 0;
-  CLEAN_GROUPS.forEach(g => g.items.forEach(item => {
-    if (state.selectedClean.has(item.id)) total += CLEAN_SIZE_MAP[item.id] || 0;
-  }));
-  return total;
+/** Atualiza o rótulo de seleção com a contagem real de itens. */
+function updateCleanSelectionIndicator() {
+  const spaceEl = $('space-recovered');
+  const spaceVal = $('space-value');
+  if (!spaceEl || !spaceVal) return;
+  const n = state.selectedClean.size;
+  spaceEl.style.display = 'flex';
+  spaceVal.textContent = n === 0 ? 'nenhum' : `${n} ${n === 1 ? 'item' : 'itens'}`;
 }
 
 function renderCleanCategory(tabId) {
@@ -1061,26 +1063,34 @@ function renderCleanCategory(tabId) {
 
   html += '</div></div>';
 
-  // Painel de resumo para grupo avançado
+  // Painel de resumo para grupo avançado.
+  // Exibe apenas fatos observáveis: quantos itens existem, quantos exigem
+  // elevação e quantos estão selecionados. Nada de "espaço recuperável" ou
+  // "tempo estimado" — nenhum dos dois é medido em lugar algum.
   if (tabId === 'advanced') {
-    const totalBytes = estimateTotalSpace();
+    const todosItens = CLEAN_GROUPS.flatMap(g => g.items);
+    const exigemAdmin = todosItens.filter(i => {
+      const info = _cleanClasses[i.id];
+      return info ? info.admin === true : i.admin === true;
+    }).length;
     html += `
       <div class="cleaning-group" style="margin-top:12px;">
-        <div class="cleaning-group-header"><div class="cleaning-group-title">📊 Resumo da Limpeza</div></div>
+        <div class="cleaning-group-header"><div class="cleaning-group-title">Resumo da Limpeza</div></div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
           <div style="background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Espaço Recuperável</div>
-            <div style="font-size:18px;font-weight:700;font-family:var(--font-mono);color:var(--green);margin-top:4px;">${formatBytes(totalBytes)}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Itens disponíveis</div>
+            <div style="font-size:18px;font-weight:700;font-family:var(--font-mono);margin-top:4px;">${todosItens.length}</div>
           </div>
           <div style="background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Tempo Estimado</div>
-            <div style="font-size:18px;font-weight:700;font-family:var(--font-mono);margin-top:4px;">${estimateTime(totalBytes)}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Exigem administrador</div>
+            <div style="font-size:18px;font-weight:700;font-family:var(--font-mono);margin-top:4px;">${exigemAdmin}</div>
           </div>
           <div style="background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Itens Selecionados</div>
-            <div style="font-size:18px;font-weight:700;font-family:var(--font-mono);margin-top:4px;">${state.selectedClean.size} de ${group.items.length}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Selecionados</div>
+            <div style="font-size:18px;font-weight:700;font-family:var(--font-mono);margin-top:4px;">${state.selectedClean.size} de ${todosItens.length}</div>
           </div>
         </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">O espaço liberado não é medido pelo app — os tamanhos ao lado são faixas típicas, não leituras do seu disco.</div>
       </div>
     `;
   }
@@ -1095,13 +1105,7 @@ function renderCleanCategory(tabId) {
       el.closest('.cleaning-item').classList.toggle('selected', state.selectedClean.has(id));
       const cleanBtn = $('btn-clean-selected');
       if (cleanBtn) cleanBtn.disabled = state.selectedClean.size === 0;
-      const spaceVal = $('space-value');
-      const spaceEl = $('space-recovered');
-      if (spaceVal && spaceEl) {
-        const total = estimateTotalSpace();
-        if (total > 0) { spaceEl.style.display = 'flex'; spaceVal.textContent = formatBytes(total); }
-        else { spaceEl.style.display = 'none'; }
-      }
+      updateCleanSelectionIndicator();
     });
   });
 
@@ -1131,26 +1135,6 @@ function formatBytes(bytes) {
   return (bytes / 1e9).toFixed(1) + ' GB';
 }
 
-function estimateTime(bytes) {
-  const secs = bytes / (50e6);
-  if (secs < 1) return '< 1 min';
-  if (secs < 60) return Math.round(secs) + ' s';
-  if (secs < 3600) return Math.round(secs / 60) + ' min';
-  return Math.round(secs / 3600) + ' h';
-}
-
-function estimateGroupSpace(groupId) {
-  const sizeMap = {
-    'winsxs': 5e9, 'component-store': 3e9, 'user-temp': 2e9, 'system-temp': 3e9,
-    'msi-cache': 2e8, 'delivery-opt': 1e8, 'directx-shader': 1e8, 'nvidia-cache': 2e8, 'amd-cache': 1e8,
-  };
-  let total = 0;
-  CLEAN_GROUPS.find(g => g.id === groupId)?.items.forEach(item => {
-    if (state.selectedClean.has(item.id)) total += sizeMap[item.id] || 0;
-  });
-  return total;
-}
-
 function cleanItemMeta(id) {
   for (const g of CLEAN_GROUPS) {
     const found = g.items.find(i => i.id === id);
@@ -1167,11 +1151,37 @@ function confirmDangerous(ids) {
   );
 }
 
+/**
+ * Encaminha a limpeza para o canal correto, usando a classificação do BACKEND
+ * como autoridade (a flag `dangerous` da UI é só rótulo visual).
+ * Itens que apagam dados do usuário exigem consentimento explícito e o main
+ * process só os aceita por 'clean:risky'. A confirmação da UI já aconteceu
+ * antes desta chamada (confirmDangerous).
+ */
+const _cleanClasses = {};
+async function syncCleanClasses(ids) {
+  try {
+    const res = await window.hbDesktop.classifyClean(ids);
+    if (res && res.ok && res.classes) Object.assign(_cleanClasses, res.classes);
+  } catch (e) { /* sem classificação, cai no fallback local */ }
+}
+function isRiskyClean(id) {
+  const info = _cleanClasses[id];
+  if (info) return info.risky === true;
+  const meta = cleanItemMeta(id);
+  return Boolean(meta && meta.dangerous);
+}
+function dispatchClean(id) {
+  return isRiskyClean(id)
+    ? window.hbDesktop.cleanRisky(id)
+    : window.hbDesktop.cleanItem(id);
+}
+
 async function doCleanItem(id) {
   if (!licenseGate('executar a limpeza')) return;
   if (!confirmDangerous([id])) return;
   try {
-    const res = await window.hbDesktop.cleanItem(id);
+    const res = await dispatchClean(id);
     if (!res.ok) throw new Error(res.error || 'Falha');
     toast('✔ ' + (res.message || 'Limpado'), 'success');
     addHistory('clean', id, 'success');
@@ -1184,7 +1194,6 @@ async function doCleanSelected() {
   const ids = Array.from(state.selectedClean);
   if (!licenseGate('executar a limpeza')) return;
   if (!confirmDangerous(ids)) return;
-  const totalBytes = estimateTotalSpace();
 
   const overlay = $('progress-overlay');
   const bar = $('progress-bar');
@@ -1199,27 +1208,43 @@ async function doCleanSelected() {
   }
 
   let completed = 0;
+  let ok = 0;
+  const failures = [];
   for (const id of ids) {
-    text.textContent = `Limpeza ${completed + 1}/${ids.length}: ${id}`;
-    detail.textContent = formatBytes(totalBytes * ((completed + 1) / ids.length)) + ' recuperados estimados';
+    const meta = cleanItemMeta(id);
+    text.textContent = `Limpeza ${completed + 1}/${ids.length}: ${(meta && meta.title) || id}`;
+    // Não estimamos bytes: nada aqui mede o espaço liberado de verdade.
+    detail.textContent = 'cada item é removido individualmente — o espaço não é medido';
     if (bar) bar.style.width = ((completed / ids.length) * 100) + '%';
     try {
-      const res = await window.hbDesktop.cleanItem(id);
-      if (res.ok) addHistory('clean', id, 'success');
-      else { addHistory('clean', id, 'error'); toast('Erro em: ' + id, 'error'); }
-    } catch (e) { addHistory('clean', id, 'error'); }
+      const res = await dispatchClean(id);
+      if (res && res.ok) { ok++; addHistory('clean', id, 'success'); }
+      else {
+        failures.push({ id, error: (res && res.error) || 'falha' });
+        addHistory('clean', id, 'error');
+      }
+    } catch (e) {
+      failures.push({ id, error: e.message });
+      addHistory('clean', id, 'error');
+    }
     completed++;
   }
 
   if (bar) bar.style.width = '100%';
   text.textContent = 'Concluído!';
-  detail.textContent = `${ids.length} itens processados` + (totalBytes > 0 ? ` — ${formatBytes(totalBytes)} recuperados` : '');
+  // Relata o que foi feito, sem alegar espaço recuperado que ninguém mediu.
+  if (failures.length) {
+    detail.textContent = `${ok} de ${ids.length} itens limpos — ${failures.length} falharam`;
+    toast(`Limpeza: ${ok}/${ids.length} concluídos. ${failures.length} falharam (${failures[0].error}).`, 'warning');
+  } else {
+    detail.textContent = `${ok} de ${ids.length} itens limpos`;
+    toast(`✔ Limpeza concluída — ${ok} itens.`, 'success');
+  }
 
   setTimeout(() => {
     if (overlay) overlay.classList.add('hidden');
     state.selectedClean = new Set();
     renderCleaning();
-    toast(`✔ Limpeza concluída${totalBytes > 0 ? ` — ${formatBytes(totalBytes)} recuperados` : ''}`, 'success');
   }, 1500);
 }
 
@@ -1252,38 +1277,76 @@ function renderSystemRestore() {
   const createBtn = $('btn-create-restore');
   if (!list) return;
 
+  // A lista abaixo NÃO é de Pontos de Restauração do Windows: o app nunca os
+  // cria nem os lê. Exibir datas calculadas com new Date() fazia o usuário
+  // acreditar que tinha rollback do sistema quando não tinha. O que existe de
+  // verdade é o snapshot das chaves de registro que o próprio app alterou.
   list.innerHTML = `
     <div class="restore-point">
       <div class="restore-point-icon">📅</div>
       <div class="restore-point-info">
-        <div class="restore-point-name">Ponto automático — ${new Date().toLocaleDateString('pt-BR')}</div>
-        <div class="restore-point-date">${new Date().toLocaleString('pt-BR')} • Criado por Honest Boost</div>
+        <div class="restore-point-name">Snapshot do Honest Boost</div>
+        <div class="restore-point-date" id="restore-snapshot-info">verificando…</div>
       </div>
       <div class="restore-point-actions">
-        <button class="btn btn-secondary btn-sm" id="btn-restore-selected">Restaurar</button>
-        <button class="btn btn-ghost btn-sm">Excluir</button>
+        <button class="btn btn-secondary btn-sm" id="btn-restore-selected">Reverter alterações</button>
       </div>
     </div>
-    <div class="restore-point" style="opacity:0.6;">
-      <div class="restore-point-icon">📅</div>
+    <div class="restore-point" style="opacity:0.75;">
+      <div class="restore-point-icon">🛡️</div>
       <div class="restore-point-info">
-        <div class="restore-point-name">Ponto anterior — ${new Date(Date.now() - 86400000).toLocaleDateString('pt-BR')}</div>
-        <div class="restore-point-date">${new Date(Date.now() - 86400000).toLocaleString('pt-BR')}</div>
+        <div class="restore-point-name">Ponto de Restauração do Windows</div>
+        <div class="restore-point-date">O Honest Boost não cria nem gerencia pontos do sistema. Use o botão ao lado para pedir um ao Windows.</div>
       </div>
       <div class="restore-point-actions">
-        <button class="btn btn-secondary btn-sm">Restaurar</button>
-        <button class="btn btn-ghost btn-sm">Excluir</button>
+        <button class="btn btn-ghost btn-sm" id="btn-open-restore-panel">Criar ponto no Windows</button>
       </div>
     </div>
   `;
 
+  // Mostra o que o snapshot realmente contém (quantas chaves o app alterou).
+  (async () => {
+    const info = $('restore-snapshot-info');
+    if (!info) return;
+    try {
+      const st = await window.hbDesktop.getRecoveryStatus();
+      const count = st && st.count ? st.count : 0;
+      const quando = st && st.createdAt ? new Date(st.createdAt).toLocaleString('pt-BR') : null;
+      info.textContent = count
+        ? `${count} ${count === 1 ? 'chave de registro' : 'chaves de registro'} alteradas por este app${quando ? ' • desde ' + quando : ''}`
+        : 'Nenhuma alteração de registro registrada por este app ainda.';
+    } catch {
+      info.textContent = 'Não foi possível ler o snapshot de alterações.';
+    }
+  })();
+
+  $('btn-open-restore-panel')?.addEventListener('click', async () => {
+    try { await window.hbDesktop.createRestorePoint('Honest Boost'); }
+    catch (e) { toast('Abra "Criar ponto de restauração" pelo menu Iniciar.', 'info'); }
+  });
+
   list.querySelector('#btn-restore-selected')?.addEventListener('click', async () => {
     if (!licenseGate('restaurar o sistema')) return;
-    toast('Restaurando ponto de restauração...', 'info');
+    // Reverter é uma ação ampla: desfaz TODAS as chaves de registro que o app
+    // alterou. Antes rodava sem nenhuma confirmação.
+    const ok = confirm(
+      'Reverter as alterações do Honest Boost?\n\n' +
+      'Isto restaura todas as chaves de registro que este app modificou,\n' +
+      'voltando ao valor que existia antes. Não afeta outras mudanças do Windows.\n\n' +
+      'Continuar?'
+    );
+    if (!ok) return;
+    toast('Revertendo alterações do registro...', 'info');
     try {
       const res = await window.hbDesktop.restoreRegistry();
-      if (res.ok) toast('✔ Sistema restaurado com sucesso', 'success');
-      else toast('Erro: ' + res.error, 'error');
+      if (res.ok) {
+        toast(`✔ Registro restaurado (${res.restored || 0} ${res.restored === 1 ? 'chave' : 'chaves'})`, 'success');
+        addHistory('restore', 'registry', 'success');
+        renderRestoration();
+      } else {
+        toast('Erro: ' + (res.error || 'falha ao restaurar'), 'error');
+        addHistory('restore', 'registry', 'error');
+      }
     } catch (e) { toast('Erro: ' + e.message, 'error'); }
   });
 
@@ -1989,10 +2052,16 @@ function renderSettings() {
   if (aboutTab) {
     const versionEl = $('about-version');
     if (versionEl) versionEl.textContent = `Versão ${state.appVersion || '…'} — Performance Intelligence Platform`;
+    // "Engine" recebe a MESMA versão do pacote. Antes era um rótulo fixo
+    // "v3.1 validado" convivendo na tela com a versão real (2.0.8), o que
+    // confundia suporte e usuário com um número que não existe.
+    const engineEl = $('about-engine');
+    if (engineEl) engineEl.textContent = state.appVersion ? `v${state.appVersion}` : '—';
     const logoText = aboutTab.querySelector('.about-logo .logo-text');
     if (logoText) logoText.textContent = 'Honest Boost';
+    // O ano vem do relógio, não de um literal desatualizado.
     const copyright = aboutTab.querySelector('.about-copyright');
-    if (copyright) copyright.textContent = '© 2025 Honest Boost. Todos os direitos reservados.';
+    if (copyright) copyright.textContent = `© ${new Date().getFullYear()} Honest Boost. Todos os direitos reservados.`;
   }
 }
 
@@ -2502,7 +2571,8 @@ function _setText(id, v) { const el = _el(id); if (el && el.textContent !== v) e
 function _setW(id, v) { const el = _el(id); if (el) { const w = Math.max(0, Math.min(100, v)).toFixed(1) + '%'; if (el.style.width !== w) el.style.width = w; } }
 let _lastHealthSig = '', _lastRecentSig = '', _lastStartupSig = '';
 function syncPremiumWidgets(snap, pre) {
-  const fpsBoost = Math.max(0, Math.round((100 - snap.cpu.usage) * 0.15));
+  // Folga de CPU (100 - uso), não FPS: o app não mede frames.
+  const cpuHeadroom = Math.max(0, Math.round(100 - snap.cpu.usage));
   const dashActive = document.querySelector('.panel.active')?.id === 'panel-dashboard';
   // Widgets do dashboard: só quando visível
   if (dashActive) {
@@ -2510,9 +2580,9 @@ function syncPremiumWidgets(snap, pre) {
     _setText('perf-ram', snap.ram.pct.toFixed(1) + '%'); _setW('perf-ram-bar', snap.ram.pct);
     const _gpuKnown = !snap.gpu || snap.gpu.usageOk !== false;
     _setText('perf-gpu', _gpuKnown ? (((snap.gpu && snap.gpu.usage) || 0).toFixed(1) + '%') : '—'); _setW('perf-gpu-bar', _gpuKnown ? ((snap.gpu && snap.gpu.usage) || 0) : 0);
-    _setText('perf-fps', '+' + fpsBoost + '%'); _setW('perf-fps-bar', Math.min(100, fpsBoost * 3));
+    _setText('perf-fps', cpuHeadroom + '%'); _setW('perf-fps-bar', cpuHeadroom);
   }
-  _setText('sidebar-fps', '+' + fpsBoost + '%');
+  _setText('sidebar-fps', cpuHeadroom + '%');
   const st = _el('system-status-text');
   if (st) { const v = snap.cpu.usage > 90 ? 'Sob carga' : snap.ram.pct > 90 ? 'RAM cheia' : 'Online'; if (st.textContent !== v) st.textContent = v; }
   // Painéis secundários: só quando ativos (evita tocar em DOM oculto)

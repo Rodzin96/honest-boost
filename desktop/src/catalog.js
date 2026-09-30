@@ -13,15 +13,14 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
-const { regAdd, regQuery, restorePaths } = require('./registry');
-const { cimCsv } = require('./cim');
+const { app } = require('electron');
+const { regAdd, regQuery, regDelete, restorePaths } = require('./registry');
 
 const SYS32 = (name) =>
   path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', name);
 
 const SYSTEM32 = SYS32('');
 const POWERCFG = path.join(SYSTEM32, 'powercfg.exe');
-const REGEXE = path.join(SYSTEM32, 'reg.exe');
 const SC = path.join(SYSTEM32, 'sc.exe');
 const SFC = path.join(SYSTEM32, 'sfc.exe');
 const DISMEXE = path.join(SYSTEM32, 'Dism.exe');
@@ -34,6 +33,7 @@ const POWERSHELL = path.join(
 
 const GAMES_KEY = 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games';
 const SYSPROFILE_KEY = 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile';
+const PACKAGES_DIR = path.join(SYSTEM32, '..', 'servicing', 'Packages');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -87,17 +87,128 @@ async function scState(name) {
 }
 
 async function disableService(name) {
-  await run(SYS32('net.exe'), ['stop', name, '/y']).catch(() => {});
-  await run(SC, ['config', name, 'start=', 'disabled']).catch(() => {});
+  // run() nunca rejeita: resolve com { ok:false } quando o comando falha.
+  await run(SYS32('net.exe'), ['stop', name, '/y']);
+  await run(SC, ['config', name, 'start=', 'disabled']);
 }
 
 async function enableService(name, startType = 'demand', startNow = false) {
-  await run(SC, ['config', name, 'start=', startType]).catch(() => {});
-  if (startNow) await run(SYS32('net.exe'), ['start', name]).catch(() => {});
+  await run(SC, ['config', name, 'start=', startType]);
+  if (startNow) await run(SYS32('net.exe'), ['start', name]);
 }
 
 // Monta pares {path,name} para restorePaths a partir de listas simples
 const RP = (pathName, ...names) => names.map((name) => ({ path: pathName, name }));
+
+// ---------------------------------------------------------------------------
+// Snapshot do plano de energia ativo
+//
+// powercfg não tem snapshot como o registro, e o revert antigo caía sempre no
+// plano "Equilibrado" — quem estava em Alto Desempenho era rebaixado. Guardamos
+// o GUID do plano ativo antes de trocar para poder devolver exatamente o estado
+// anterior.
+// ---------------------------------------------------------------------------
+const BALANCED_GUID = '381b4222-f694-41f0-9685-ff5bb260df2e';
+
+function powerPlanFile() {
+  return path.join(app.getPath('userData'), 'powerplan-snapshot.json');
+}
+
+async function readActiveSchemeGuid() {
+  const r = await run(POWERCFG, ['/getactivescheme']);
+  const m = r.stdout.match(/Power Scheme GUID:\s*([0-9a-f-]{36})/i);
+  return m ? m[1].toLowerCase() : null;
+}
+
+async function savePowerPlanSnapshot() {
+  try {
+    // Não sobrescreve um snapshot existente: se o usuário clicar em Aplicar
+    // duas vezes, o segundo clique gravaria o próprio "Desempenho Final" e o
+    // revert devolveria o plano errado.
+    if (await readPowerPlanSnapshot()) return;
+    const guid = await readActiveSchemeGuid();
+    if (!guid) return;
+    await fs.promises.writeFile(
+      powerPlanFile(),
+      JSON.stringify({ guid, createdAt: new Date().toISOString() }, null, 2),
+      'utf8'
+    );
+  } catch {
+    // Sem snapshot o revert cai no Equilibrado — nunca impede o apply.
+  }
+}
+
+async function readPowerPlanSnapshot() {
+  try {
+    const raw = JSON.parse(await fs.promises.readFile(powerPlanFile(), 'utf8'));
+    return raw && typeof raw.guid === 'string' ? raw.guid : null;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pacotes de Group Policy (gpedit.msc no Windows Home)
+//
+// /PackagePath exige o .mum real. O nome segue o padrão do DISM:
+//   <base>~<token>~<arch>~<idioma>~<versão>.mum
+// Ex.: Microsoft-Windows-GroupPolicy-ClientTools-Package~31bf3856ad364e35~
+//      amd64~pt-BR~10.0.26100.9168.mum
+// A versão é o ÚLTIMO campo e o idioma pode ser vazio (pacote neutro, `~~`).
+// ---------------------------------------------------------------------------
+const GPEDIT_PACKAGES = [
+  'Microsoft-Windows-GroupPolicy-ClientTools-Package',
+  'Microsoft-Windows-GroupPolicy-ClientExtensions-Package'
+];
+
+function compareVersionParts(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+/**
+ * Interpreta um nome de pacote do DISM.
+ * @returns {{version: string, locale: string}|null} null se não for do pacote pedido.
+ */
+function parsePackageName(fileName, base) {
+  if (!fileName || !fileName.toLowerCase().endsWith('.mum')) return null;
+  if (!fileName.toLowerCase().startsWith(base.toLowerCase() + '~')) return null;
+  const fields = fileName.slice(0, -4).split('~'); // remove ".mum"
+  const version = fields[fields.length - 1];
+  // Versão do Windows: começa com dígito e usa pontos (ex.: 10.0.26100.9168).
+  if (!/^\d+(\.\d+)*$/.test(version)) return null;
+  const locale = fields[fields.length - 2] || '';
+  return { version, locale };
+}
+
+/**
+ * Escolhe o .mum a instalar entre os candidatos.
+ * Prioridade: maior versão; em empate, o pacote neutro de idioma (`~~`).
+ */
+async function findPackageMum(base) {
+  let entries;
+  try {
+    entries = await fs.promises.readdir(PACKAGES_DIR);
+  } catch {
+    return null;
+  }
+  let best = null;
+  for (const entry of entries) {
+    const info = parsePackageName(entry, base);
+    if (!info) continue;
+    const better =
+      !best ||
+      compareVersionParts(info.version, best.version) > 0 ||
+      (compareVersionParts(info.version, best.version) === 0 && !info.locale && best.locale);
+    if (better) best = { ...info, path: path.join(PACKAGES_DIR, entry) };
+  }
+  return best ? best.path : null;
+}
 
 function guide(id, name, category, summary, steps, links = []) {
   return {
@@ -112,7 +223,6 @@ function guide(id, name, category, summary, steps, links = []) {
   };
 }
 
-const INTELLIGENT_NAME = /intel|iris|uhd|radeon[\s\S]*graphics|radeon vega|amd[\s\S]*apu|nvidia/i;
 function hasIntegratedGpu(system) {
   if (!system || !Array.isArray(system.gpu)) return false;
   return system.gpu.some(g => /intel|iris|uhd|radeon[\s\S]*graphics|radeon vega|amd[\s\S]*apu/i.test(String(g.name || '')));
@@ -186,6 +296,7 @@ const RECOMMENDED = [
     evidence: 'Expoõe e ativa o plano “Desempenho final”. Ajuda em desktops; em notebook apenas consome mais bateria (item 21 da auditoria).',
     summary: 'Cria/ativa o esquema e9a42b02-d5df-448d-aa00-03f14749eb61.',
     async apply() {
+      await savePowerPlanSnapshot();
       const d = await run(POWERCFG, ['-duplicatescheme', 'e9a42b02-d5df-448d-aa00-03f14749eb61']);
       const m = d.stdout.match(/Power Scheme GUID:\s*([0-9a-f\-]+)/i);
       const target = m ? m[1] : 'e9a42b02-d5df-448d-aa00-03f14749eb61';
@@ -194,17 +305,23 @@ const RECOMMENDED = [
       return { message: 'Plano “Desempenho Final” ativado.' };
     },
     async revert() {
-      // Volta ao Equilibrado (padrão da maioria das instalações Windows)
-      const r = await run(POWERCFG, ['/setactive', '381b4222-f694-41f0-9685-ff5bb260df2e']);
-      return r.ok
-        ? { message: 'Plano de energia restaurado para Equilibrado.' }
-        : { message: 'Não foi possível restaurar automaticamente — escolha o plano em Opções de Energia.' };
+      // Devolve o plano que estava ativo antes do apply (salvo no snapshot).
+      // Só cai no Equilibrado quando não há snapshot — ex.: o plano foi
+      // aplicado por uma versão anterior do app.
+      const previous = await readPowerPlanSnapshot();
+      const target = previous || BALANCED_GUID;
+      const r = await run(POWERCFG, ['/setactive', target]);
+      if (!r.ok) {
+        return { message: 'Não foi possível restaurar automaticamente — escolha o plano em Opções de Energia.' };
+      }
+      return {
+        message: previous
+          ? 'Plano de energia anterior restaurado.'
+          : 'Plano de energia restaurado para Equilibrado (não havia registro do anterior).'
+      };
     },
     async status() {
-      const { execFile: exec } = require('child_process');
-      const r = await new Promise((resolve) => {
-        exec(POWERCFG, ['/getactivescheme'], { windowsHide: true }, (err, stdout) => resolve({ ok: !err, stdout: stdout || '' }));
-      });
+      const r = await run(POWERCFG, ['/getactivescheme']);
       const name = (r.stdout.match(/:\s+(.+?)\s+\(/i) || [])[1] || '';
       return /alta performance|alto desempenho|high performance|desempenho|ultimate/i.test(String(name))
         ? { level: 'APPLIED', label: 'Aplicado', detail: name.trim() }
@@ -255,13 +372,13 @@ const RECOMMENDED = [
       return { message: 'Telemetria desativada.' };
     },
     async revert() {
-      await restorePaths([
+      const r = await restorePaths([
         ...RP('HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection', 'AllowTelemetry'),
         ...RP('HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection', 'AllowTelemetry'),
-      ]).catch(() => {});
+      ]);
       await enableService('DiagTrack', 'auto', true);
       await enableService('dmwappushservice', 'demand', false);
-      return { message: 'Telemetria restaurada (serviços e políticas revertidos).' };
+      return { message: r.restored ? 'Telemetria restaurada (serviços e políticas revertidos).' : 'Serviços restaurados; políticas não haviam sido alteradas pelo app.' };
     },
     async status() {
       const s = await scState('DiagTrack');
@@ -320,9 +437,11 @@ const RECOMMENDED = [
     reversible: true,
     risk: 'LOW',
     evidence: 'Desliga o recurso de IA que grava a tela em Windows 11 24H2+ (item 34 da auditoria).',
-    summary: 'DISM /Online /Disable-Feature /FeatureName:"recall"',
+    summary: 'DISM /Online /Disable-Feature /FeatureName:recall',
     async apply() {
-      const r = await run(DISMEXE, ['/Online', '/Disable-Feature', '/FeatureName:"recall"'], { timeout: 600000 });
+      // execFile não passa por shell: aspas viram parte do argumento e o DISM
+      // não encontra o recurso. O nome vai puro.
+      const r = await run(DISMEXE, ['/Online', '/Disable-Feature', '/FeatureName:recall'], { timeout: 600000 });
       if (!r.ok && /0x800f/i.test(r.stdout + r.stderr)) {
         if (/not.*found|não.*encontrado|unknown feature|0x800f080c/i.test(r.stdout + r.stderr)) {
           return { message: 'Recurso “recall” não existe nesta versão do Windows — nada a desativar.' };
@@ -332,13 +451,13 @@ const RECOMMENDED = [
       return { message: 'Recall desativado.' };
     },
     async revert() {
-      const r = await run(DISMEXE, ['/Online', '/Enable-Feature', '/FeatureName:"recall"', '/NoRestart'], { timeout: 600000 }).catch(() => ({ ok: false }));
-      return r && r.ok
+      const r = await run(DISMEXE, ['/Online', '/Enable-Feature', '/FeatureName:recall', '/NoRestart'], { timeout: 600000 });
+      return r.ok
         ? { message: 'Recall reativado.' }
         : { message: 'Reversão tentada — se o recurso não existia aqui, nada muda.' };
     },
     async status() {
-      const r = await run(DISMEXE, ['/Online', '/Get-FeatureInfo', '/FeatureName:"recall"'], { timeout: 120000 });
+      const r = await run(DISMEXE, ['/Online', '/Get-FeatureInfo', '/FeatureName:recall'], { timeout: 120000 });
       const m = r.stdout.match(/State\s*:\s*(.+)$/m);
       const state = m ? m[1].trim() : '';
       if (/not|desconhecido|unknown/i.test(r.stdout) && r.stdout.includes('0x800f')) {
@@ -359,15 +478,15 @@ const RECOMMENDED = [
     evidence: 'Re-exibe “modo de aumento do processador” e define Agressivo (item 41 da auditoria).',
     summary: 'powercfg -attributes SUB_PROCESSOR PERFBOOSTMODE -ATTRIB_HIDE + valor Agressivo (AC).',
     async apply() {
-      await run(POWERCFG, ['-attributes', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '-ATTRIB_HIDE']).catch(() => {});
-      await run(POWERCFG, ['/setacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '2']).catch(() => {});
-      await run(POWERCFG, ['/setactive', 'scheme_current']).catch(() => {});
+      await run(POWERCFG, ['-attributes', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '-ATTRIB_HIDE']);
+      await run(POWERCFG, ['/setacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '2']);
+      await run(POWERCFG, ['/setactive', 'scheme_current']);
       return { message: 'Boost do processador configurado como Agressivo (AC).' };
     },
     async revert() {
       // 1 = Ativado (padrão da maioria dos planos); Agressivo era o 2.
-      await run(POWERCFG, ['/setacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '1']).catch(() => {});
-      await run(POWERCFG, ['/setactive', 'scheme_current']).catch(() => {});
+      await run(POWERCFG, ['/setacvalueindex', 'scheme_current', 'SUB_PROCESSOR', 'PERFBOOSTMODE', '1']);
+      await run(POWERCFG, ['/setactive', 'scheme_current']);
       return { message: 'Boost do processador voltou a Ativado (padrão).' };
     },
     async status() {
@@ -395,7 +514,7 @@ const RECOMMENDED = [
       return { message: 'Núcleos configurados para uso total via BCDEdit. Reinicie.' };
     },
     async revert() {
-      await run(BCDEDIT, ['/deletevalue', '{current}', 'numproc']).catch(() => {});
+      await run(BCDEDIT, ['/deletevalue', '{current}', 'numproc']);
       return { message: 'Valor numproc removido (volta ao padrão). Reinicie.' };
     },
     async status() {
@@ -405,22 +524,17 @@ const RECOMMENDED = [
         : { level: 'OFF', label: 'Não aplicado', detail: 'Padrão do Windows' };
     }
   },
-  {
-    id: 'bios-settings',
-    name: 'Ajustes de BIOS/hardware — informações',
-    category: 'Hardware',
-    admin: false,
-    risk: 'LOW',
-    reversible: false,
-    evidence: 'Configurações de BIOS (XMP/EXPO, SVM, Above 4G/Re-BAR, Fast Boot) só podem ser feitas na BIOS — o software não acessa. Mostramos o que habilitar.',
-    summary: 'Abre guia com configurações recomendadas da BIOS. Nenhuma alteração automática.',
-    kind: 'guide',
-    apply: async () => {
-      // Não automatizável — apenas informa
-      return { message: 'Ajustes de BIOS requerem reinicialização e entrada no Setup (F2/Del).' };
-    },
-    status: async () => ({ level: 'NA', label: 'Manual', detail: 'Configure na BIOS (XMP/EXPO, SVM, Above 4G, Re-BAR, Fast Boot)' })
-  },
+  guide('bios-settings', 'Ajustes de BIOS/hardware — informações',
+    'Hardware',
+    'Configurações de BIOS (XMP/EXPO, SVM, Above 4G/Re-BAR, Fast Boot) só podem ser feitas na BIOS — o software não acessa. Mostramos o que habilitar.',
+    [
+      'Reinicie e entre no Setup da BIOS/UEFI (F2, Del ou F10, conforme a placa).',
+      'Ative o perfil de memória XMP (Intel) ou EXPO (AMD) para a RAM rodar na frequência anunciada.',
+      'Ative SVM/AMD-V ou VT-x/VT-d se você usa virtualização ou emuladores.',
+      'Ative Above 4G Decoding e Re-Size BAR se a placa de vídeo suportar.',
+      'Ative Fast Boot e salve com F10.'
+    ]
+  ),
   {
     id: 'spacesniffer',
     name: 'SpaceSniffer — instalar analisador de disco',
@@ -437,7 +551,7 @@ const RECOMMENDED = [
       return { message: 'SpaceSniffer instalado.' };
     },
     async revert() {
-      await run(POWERSHELL, ['-NoProfile', '-NonInteractive', '-Command', 'winget uninstall -e --id JeroenK.SpaceSniffer']).catch(() => {});
+      await run(POWERSHELL, ['-NoProfile', '-NonInteractive', '-Command', 'winget uninstall -e --id JeroenK.SpaceSniffer']);
       return { message: 'SpaceSniffer removido.' };
     },
     async status() {
@@ -463,7 +577,7 @@ const RECOMMENDED = [
       return { message: 'Process Lasso instalado.' };
     },
     async revert() {
-      await run(POWERSHELL, ['-NoProfile', '-NonInteractive', '-Command', 'winget uninstall -e --id Bitsum.ProcessLasso']).catch(() => {});
+      await run(POWERSHELL, ['-NoProfile', '-NonInteractive', '-Command', 'winget uninstall -e --id Bitsum.ProcessLasso']);
       return { message: 'Process Lasso removido.' };
     },
     async status() {
@@ -514,35 +628,47 @@ const RECOMMENDED = [
     evidence: 'Adiciona pacotes de Group Policy ao Windows Home via DISM (item 40 da auditoria).',
     summary: 'Instala pacotes Microsoft-Windows-GroupPolicy via DISM. Revert remove os pacotes.',
     async apply() {
-      const pkgs = [
-        'Microsoft-Windows-GroupPolicy-ClientTools-Package',
-        'Microsoft-Windows-GroupPolicy-ClientExtensions-Package'
-      ];
-      for (const pkg of pkgs) {
-        const r = await run(DISMEXE, ['/Online', '/Add-Package', `/PackagePath:C:\\Windows\\servicing\\Packages\\${pkg}~*.mum`], { timeout: 120000 });
-        if (!r.ok) console.log(`DISM ${pkg}:`, r.stderr?.slice(0,200));
+      const results = [];
+      for (const base of GPEDIT_PACKAGES) {
+        // O DISM não expande curingas em /PackagePath: é preciso o caminho de
+        // um arquivo .mum real. O nome carrega a versão do build (ex.:
+        // ~10.0.22621.1), então resolvemos em disco antes de chamar.
+        const mum = await findPackageMum(base);
+        if (!mum) {
+          results.push(`${base}: não encontrado em servicing\\Packages (pode já estar instalado)`);
+          continue;
+        }
+        const r = await run(DISMEXE, ['/Online', '/Add-Package', `/PackagePath:${mum}`], { timeout: 600000 });
+        results.push(r.ok ? `${base}: OK` : `${base}: ${(r.stderr || r.stdout).slice(0, 120)}`);
       }
-      return { message: 'Pacotes de Group Policy adicionados. Reinicie e teste gpedit.msc.' };
+      const failed = results.filter((line) => !line.endsWith('OK')).length;
+      return {
+        message: results.join(' | '),
+        // Não anunciar sucesso quando o DISM recusou todos os pacotes.
+        ok: failed < GPEDIT_PACKAGES.length
+      };
     },
     async revert() {
-      const pkgs = [
-        'Microsoft-Windows-GroupPolicy-ClientTools-Package',
-        'Microsoft-Windows-GroupPolicy-ClientExtensions-Package'
-      ];
-      for (const pkg of pkgs) {
-        await run(DISMEXE, ['/Online', '/Remove-Package', `/PackageName:${pkg}`], { timeout: 120000 }).catch(() => {});
+      const list = await run(DISMEXE, ['/Online', '/Get-Packages'], { timeout: 300000 });
+      // Nome real do pacote inclui a versão — usar só o nome-base não remove nada.
+      const installed = (list.stdout.match(/Microsoft-Windows-GroupPolicy-[^\s:]+/gi) || [])
+        .map((n) => n.trim())
+        .filter((n, i, arr) => arr.indexOf(n) === i);
+      if (!installed.length) {
+        return { message: 'Nenhum pacote de Group Policy instalado — nada a remover.' };
       }
-      return { message: 'Pacotes de Group Policy removidos (se existiam).' };
+      const removed = [];
+      for (const name of installed) {
+        const r = await run(DISMEXE, ['/Online', '/Remove-Package', `/PackageName:${name}`], { timeout: 600000 });
+        removed.push(r.ok ? name : `${name}: falhou`);
+      }
+      return { message: `Pacotes de Group Policy removidos: ${removed.join(', ')}.` };
     },
     async status() {
-      try {
-        const r = await run('where', ['gpedit.msc']);
-        return r.ok && r.stdout.trim().length > 0
-          ? { level: 'APPLIED', label: 'Disponível', detail: 'gpedit.msc encontrado no PATH' }
-          : { level: 'OFF', label: 'Não disponível', detail: 'Execute Aplicar para instalar via DISM' };
-      } catch {
-        return { level: 'OFF', label: 'Não disponível', detail: 'Execute Aplicar para instalar via DISM' };
-      }
+      const r = await run(DISMEXE, ['/Online', '/Get-Packages'], { timeout: 300000 });
+      return /Microsoft-Windows-GroupPolicy-Client/i.test(r.stdout)
+        ? { level: 'APPLIED', label: 'Disponível', detail: 'Pacotes de Group Policy instalados' }
+        : { level: 'OFF', label: 'Não disponível', detail: 'Execute Aplicar para instalar via DISM' };
     }
   },
   {
@@ -560,8 +686,8 @@ const RECOMMENDED = [
       return { message: 'Opções de inicialização do CS2 aplicadas. Reinicie o Steam.' };
     },
     async revert() {
-      await regDelete('HKCU\\Software\\Valve\\Steam\\Apps\\730', 'LaunchOptions').catch(() => {});
-      return { message: 'Launch options do CS2 removidas.' };
+      const r = await regDelete('HKCU\\Software\\Valve\\Steam\\Apps\\730', 'LaunchOptions');
+      return { message: r ? 'Launch options do CS2 removidas.' : 'Não foi possível remover as launch options — verifique em Propriedades do jogo no Steam.' };
     },
     async status() {
       const v = await regStr('HKCU\\Software\\Valve\\Steam\\Apps\\730', 'LaunchOptions');
@@ -794,7 +920,7 @@ const OPTIONAL = [
       return { message: 'Dynamic tick desativado.' };
     },
     async revert() {
-      await run(BCDEDIT, ['/deletevalue', '{current}', 'disabledynamictick']).catch(() => {});
+      await run(BCDEDIT, ['/deletevalue', '{current}', 'disabledynamictick']);
       return { message: 'Dynamic tick restaurado ao padrão. Reinicie.' };
     },
     async status() {
@@ -968,5 +1094,8 @@ module.exports = {
   RECOMMENDED,
   OPTIONAL,
   ALL,
-  getById
+  getById,
+  // Expostos para teste: resolvem o .mum real do gpedit-enable.
+  findPackageMum,
+  parsePackageName
 };

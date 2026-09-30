@@ -57,6 +57,12 @@ const hbDesktop = {
   // ===== Limpeza =====
   cleanItem: (id) => ipcRenderer.invoke('clean:item', id),
   cleanSelected: (ids) => ipcRenderer.invoke('clean:selected', ids),
+  // Itens que apagam dados do usuário (cookies, histórico, clipboard, lixeira).
+  // Caminho separado de propósito: exige confirmação explícita na UI.
+  cleanRisky: (id) => ipcRenderer.invoke('clean:risky', id),
+  // A classificação (admin/risky) é decidida no backend; a UI consulta para
+  // não divergir e nunca chamar o canal errado.
+  classifyClean: (ids) => ipcRenderer.invoke('clean:classify', ids),
 
   // ===== RAM =====
   freeRam: () => ipcRenderer.invoke('system:free-ram'),

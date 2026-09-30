@@ -39,6 +39,11 @@ async function executeRecipe(id, options = {}) {
 
   try {
     const result = await recipe.apply() || {};
+    // Uma receita pode reportar falha explícita (ex.: DISM recusou todos os
+    // pacotes) — não anunciar sucesso nesse caso.
+    if (result.ok === false) {
+      return { ok: false, id, name: recipe.name, message: result.message || 'A otimização não pôde ser aplicada.' };
+    }
     return {
       ok: true,
       id,

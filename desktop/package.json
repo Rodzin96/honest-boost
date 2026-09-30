@@ -1,6 +1,6 @@
 {
   "name": "honest-boost-desktop",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "Honest Boost — Otimizador de Windows para Performance (Mouse, Monitor, FPS)",
   "main": "main.js",
   "author": "Honest Boost",
@@ -12,6 +12,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+    "test": "node test/run-all.js",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "publish": "electron-builder --win --publish always"
@@ -31,7 +32,18 @@
     },
     "files": [
       "**/*",
-      "!dist/**/*"
+      "!dist/**/*",
+      "!tests/**/*",
+      "!test/**/*",
+      "!tools/**/*",
+      "!**/*.log",
+      "!**/*.map",
+      "!audit-report.json",
+      "!applyOptimization.js",
+      "!.npmrc",
+      "!**/*.md",
+      "!launch-err.log",
+      "!launch-out.log"
     ],
     "win": {
       "target": "nsis",

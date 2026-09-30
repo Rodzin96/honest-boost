@@ -53,7 +53,9 @@ function createWindow() {
     title: 'Honest Boost — Otimizador Honesto',
     backgroundColor: '#060a18',
     autoHideMenuBar: true,
-    icon: path.join(__dirname, '..', 'public', 'logo.svg'),
+    // icon.ico vai empacotado na raiz do app. O caminho antigo apontava para
+    // ../public/logo.svg, que não existe dentro do asar em produção.
+    icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -64,15 +66,29 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
+  // Allowlist de esquema: sem isto, qualquer URL não-file:// (inclusive
+  // ms-msdt:, search-ms:, file: em outro host) ia direto para o shell do
+  // Windows, abrindo caminho para execução de comandos via protocolo.
+  const EXTERNAL_SCHEMES = new Set(['https:', 'mailto:']);
+  function openExternalSafe(url) {
+    try {
+      const parsed = new URL(url);
+      if (EXTERNAL_SCHEMES.has(parsed.protocol)) shell.openExternal(url);
+      else console.warn('Navegação externa bloqueada (esquema não permitido):', parsed.protocol);
+    } catch {
+      console.warn('Navegação externa bloqueada (URL inválida)');
+    }
+  }
+
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (!url.startsWith('file://')) {
       event.preventDefault();
-      shell.openExternal(url);
+      openExternalSafe(url);
     }
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    openExternalSafe(url);
     return { action: 'deny' };
   });
 
@@ -619,10 +635,31 @@ ipcMain.handle('opt:apply-preset', async (event, presetId) => {
   }
 });
 
+// A classificação vive no backend (systemAnalyzer), que é a autoridade. A UI
+// consulta para não divergir: um item marcado como perigoso na tela precisa
+// exigir consentimento de fato, e vice-versa.
+ipcMain.handle('clean:classify', async (event, ids) => {
+  try {
+    const list = Array.isArray(ids) ? ids : [];
+    const out = {};
+    for (const id of list) out[id] = systemAnalyzer.classifyCleanItem(String(id));
+    return { ok: true, classes: out };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
 // ===== Limpeza =====
+// cleanItem valida elevação e consentimento: itens sob SystemRoot, logs de
+// eventos e o store de componentes exigem admin; itens que apagam dados do
+// usuário (cookies, histórico, clipboard, lixeira) exigem opt-in explícito.
 ipcMain.handle('clean:item', async (event, id) => {
   try {
-    const res = await systemAnalyzer.cleanItem(id);
+    const info = systemAnalyzer.classifyCleanItem(String(id));
+    const res = await systemAnalyzer.cleanItem(id, {
+      admin: isAdmin(),
+      riskAccepted: info.risky,
+    });
     return { ok: res.ok, message: res.ok ? `Item ${id} limpo.` : res.error };
   } catch (e) {
     return { ok: false, error: e.message };
@@ -631,12 +668,34 @@ ipcMain.handle('clean:item', async (event, id) => {
 
 ipcMain.handle('clean:selected', async (event, ids) => {
   try {
+    const list = Array.isArray(ids) ? ids : [];
+    const admin = isAdmin();
     let okCount = 0;
-    for (const id of ids) {
-      const res = await systemAnalyzer.cleanItem(id);
+    const failures = [];
+    for (const id of list) {
+      const info = systemAnalyzer.classifyCleanItem(String(id));
+      const res = await systemAnalyzer.cleanItem(id, { admin, riskAccepted: info.risky });
       if (res.ok) okCount++;
+      else failures.push({ id, error: res.error });
     }
-    return { ok: true, result: { cleaned: okCount, total: ids.length } };
+    return {
+      ok: true,
+      result: { cleaned: okCount, total: list.length, failed: list.length - okCount, failures },
+    };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// Caminho explícito para itens destrutivos: só aceita se o item realmente for
+// destrutivo, mantendo a exigência de elevação quando aplicável.
+ipcMain.handle('clean:risky', async (event, id) => {
+  try {
+    const info = systemAnalyzer.classifyCleanItem(String(id));
+    if (!info.known) return { ok: false, error: `Ação não reconhecida: ${id}` };
+    if (!info.risky) return { ok: false, error: `"${id}" não é um item destrutivo - use clean:item.` };
+    const res = await systemAnalyzer.cleanItem(id, { admin: isAdmin(), riskAccepted: true });
+    return { ok: res.ok, message: res.ok ? `Item ${id} limpo.` : res.error };
   } catch (e) {
     return { ok: false, error: e.message };
   }
@@ -777,6 +836,10 @@ function createMenu() {
 }
 
 // ==================== App Lifecycle ====================
+// AUMID explícito: as notificações (incluindo as do auto-update) só aparecem
+// no Windows quando o processo tem um App User Model ID consistente.
+if (process.platform === 'win32') app.setAppUserModelId('com.honestboost.desktop');
+
 app.whenReady().then(() => {
   createWindow();
   createMenu();
@@ -788,4 +851,17 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+// ==================== Rede de segurança ====================
+// Um erro não tratado no processo principal fecha o app inteiro. Exemplo real:
+// a coleta em background do monitor chama execFile e, quando o spawn é negado
+// pelo SO (EPERM, antivírus, política), o erro sobe como exceção não capturada
+// e derruba o Honest Boost. Um otimizador que fecha sozinho no meio de uma
+// alteração é pior que um que reporta falha.
+process.on('uncaughtException', (err) => {
+  console.error('✗ Exceção não tratada (o app continua rodando):', err && err.stack ? err.stack : err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('✗ Promise rejeitada sem tratamento:', reason && reason.stack ? reason.stack : reason);
 });
