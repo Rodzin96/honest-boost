@@ -89,9 +89,9 @@ jobs:
             ### Auto-update
             O app detecta automaticamente esta versão via `latest.yml`.
           files: |
-            dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe
-            dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe.blockmap
-            dist/latest.yml
+            desktop/dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe
+            desktop/dist/Honest-Boost-Setup-${{ steps.vars.outputs.version }}.exe.blockmap
+            desktop/dist/latest.yml
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
