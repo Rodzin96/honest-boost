@@ -27,6 +27,7 @@
   "build": {
     "appId": "com.honestboost.desktop",
     "productName": "Honest Boost",
+    "artifactName": "Honest-Boost-Setup-${version}.${ext}",
     "directories": {
       "output": "dist"
     },
