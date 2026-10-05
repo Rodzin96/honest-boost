@@ -8,6 +8,27 @@
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
 
+/* ============================================================
+ * Modo Seguro (preferência do usuário)
+ * ------------------------------------------------------------
+ * Lido a cada uso em vez de cacheado: o usuário pode alternar o switch e
+ * esperar efeito imediato. Quando ativo, o MAIN bloqueia receitas de risco
+ * MEDIUM e toda limpeza destrutiva — o filtro aqui é só para não oferecer
+ * na UI o que já vai ser recusado.
+ * ============================================================ */
+function isSafeMode() {
+  try { return localStorage.getItem('hb.safe-mode') === 'true'; } catch { return false; }
+}
+
+/* Preferência de animações. Antes o switch 'Animações do aplicativo' gravava no
+ * localStorage e ninguém lia — era decorativo. Agora liga/desliga de verdade via
+ * a classe .no-animations no <html>, que o CSS usa para matar orbes e keyframes. */
+function applyAnimationPreference() {
+  let on = true;
+  try { on = localStorage.getItem('hb.animations') !== 'false'; } catch {}
+  document.documentElement.classList.toggle('no-animations', !on);
+}
+
 const state = {
   info: null,
   catalog: null,
@@ -27,15 +48,84 @@ const state = {
 // ============================================================
 // Utilidades
 // ============================================================
-const toastTimer = { current: null };
-function toast(message, type = 'info') {
-  const el = $('toast');
-  if (!el) return;
-  el.textContent = message;
-  el.className = 'toast show';
-  el.dataset.type = type;
-  clearTimeout(toastTimer.current);
-  toastTimer.current = setTimeout(() => { el.className = 'toast'; }, 3500);
+/* Pilha de avisos.
+ * Regras:
+ *  - sucesso/info expiram (3,5s / 5s);
+ *  - AVISO expira em 8s;
+ *  - ERRO NUNCA expira sozinho: o usuário fecha ou abre os logs.
+ *  - no máximo 4 simultâneos; o mais antigo sai para dar lugar.
+ *  - `opts.action` adiciona um botão (ex.: "Ver logs").
+ */
+const TOAST_TTL = { success: 3500, info: 5000, warning: 8000, error: 0 };
+const TOAST_MAX = 4;
+
+function toast(message, type = 'info', opts = {}) {
+  const stack = $('toast-stack');
+  if (!stack) return;
+  const kind = TOAST_TTL[type] === undefined ? 'info' : type;
+
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.dataset.type = kind;
+  el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+
+  const msg = document.createElement('span');
+  msg.className = 'toast-msg';
+  msg.textContent = String(message == null ? '' : message);
+  el.appendChild(msg);
+
+  if (opts.action && opts.action.label) {
+    const act = document.createElement('button');
+    act.className = 'toast-action';
+    act.type = 'button';
+    act.textContent = opts.action.label;
+    act.addEventListener('click', () => {
+      try { opts.action.onClick && opts.action.onClick(); } catch (e) {}
+      dismissToast(el);
+    });
+    el.appendChild(act);
+  }
+
+  const close = document.createElement('button');
+  close.className = 'toast-close';
+  close.type = 'button';
+  close.setAttribute('aria-label', 'Fechar aviso');
+  close.textContent = '✕';
+  close.addEventListener('click', () => dismissToast(el));
+  el.appendChild(close);
+
+  stack.appendChild(el);
+  while (stack.children.length > TOAST_MAX) dismissToast(stack.firstElementChild, true);
+
+  const ttl = TOAST_TTL[kind] || 0;
+  if (ttl > 0) el._toastTimer = setTimeout(() => dismissToast(el), ttl);
+  return el;
+}
+
+function dismissToast(el, instant) {
+  if (!el || !el.parentElement) return;
+  clearTimeout(el._toastTimer);
+  if (instant) { el.remove(); return; }
+  el.classList.add('leaving');
+  setTimeout(() => el.remove(), 240);
+}
+
+/* Erro com saída: além de não expirar, oferece abrir os logs. Sem isto, um
+ * "Erro: acesso negado" desaparecia em 3,5s e o usuário não tinha para onde ir. */
+function toastError(message, err) {
+  const detalhe = err ? String(err.message || err) : '';
+  const texto = detalhe ? `${message} — ${detalhe}` : message;
+  return toast(texto, 'error', {
+    action: { label: 'Ver logs', onClick: () => showLogsModal() }
+  });
+}
+
+/* Helper de template seguro — substitui innerHTML direto com escape auto
+   para conteúdo dinâmico. Uso: bar.innerHTML = h`<span>${msg}</span>` */
+function h(strings, ...values) {
+  let result = strings[0];
+  for (let i = 0; i < values.length; i++) { result += esc(String(values[i] ?? "")); result += strings[i + 1]; }
+  return result;
 }
 
 function esc(s) {
@@ -116,7 +206,13 @@ function buildSidebar() {
 }
 
 function navigate(id) {
-  $$('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+  $$('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+    // Acessibilidade: tabs têm role, mas a navegação por teclado (setas) não
+    // está implementada neste painel (item 11 pendente). Pelo menos o estado
+    // ativo é anunciável.
+    el.setAttribute('aria-selected', el.dataset.id === id ? 'true' : 'false');
+  });
   $$('.panel').forEach(el => el.classList.remove('active'));
   const panel = $(`panel-${id}`);
   if (panel) { panel.classList.add('active'); panel.scrollTop = 0; }
@@ -145,10 +241,28 @@ function initSidebar() {
   const btn = $('btn-toggle-sidebar');
   const shell = $('app-shell');
   const qa = $('quick-actions');
+
+  /* O app abria sempre colapsado, deixando 14 ícones sem rótulo — o usuário
+   * precisava passar o mouse em todos para achar "Restauração". Agora a
+   * preferência é lembrada, e o padrão é EXPANDIDA. Quem quiser o modo ícone
+   * clica uma vez e a escolha persiste. */
+  if (shell) {
+    let saved = null;
+    try { saved = localStorage.getItem('hb.sidebar'); } catch {}
+    const expandida = saved !== 'collapsed';
+    shell.classList.toggle('sidebar-expanded', expandida);
+    shell.classList.toggle('sidebar-collapsed', !expandida);
+  }
+
+  function persistSidebar(expanded) {
+    try { localStorage.setItem('hb.sidebar', expanded ? 'expanded' : 'collapsed'); } catch {}
+  }
+
   if (btn && shell) {
     btn.addEventListener('click', () => {
       const expanded = shell.classList.toggle('sidebar-expanded');
       shell.classList.toggle('sidebar-collapsed', !expanded);
+      persistSidebar(expanded);
       if (!expanded) qa.classList.add('hidden');
     });
   }
@@ -156,6 +270,7 @@ function initSidebar() {
   if (closeBtn) closeBtn.addEventListener('click', () => {
     shell.classList.remove('sidebar-expanded');
     shell.classList.add('sidebar-collapsed');
+    persistSidebar(false);
     qa.classList.add('hidden');
   });
 }
@@ -189,15 +304,16 @@ function renderDashboard() {
   const netTx = s ? s.network.txMBps.toFixed(1) : '0.0';
 
   if (!s) {
-    // Sem dados — atualiza os elementos com valores nulos
+    // Sem dados ainda: mostra placeholder shimmer em vez de "0.0" e
+    // "Aguuardando dados..." — a primeira impressão era de app quebrado.
     const els = ['stat-cpu-val','stat-gpu-val','stat-ram-val','stat-ssd-val','stat-net-val'];
-    els.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0.0'; });
+    els.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<span class="sk-line w-sm"></span>'; });
     const subEls = ['stat-cpu-sub','stat-gpu-sub','stat-ram-sub','stat-ssd-sub','stat-net-sub'];
-    subEls.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Aguuardando dados...'; });
+    subEls.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<span class="sk-line w-lg"></span>'; });
     const bars = ['stat-cpu-bar','stat-gpu-bar','stat-ram-bar','stat-ssd-bar','stat-net-bar','stat-temp-bar'];
     bars.forEach(id => { const el = document.getElementById(id); if (el) el.style.width = '0%'; });
     const tempEl = document.getElementById('stat-temp-val');
-    if (tempEl) { tempEl.textContent = 'N/A'; tempEl.style.color = 'var(--text-muted)'; }
+    if (tempEl) { tempEl.innerHTML = '<span class="sk-line w-sm"></span>'; tempEl.style.color = ''; }
     chartsGrid.innerHTML = '';
     infoGrid.innerHTML = '';
     return;
@@ -747,14 +863,14 @@ async function doApply(id) {
       if (steps) setTimeout(() => toast(steps.slice(0, 220), 'info'), 600);
       return;
     }
-    const res = await window.hbDesktop.applyOptimization(id);
+    const res = await window.hbDesktop.applyOptimization(id, isSafeMode());
     const msg = res.result?.message || res.message || 'Aplicado';
     if (!res.ok) throw new Error(res.error || 'Falha');
     toast('✔ ' + msg, 'success');
     addHistory('apply', id, 'success');
     await refreshCatalog();
     if (document.querySelector('.panel.active')?.id === 'panel-optimizations') renderOptimizationsKeepTab();
-  } catch (e) { toast('Erro: ' + e.message, 'error'); addHistory('apply', id, 'error'); }
+  } catch (e) { toastError('Erro', e); addHistory('apply', id, 'error'); }
 }
 function renderOptimizationsKeepTab() {
   const tab = currentOptTab();
@@ -773,26 +889,48 @@ async function doRemove(id) {
     addHistory('remove', id, 'success');
     await refreshCatalog();
     if (document.querySelector('.panel.active')?.id === 'panel-optimizations') renderOptimizationsKeepTab();
-  } catch (e) { toast('Erro: ' + e.message, 'error'); addHistory('remove', id, 'error'); }
+  } catch (e) { toastError('Erro', e); addHistory('remove', id, 'error'); }
 }
+
+/* ------------------------------------------------------------
+ * Estado de operação em andamento.
+ * Enquanto `opActive` for true, o ✕ do modal NÃO fecha às cegas: ele oferece
+ * cancelar. Fechar escondendo a UI deixava um DISM de 30 min rodando sem
+ * nenhuma indicação para o usuário.
+ * ---------------------------------------------------------- */
+let opActive = false;
+let opCancelRequested = false;
 
 function showProgress(title, text, detail) {
   const overlay = $('progress-overlay');
   if (!overlay) return;
+  opActive = true;
+  opCancelRequested = false;
   $('progress-title').textContent = title;
   $('progress-text').textContent = text;
   $('progress-detail').textContent = detail || '';
   $('progress-bar').style.width = '35%';
   overlay.classList.remove('hidden');
+  setBusyIndicator(true);
 }
 function hideProgress(doneText) {
   const overlay = $('progress-overlay');
+  opActive = false;
+  opCancelRequested = false;
+  setBusyIndicator(false);
   if (!overlay) return;
   if (doneText) {
     $('progress-bar').style.width = '100%';
     $('progress-text').textContent = doneText;
     setTimeout(() => overlay.classList.add('hidden'), 900);
   } else overlay.classList.add('hidden');
+}
+
+/** Spinner persistente no sidebar: se o modal for fechado, ainda dá para ver
+ *  que há algo rodando e clicar para reabrir. */
+function setBusyIndicator(on) {
+  const dot = $('op-busy-dot');
+  if (dot) dot.classList.toggle('hidden', !on);
 }
 // "Otimizar Agora" / "Recomendadas": batch real com progresso + resumo honesto
 // (aplicadas, puladas por hardware, bloqueadas por falta de admin).
@@ -828,7 +966,7 @@ async function runOptimizeNow() {
         det.textContent = meta ? meta.name : p.id;
       }
     });
-    const res = await window.hbDesktop.applyRecommended();
+    const res = await window.hbDesktop.applyRecommended(isSafeMode());
     if (!res.ok) throw new Error(res.error || 'Falha');
     const r = res.result || {};
     const applied = r.applied || 0, failed = r.failed || 0;
@@ -871,7 +1009,7 @@ async function runOptimizeNow() {
     else if (document.querySelector('.panel.active')?.id === 'panel-dashboard') renderDashboard();
   } catch (e) {
     hideProgress();
-    toast('Erro: ' + e.message, 'error');
+    toastError('Erro', e);
   } finally {
     try { if (offProgress) offProgress(); } catch (e) {}
     const cb = $('progress-cancel');
@@ -891,7 +1029,7 @@ async function restartAsAdminFlow() {
     } else {
       toast('Elevação cancelada — o app continua aberto sem admin', 'warning');
     }
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  } catch (e) { toastError('Erro', e); }
 }
 
 const PRESET_NAMES = {
@@ -906,12 +1044,12 @@ const PRESET_NAMES = {
 async function applyPreset(presetId) {
   if (!licenseGate('aplicar o preset')) return;
   try {
-    const res = await window.hbDesktop.applyPreset(presetId);
+    const res = await window.hbDesktop.applyPreset(presetId, isSafeMode());
     if (!res.ok) throw new Error(res.error || 'Falha');
     toast(`✔ Preset "${PRESET_NAMES[presetId] || presetId}" aplicado`, 'success');
     addHistory('preset', presetId, 'success');
     await refreshCatalog();
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  } catch (e) { toastError('Erro', e); }
 }
 
 // ============================================================
@@ -1173,8 +1311,8 @@ function isRiskyClean(id) {
 }
 function dispatchClean(id) {
   return isRiskyClean(id)
-    ? window.hbDesktop.cleanRisky(id)
-    : window.hbDesktop.cleanItem(id);
+    ? window.hbDesktop.cleanRisky(id, isSafeMode())
+    : window.hbDesktop.cleanItem(id, isSafeMode());
 }
 
 async function doCleanItem(id) {
@@ -1186,7 +1324,7 @@ async function doCleanItem(id) {
     toast('✔ ' + (res.message || 'Limpado'), 'success');
     addHistory('clean', id, 'success');
     renderCleaning();
-  } catch (e) { toast('Erro: ' + e.message, 'error'); addHistory('clean', id, 'error'); }
+  } catch (e) { toastError('Erro', e); addHistory('clean', id, 'error'); }
 }
 
 async function doCleanSelected() {
@@ -1195,22 +1333,30 @@ async function doCleanSelected() {
   if (!licenseGate('executar a limpeza')) return;
   if (!confirmDangerous(ids)) return;
 
-  const overlay = $('progress-overlay');
+  // Mesmo modal (e mesmo cancelamento) do fluxo de otimização: antes a limpeza
+  // abria o overlay à mão, sem botão Cancelar e sem estado de operação.
+  showProgress('Limpeza em andamento', 'Iniciando…', 'Cada item é removido individualmente — o espaço não é medido.');
+  const cancelBtn = $('progress-cancel');
+  if (cancelBtn) {
+    cancelBtn.classList.remove('hidden');
+    cancelBtn.onclick = () => {
+      opCancelRequested = true;
+      cancelBtn.disabled = true;
+      cancelBtn.innerHTML = '<span class="spinner"></span> Cancelando…';
+      $('progress-text').textContent = 'Cancelando após o item atual…';
+    };
+  }
+
   const bar = $('progress-bar');
   const text = $('progress-text');
   const detail = $('progress-detail');
-  const progressTitle = $('progress-title');
-  if (overlay && bar && text && detail && progressTitle) {
-    overlay.classList.remove('hidden');
-    progressTitle.textContent = 'Limpeza em andamento';
-    text.textContent = 'Iniciando...';
-    detail.textContent = '';
-  }
 
   let completed = 0;
   let ok = 0;
   const failures = [];
+  let cancelledEarly = false;
   for (const id of ids) {
+    if (opCancelRequested) { cancelledEarly = true; break; }
     const meta = cleanItemMeta(id);
     text.textContent = `Limpeza ${completed + 1}/${ids.length}: ${(meta && meta.title) || id}`;
     // Não estimamos bytes: nada aqui mede o espaço liberado de verdade.
@@ -1231,7 +1377,17 @@ async function doCleanSelected() {
   }
 
   if (bar) bar.style.width = '100%';
-  text.textContent = 'Concluído!';
+  text.textContent = cancelledEarly ? 'Cancelado' : 'Concluído!';
+  if (cancelledEarly) {
+    hideProgress();
+    toast(`⏹ Limpeza cancelada — ${ok} itens limpos antes de parar`, 'warning');
+    addHistory('clean', '', 'success', `cancelado: ${ok} limpos`);
+    const cb = $('progress-cancel');
+    if (cb) { cb.classList.add('hidden'); cb.disabled = false; cb.textContent = 'Cancelar'; }
+    state.selectedClean = new Set();
+    renderCleaning();
+    return;
+  }
   // Relata o que foi feito, sem alegar espaço recuperado que ninguém mediu.
   if (failures.length) {
     detail.textContent = `${ok} de ${ids.length} itens limpos — ${failures.length} falharam`;
@@ -1242,7 +1398,7 @@ async function doCleanSelected() {
   }
 
   setTimeout(() => {
-    if (overlay) overlay.classList.add('hidden');
+    hideProgress();
     state.selectedClean = new Set();
     renderCleaning();
   }, 1500);
@@ -1347,7 +1503,7 @@ function renderSystemRestore() {
         toast('Erro: ' + (res.error || 'falha ao restaurar'), 'error');
         addHistory('restore', 'registry', 'error');
       }
-    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    } catch (e) { toastError('Erro', e); }
   });
 
   if (createBtn) createBtn.addEventListener('click', async () => {
@@ -1358,7 +1514,7 @@ function renderSystemRestore() {
       const res = await window.hbDesktop.createRestorePoint('Honest Boost - ' + new Date().toLocaleDateString('pt-BR'));
       if (res.ok) toast('✔ Ponto de restauração criado', 'success');
       else toast('Erro: ' + res.error, 'error');
-    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    } catch (e) { toastError('Erro', e); }
     finally { if (createBtn) { createBtn.disabled = false; createBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg> Criar Ponto de Restauração'; } }
   });
 }
@@ -1389,7 +1545,7 @@ function renderTogsBackup() {
       await window.hbDesktop.backupSettings();
       toast('✔ Backup das configurações criado', 'success');
       renderTogsBackup();
-    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    } catch (e) { toastError('Erro', e); }
     finally { if (backupBtn) { backupBtn.disabled = false; backupBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Criar Backup'; } }
   });
 
@@ -1401,7 +1557,7 @@ function renderTogsBackup() {
       const res = await window.hbDesktop.restoreBackup();
       if (res.ok) { toast('✔ Backup restaurado com sucesso', 'success'); renderTogsBackup(); }
       else toast('Erro: ' + res.error, 'error');
-    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    } catch (e) { toastError('Erro', e); }
     finally { if (restoreBtn) { restoreBtn.disabled = false; restoreBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><polyline points="23 4 23 10 17 10"></polyline></svg> Restaurar Backup'; } }
   });
 }
@@ -1623,7 +1779,7 @@ function renderAppGrid(category, query) {
   }));
   grid.querySelectorAll('[data-openpage]').forEach(btn => btn.addEventListener('click', async () => {
     try { await window.hbDesktop.openAppPage(btn.dataset.openpage); toast('🌐 Página oficial aberta no navegador', 'info'); }
-    catch (e) { toast('Erro: ' + e.message, 'error'); }
+    catch (e) { toastError('Erro', e); }
   }));
 }
 
@@ -1916,7 +2072,7 @@ function renderGames() {
     btn.innerHTML = '<span class="spinner"></span> Aplicando…';
     toast(`⚡ Aplicando ${profile.name} em ${title}…`, 'info');
     try {
-      const res = await window.hbDesktop.applyBatch(pending);
+      const res = await window.hbDesktop.applyBatch(pending, isSafeMode());
       const r = res.result || {};
       if ((r.applied || 0) > 0) {
         toast(`✔ ${r.applied}/${pending.length} do perfil aplicadas`, r.failed ? 'warning' : 'success');
@@ -1925,7 +2081,7 @@ function renderGames() {
         toast('⚠️ ' + (((r.results || []).find(x => !x.ok) || {}).message || 'Nada aplicado — tente como administrador'), 'warning');
         addHistory('preset', title, 'error');
       }
-    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    } catch (e) { toastError('Erro', e); }
     await refreshCatalog();
     // Atualiza SÓ o card (sem reconstruir o grid = sem pulo/recarregamento dos ícones)
     try {
@@ -1993,11 +2149,14 @@ function renderSettings() {
   }
 
   // Geral
-  ['autostart', 'minimize-tray', 'auto-update', 'check-version', 'auto-backup', 'backup-restore'].forEach(id => {
+  // 'auto-update' saiu desta lista: o toggle era inerte (o main fixa
+  // autoDownload=true). Em vez de mentir na UI, o app agora sempre atualiza
+  // automaticamente e só oferece as opções que realmente fazem algo.
+  ['autostart', 'minimize-tray', 'check-version', 'auto-backup', 'backup-restore'].forEach(id => {
     const el = $(`setting-${id}`);
     if (!el) return;
     const key = `hb.${id === 'minimize-tray' ? 'tray' : id.replace('setting-','')}`;
-    const defaultVal = id === 'auto-update' || id === 'check-version' || id === 'auto-backup' ? true : false;
+    const defaultVal = id === 'check-version' || id === 'auto-backup' ? true : false;
     el.checked = localStorage.getItem(key) !== null ? localStorage.getItem(key) === 'true' : defaultVal;
     el.addEventListener('change', () => localStorage.setItem(key, el.checked));
   });
@@ -2009,7 +2168,12 @@ function renderSettings() {
     const key = `hb.${id}`;
     const defaultVal = id === 'logs' ? false : true;
     el.checked = localStorage.getItem(key) !== null ? localStorage.getItem(key) === 'true' : defaultVal;
-    el.addEventListener('change', () => localStorage.setItem(key, el.checked));
+    el.addEventListener('change', () => {
+      try { localStorage.setItem(key, el.checked); } catch {}
+      // 'animations' agora tem efeito: aplica/remove a classe que o CSS usa
+      // para desligar orbes, keyframes e transições.
+      if (id === 'animations') applyAnimationPreference();
+    });
   });
 
   const viewLogsBtn = $('btn-view-logs');
@@ -2021,14 +2185,25 @@ function renderSettings() {
     toast('✔ Logs limpos', 'success');
   });
 
-  // Avançado
-  ['safe-mode', 'dev-mode'].forEach(id => {
-    const el = $(`setting-${id}`);
-    if (!el) return;
-    const key = `hb.${id}`;
-    el.checked = localStorage.getItem(key) === 'true';
-    el.addEventListener('change', () => localStorage.setItem(key, el.checked));
-  });
+  // Avançado — Modo Seguro. É a ÚNICA preferência desta aba, e ela tem efeito
+  // real: o main bloqueia receitas de risco MEDIUM e limpeza destrutiva.
+  const safeEl = $('setting-safe-mode');
+  if (safeEl) {
+    safeEl.checked = isSafeMode();
+    safeEl.addEventListener('change', () => {
+      try { localStorage.setItem('hb.safe-mode', String(safeEl.checked)); } catch {}
+      const note = $('safe-mode-note');
+      if (note) {
+        note.textContent = safeEl.checked
+          ? 'Ativo: 6 otimizações de risco médio e a limpeza destrutiva ficam bloqueadas.'
+          : 'Recomendado se você quer o mínimo de alterações no sistema.';
+      }
+      toast(safeEl.checked ? '🛡 Modo Seguro ativado' : 'Modo Seguro desativado', 'info');
+      refreshCatalog();
+    });
+    const note = $('safe-mode-note');
+    if (note && safeEl.checked) note.textContent = 'Ativo: 6 otimizações de risco médio e a limpeza destrutiva ficam bloqueadas.';
+  }
 
   const resetBtn = $('btn-reset-settings');
   const clearBtn = $('btn-clear-all-data');
@@ -2073,8 +2248,8 @@ function applyTheme(theme) {
     root.style.setProperty('--bg-sidebar', '#E2E8F0');
     root.style.setProperty('--bg-card', '#FFFFFF');
     root.style.setProperty('--text-primary', '#1E293B');
-    root.style.setProperty('--text-secondary', '#475569');
-    root.style.setProperty('--text-muted', '#94A3B8');
+    root.style.setProperty('--text-secondary', '#3B4A63');
+    root.style.setProperty('--text-muted', '#5A6B85');
     root.style.setProperty('--border-subtle', '#E2E8F0');
     root.style.setProperty('--border-strong', '#CBD5E1');
   } else if (theme === 'dark') {
@@ -2083,8 +2258,8 @@ function applyTheme(theme) {
     root.style.setProperty('--bg-sidebar', '#09101D');
     root.style.setProperty('--bg-card', '#161D2E');
     root.style.setProperty('--text-primary', '#F0F3F8');
-    root.style.setProperty('--text-secondary', '#9AA8C4');
-    root.style.setProperty('--text-muted', '#637087');
+    root.style.setProperty('--text-secondary', '#A8B6D4');
+    root.style.setProperty('--text-muted', '#8595B8');
     root.style.setProperty('--border-subtle', '#232E47');
     root.style.setProperty('--border-strong', '#2F3D5E');
   } else {
@@ -2170,7 +2345,7 @@ function renderAuth() {
     // Sem trial no produto: o botão leva aos planos reais do site.
     $('btn-buy')?.addEventListener('click', async () => {
       try { await window.hbDesktop.openPlans(); }
-      catch (e) { toast('Erro: ' + e.message, 'error'); }
+      catch (e) { toastError('Erro', e); }
     });
   }
   try { refreshLockUI(); } catch (e) {}
@@ -2185,7 +2360,7 @@ async function doLogout() {
     toast('✔ Desconectado', 'info');
     renderAuth();
     navigate('auth');
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  } catch (e) { toastError('Erro', e); }
 }
 
 // ============================================================
@@ -2352,12 +2527,12 @@ function initQuickActions() {
         if (!licenseGate('executar correções do Windows')) return;
         toast('🔧 Executando correções do Windows (SFC/DISM + limpeza)...', 'info');
         try {
-          const res = await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']);
+          const res = await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup'], isSafeMode());
           const r = res.result || {};
           if (res.ok && r.applied > 0 && !r.failed) toast('✔ Correções concluídas', 'success');
           else if ((r.applied || 0) > 0) toast(`✔ ${r.applied} aplicadas, ${r.failed || 0} pendentes (podem exigir admin)`, 'warning');
           else toast('⚠️ ' + ((r.results || []).find(x => !x.ok)?.message || 'Nada aplicado — tente como administrador'), 'warning');
-        } catch (e) { toast('Erro: ' + e.message, 'error'); }
+        } catch (e) { toastError('Erro', e); }
         return;
       }
       await handleQuickAction(action, btn);
@@ -2720,11 +2895,11 @@ function renderInternetPanel() {
     list.querySelectorAll('[data-apply]').forEach(b => b.addEventListener('click', () => doApply(b.dataset.apply)));
   }
   if (s) syncPremiumWidgets(s, {});
-  $('btn-dns-flush')?.addEventListener('click', async () => { if (!licenseGate('limpar o DNS')) return; try { await window.hbDesktop.applyOptimization('flushdns'); toast('✔ DNS limpo', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
-  $('btn-net-boost')?.addEventListener('click', async () => { if (!licenseGate('otimizar a rede')) return; toast('🚀 Otimizando rede...', 'info'); try { const r = await window.hbDesktop.applyBatch(['flushdns', 'system-responsiveness']); if (r.ok) toast('✔ Rede otimizada', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
+  $('btn-dns-flush')?.addEventListener('click', async () => { if (!licenseGate('limpar o DNS')) return; try { await window.hbDesktop.applyOptimization('flushdns', isSafeMode()); toast('✔ DNS limpo', 'success'); } catch (e) { toastError('Erro', e); } }, { once: true });
+  $('btn-net-boost')?.addEventListener('click', async () => { if (!licenseGate('otimizar a rede')) return; toast('🚀 Otimizando rede...', 'info'); try { const r = await window.hbDesktop.applyBatch(['flushdns', 'system-responsiveness'], isSafeMode()); if (r.ok) toast('✔ Rede otimizada', 'success'); } catch (e) { toastError('Erro', e); } }, { once: true });
 }
 function renderSecurityPanel() { if (state.snapshot) syncPremiumWidgets(state.snapshot, {});
-  $('btn-sec-repair')?.addEventListener('click', async () => { if (!licenseGate('reparar o sistema')) return; toast('🔧 Reparando arquivos do Windows...', 'info'); try { await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup']); toast('✔ Reparo concluído', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } }, { once: true });
+  $('btn-sec-repair')?.addEventListener('click', async () => { if (!licenseGate('reparar o sistema')) return; toast('🔧 Reparando arquivos do Windows...', 'info'); try { await window.hbDesktop.applyBatch(['sfc-dism', 'temp-cleanup'], isSafeMode()); toast('✔ Reparo concluído', 'success'); } catch (e) { toastError('Erro', e); } }, { once: true });
 }
 async function runBenchmark() {
   const scoreEl = $('bench-score'), btn = $('btn-benchmark'), qa = $('qa-bench-sub');
@@ -2763,9 +2938,9 @@ function initPremium() {
     await handleQuickAction(card.dataset.action, card);
   });
   document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', () => navigate(el.dataset.goto)));
-  $('btn-all-quick')?.addEventListener('click', () => { const qa = $('quick-actions'); const shell = $('app-shell'); if (qa) qa.classList.toggle('hidden'); if (shell && qa && !qa.classList.contains('hidden')) { shell.classList.add('sidebar-expanded'); shell.classList.remove('sidebar-collapsed'); } });
-  $('btn-sidebar-boost')?.addEventListener('click', () => handleQuickAction('quick-boost'));
-  $('btn-perf-boost')?.addEventListener('click', () => handleQuickAction('quick-boost'));
+  $('btn-all-quick')?.addEventListener('click', () => { const qa = $('quick-actions'); const shell = $('app-shell'); if (qa) qa.classList.toggle('hidden'); if (shell && qa && !qa.classList.contains('hidden')) { shell.classList.add('sidebar-expanded'); shell.classList.remove('sidebar-collapsed'); try { localStorage.setItem('hb.sidebar', 'expanded'); } catch {} } });
+  // btn-sidebar-boost e btn-perf-boost foram removidos do HTML: eram o mesmo
+  // runOptimizeNow() do "Otimizar Agora", duplicado na mesma viewport.
   $('btn-benchmark')?.addEventListener('click', runBenchmark);
   const gameSearch = $('game-search');
   if (gameSearch) {
@@ -2879,7 +3054,7 @@ function initLicenseGate() {
     navigate('auth');
   });
   $('btn-gate-plans')?.addEventListener('click', async () => {
-    try { await window.hbDesktop.openPlans(); } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    try { await window.hbDesktop.openPlans(); } catch (e) { toastError('Erro', e); }
   });
   $('btn-banner-activate')?.addEventListener('click', () => navigate('auth'));
   document.addEventListener('keydown', (e) => {
@@ -2926,7 +3101,7 @@ function initAutoUpdate() {
       else if (res.ok && res.available) { say('nova versão: ' + (res.version || '')); toast(`⬇ ${res.message}`, 'success'); }
       else if (res.ok) { say('em dia ✓'); toast(`✔ ${res.message || 'Em dia'}`, 'success'); }
       else { say('falha na verificação'); toast('Atualização: ' + (res.error || 'falha'), 'error'); }
-    } catch (e) { say('erro de conexão'); toast('Erro: ' + e.message, 'error'); }
+    } catch (e) { say('erro de conexão'); toastError('Erro', e); }
     finally {
       if (btn) { btn.disabled = false; btn.textContent = 'Verificar atualizações agora'; }
       setTimeout(() => { const s = $('update-status'); if (s && s.textContent !== 'em dia ✓') s.textContent = '—'; }, 15000);
@@ -2946,10 +3121,10 @@ async function handleQuickAction(action, el) {
   switch (action) {
     case 'quick-boost': await runOptimizeNow(); break;
     case 'quick-clean': navigate('cleaning'); ['temp-files', 'prefetch', 'wu-cache', 'thumbnails', 'dns-cache'].forEach(id => state.selectedClean.add(id)); renderCleaning(); toast('✔ Limpeza rápida pré-selecionada', 'success'); break;
-    case 'quick-game-boost': if (!licenseGate('ativar o Game Mode')) break; toast('🎮 Ativando Game Mode...', 'info'); try { const r = await window.hbDesktop.applyPreset('competitive'); toast(r.ok ? '✔ Game Mode ativo' : 'Erro', r.ok ? 'success' : 'error'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-flush-dns': if (!licenseGate('limpar o DNS')) break; try { const r = await window.hbDesktop.applyOptimization('flushdns'); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ DNS renovado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-free-ram': if (!licenseGate('liberar RAM')) break; try { const r = await window.hbDesktop.freeRam(); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ ' + (r.message || 'RAM liberada'), 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
-    case 'quick-restart-explorer': if (!licenseGate('reiniciar o Explorer')) break; try { await window.hbDesktop.restartExplorer(); toast('✔ Explorer reiniciado', 'success'); } catch (e) { toast('Erro: ' + e.message, 'error'); } break;
+    case 'quick-game-boost': if (!licenseGate('ativar o Game Mode')) break; toast('🎮 Ativando Game Mode...', 'info'); try { const r = await window.hbDesktop.applyPreset('competitive', isSafeMode()); toast(r.ok ? '✔ Game Mode ativo' : 'Erro', r.ok ? 'success' : 'error'); } catch (e) { toastError('Erro', e); } break;
+    case 'quick-flush-dns': if (!licenseGate('limpar o DNS')) break; try { const r = await window.hbDesktop.applyOptimization('flushdns', isSafeMode()); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ DNS renovado', 'success'); } catch (e) { toastError('Erro', e); } break;
+    case 'quick-free-ram': if (!licenseGate('liberar RAM')) break; try { const r = await window.hbDesktop.freeRam(); if (!r.ok) throw new Error(r.error || 'Falha'); toast('✔ ' + (r.message || 'RAM liberada'), 'success'); } catch (e) { toastError('Erro', e); } break;
+    case 'quick-restart-explorer': if (!licenseGate('reiniciar o Explorer')) break; try { await window.hbDesktop.restartExplorer(); toast('✔ Explorer reiniciado', 'success'); } catch (e) { toastError('Erro', e); } break;
     case 'quick-benchmark': navigate('dashboard'); setTimeout(runBenchmark, 300); break;
     case 'goto-apps': navigate('apps'); break;
     case 'goto-security': navigate('security'); break;
@@ -3023,17 +3198,9 @@ async function init() {
     await restartAsAdminFlow();
   });
 
-  // Preset select
-  const presetSelect = $('preset-select');
-  if (presetSelect) {
-    presetSelect.addEventListener('change', async () => {
-      const val = presetSelect.value;
-      if (val !== 'custom') {
-        await applyPreset(val);
-        presetSelect.value = 'custom';
-      }
-    });
-  }
+  // O <select> de presets foi removido do HTML. Ele aplicava o preset e voltava
+  // sozinho para "Personalizado", o que parecia falha. A escolha de preset agora
+  // vive só no painel Performance, com os cards e o botão de aplicar.
 
   // Health scan
   const healthScanBtn = $('btn-run-health-scan');
@@ -3050,7 +3217,7 @@ async function init() {
     let okCount = 0;
     for (const id of ids) {
       try {
-        const res = await window.hbDesktop.applyOptimization(id);
+        const res = await window.hbDesktop.applyOptimization(id, isSafeMode());
         if (res.ok) { okCount++; addHistory('apply', id, 'success'); }
         else addHistory('apply', id, 'error');
       } catch (e) { addHistory('apply', id, 'error'); }
@@ -3077,12 +3244,40 @@ async function init() {
     }
   });
 
-  // Progress close
+  // Progress close — NUNCA fecha às cegas durante uma operação ativa.
+  // Antes, o ✕ apenas escondia o modal e deixava um DISM de até 30 min rodando
+  // sem nenhuma indicação na tela. Agora ele pergunta o que fazer.
   const progressClose = $('progress-close');
   const progressOverlay = $('progress-overlay');
   if (progressClose && progressOverlay) {
-    progressClose.addEventListener('click', () => progressOverlay.classList.add('hidden'));
+    progressClose.addEventListener('click', () => {
+      if (!opActive) { progressOverlay.classList.add('hidden'); return; }
+      const escolha = confirm(
+        'Há uma operação em andamento.\n\n' +
+        'OK = cancelar a operação (o item atual termina antes de parar)\n' +
+        'Cancelar = continuar rodando em segundo plano'
+      );
+      if (escolha) {
+        opCancelRequested = true;
+        const cancelBtn = $('progress-cancel');
+        if (cancelBtn) {
+          cancelBtn.classList.remove('hidden');
+          cancelBtn.disabled = true;
+          cancelBtn.innerHTML = '<span class="spinner"></span> Cancelando…';
+        }
+        $('progress-text').textContent = 'Cancelando após o item atual…';
+        window.hbDesktop.cancelBatch().catch(() => {});
+      } else {
+        // Minimiza para o indicador do sidebar em vez de esconder sem rastro.
+        progressOverlay.classList.add('hidden');
+        toast('Operação continua em segundo plano — clique no indicador do menu para reabrir.', 'info');
+      }
+    });
   }
+  // Reabrir o modal pelo indicador de operação ativa no sidebar.
+  $('op-busy-dot')?.addEventListener('click', () => {
+    if (opActive) progressOverlay?.classList.remove('hidden');
+  });
 
   // App search
   const appSearch = $('app-search');
@@ -3165,6 +3360,10 @@ async function init() {
       if (oc) oc.textContent = totalOptCount();
     }
   } catch (e) { /* silent */ }
+
+  // Aplica a preferência de animações antes de qualquer render, para não
+  // pintar um frame com orbes e depois removê-los.
+  applyAnimationPreference();
 
   renderDashboard();
 

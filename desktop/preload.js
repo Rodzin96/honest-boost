@@ -41,9 +41,11 @@ const hbDesktop = {
   getRecommendationReport: () => ipcRenderer.invoke('catalog:report'),
 
   // ===== Aplicação de otimizações =====
-  applyOptimization: (id) => ipcRenderer.invoke('opt:apply', id),
-  applyBatch: (ids) => ipcRenderer.invoke('opt:apply-batch', ids),
-  applyRecommended: () => ipcRenderer.invoke('opt:apply-recommended'),
+  // safeMode (Modo Seguro) é repassado em cada chamada de escrita: o main
+  // bloqueia receitas de risco MEDIUM e limpeza destrutiva quando ativo.
+  applyOptimization: (id, safeMode) => ipcRenderer.invoke('opt:apply', id, safeMode),
+  applyBatch: (ids, safeMode) => ipcRenderer.invoke('opt:apply-batch', ids, safeMode),
+  applyRecommended: (safeMode) => ipcRenderer.invoke('opt:apply-recommended', safeMode),
   cancelBatch: () => ipcRenderer.invoke('opt:cancel-batch'),
   onOptProgress: (cb) => {
     const listener = (_event, payload) => { try { cb(payload); } catch {} };
@@ -51,15 +53,17 @@ const hbDesktop = {
     return () => ipcRenderer.removeListener('opt:progress', listener);
   },
   applyAll: () => ipcRenderer.invoke('opt:apply-all'),
-  applyPreset: (presetId) => ipcRenderer.invoke('opt:apply-preset', presetId),
+  applyPreset: (presetId, safeMode) => ipcRenderer.invoke('opt:apply-preset', presetId, safeMode),
   removeOptimization: (id) => ipcRenderer.invoke('opt:remove', id),
 
   // ===== Limpeza =====
-  cleanItem: (id) => ipcRenderer.invoke('clean:item', id),
-  cleanSelected: (ids) => ipcRenderer.invoke('clean:selected', ids),
+  cleanItem: (id, safeMode) => ipcRenderer.invoke('clean:item', id, safeMode),
+  cleanSelected: (ids, safeMode) => ipcRenderer.invoke('clean:selected', ids, safeMode),
+  // Caminho explícito para itens destrutivos — o Modo Seguro bloqueia.
+  cleanRiskySafe: (id, safeMode) => ipcRenderer.invoke('clean:risky', id, safeMode),
   // Itens que apagam dados do usuário (cookies, histórico, clipboard, lixeira).
   // Caminho separado de propósito: exige confirmação explícita na UI.
-  cleanRisky: (id) => ipcRenderer.invoke('clean:risky', id),
+  cleanRisky: (id, safeMode) => ipcRenderer.invoke('clean:risky', id, safeMode),
   // A classificação (admin/risky) é decidida no backend; a UI consulta para
   // não divergir e nunca chamar o canal errado.
   classifyClean: (ids) => ipcRenderer.invoke('clean:classify', ids),

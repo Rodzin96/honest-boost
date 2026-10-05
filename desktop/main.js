@@ -348,18 +348,21 @@ ipcMain.handle('catalog:report', async () => {
 });
 
 // ===== Otimizações =====
-ipcMain.handle('opt:apply', async (event, id) => {
+// O Modo Seguro é uma preferência do renderer (localStorage). Ele chega em cada
+// chamada para não depender de estado global no main — se a UI mentir, o motor
+// ainda bloqueia pelo campo `safeMode`.
+ipcMain.handle('opt:apply', async (event, id, safeMode) => {
   try {
-    const result = await optimizationEngine.executeRecipe(id, { admin: isAdmin() });
+    const result = await optimizationEngine.executeRecipe(id, { admin: isAdmin(), safeMode: !!safeMode });
     return { ok: true, result };
   } catch (e) {
     return { ok: false, error: e.message };
   }
 });
 
-ipcMain.handle('opt:apply-batch', async (event, ids) => {
+ipcMain.handle('opt:apply-batch', async (event, ids, safeMode) => {
   try {
-    const result = await optimizationEngine.applyBatch(ids, { admin: isAdmin() });
+    const result = await optimizationEngine.applyBatch(ids, { admin: isAdmin(), safeMode: !!safeMode });
     return { ok: true, result };
   } catch (e) {
     return { ok: false, error: e.message };
@@ -372,7 +375,7 @@ ipcMain.handle('opt:cancel-batch', async () => {
   return { ok: true };
 });
 
-ipcMain.handle('opt:apply-recommended', async () => {
+ipcMain.handle('opt:apply-recommended', async (event, safeMode) => {
   _batchCancel = false;
   try {
     const send = (p) => {
@@ -384,6 +387,7 @@ ipcMain.handle('opt:apply-recommended', async () => {
     };
     const result = await optimizationEngine.applyRecommended({
       admin: isAdmin(),
+      safeMode: !!safeMode,
       onProgress: send,
       isCancelled: () => _batchCancel,
     });
@@ -622,12 +626,12 @@ ipcMain.handle('system:health-analysis', async () => {
 });
 
 // ===== Presets =====
-ipcMain.handle('opt:apply-preset', async (event, presetId) => {
+ipcMain.handle('opt:apply-preset', async (event, presetId, safeMode) => {
   try {
     const preset = healthAnalyzer.PRESETS[presetId];
     if (!preset) return { ok: false, error: 'Preset não encontrado.' };
     const ids = preset.optimizations;
-    const result = await optimizationEngine.applyBatch(ids, { admin: isAdmin() });
+    const result = await optimizationEngine.applyBatch(ids, { admin: isAdmin(), safeMode: !!safeMode });
     showNotification('Honest Boost', `Preset "${preset.name}" aplicado — ${result.applied || 0} otimizações.`);
     return { ok: true, result: { ...result, preset: preset.name } };
   } catch (e) {
@@ -653,9 +657,14 @@ ipcMain.handle('clean:classify', async (event, ids) => {
 // cleanItem valida elevação e consentimento: itens sob SystemRoot, logs de
 // eventos e o store de componentes exigem admin; itens que apagam dados do
 // usuário (cookies, histórico, clipboard, lixeira) exigem opt-in explícito.
-ipcMain.handle('clean:item', async (event, id) => {
+ipcMain.handle('clean:item', async (event, id, safeMode) => {
   try {
     const info = systemAnalyzer.classifyCleanItem(String(id));
+    // Modo Seguro bloqueia itens destrutivos no caminho genérico. O canal
+    // clean:risky continua existindo, mas exige confirmação explícita da UI.
+    if (safeMode && info.risky) {
+      return { ok: false, error: 'Bloqueado pelo Modo Seguro: item apaga dados do usuário.' };
+    }
     const res = await systemAnalyzer.cleanItem(id, {
       admin: isAdmin(),
       riskAccepted: info.risky,
@@ -666,21 +675,27 @@ ipcMain.handle('clean:item', async (event, id) => {
   }
 });
 
-ipcMain.handle('clean:selected', async (event, ids) => {
+ipcMain.handle('clean:selected', async (event, ids, safeMode) => {
   try {
     const list = Array.isArray(ids) ? ids : [];
     const admin = isAdmin();
     let okCount = 0;
+    let safeBlocked = 0;
     const failures = [];
     for (const id of list) {
       const info = systemAnalyzer.classifyCleanItem(String(id));
+      if (safeMode && info.risky) {
+        safeBlocked++;
+        failures.push({ id, error: 'Bloqueado pelo Modo Seguro.' });
+        continue;
+      }
       const res = await systemAnalyzer.cleanItem(id, { admin, riskAccepted: info.risky });
       if (res.ok) okCount++;
       else failures.push({ id, error: res.error });
     }
     return {
       ok: true,
-      result: { cleaned: okCount, total: list.length, failed: list.length - okCount, failures },
+      result: { cleaned: okCount, total: list.length, failed: list.length - okCount, safeBlocked, failures },
     };
   } catch (e) {
     return { ok: false, error: e.message };
@@ -689,11 +704,13 @@ ipcMain.handle('clean:selected', async (event, ids) => {
 
 // Caminho explícito para itens destrutivos: só aceita se o item realmente for
 // destrutivo, mantendo a exigência de elevação quando aplicável.
-ipcMain.handle('clean:risky', async (event, id) => {
+ipcMain.handle('clean:risky', async (event, id, safeMode) => {
   try {
     const info = systemAnalyzer.classifyCleanItem(String(id));
     if (!info.known) return { ok: false, error: `Ação não reconhecida: ${id}` };
     if (!info.risky) return { ok: false, error: `"${id}" não é um item destrutivo - use clean:item.` };
+    // Modo Seguro é soberano: nem o caminho explícito de destrutivos passa.
+    if (safeMode) return { ok: false, error: 'Bloqueado pelo Modo Seguro: item apaga dados do usuário.' };
     const res = await systemAnalyzer.cleanItem(id, { admin: isAdmin(), riskAccepted: true });
     return { ok: res.ok, message: res.ok ? `Item ${id} limpo.` : res.error };
   } catch (e) {

@@ -25,6 +25,12 @@ async function executeRecipe(id, options = {}) {
     return { ok: false, id, admin: true, message: 'Esta otimização requer execução como administrador.' };
   }
 
+  // Modo Seguro: bloqueia receitas de risco MEDIUM. É a única diferença entre
+  // o modo normal e o seguro, e o motivo é explícito no resultado.
+  if (options.safeMode && recipe.risk === 'MEDIUM') {
+    return { ok: false, id, name: recipe.name, safeBlocked: true, message: 'Bloqueada pelo Modo Seguro (risco médio).' };
+  }
+
   if (recipe.condition) {
     try {
       // applyBatch injeta um único scan compartilhado; chamada isolada escaneia.
@@ -99,6 +105,7 @@ async function applyBatch(ids, options = {}) {
     failed: results.length - okCount,
     adminBlocked: results.filter(r => !r.ok && r.admin).length,
     skipped: results.filter(r => !r.ok && r.skipped).length,
+    safeBlocked: results.filter(r => !r.ok && r.safeBlocked).length,
     results
   };
 }
