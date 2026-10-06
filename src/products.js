@@ -12,7 +12,7 @@ const PRODUCTS = {
     // Amount in cents (BRL).
     amount: 4700,
     seats: 1,
-    tagline: '1 PC • Vale até formatar',
+    tagline: '1 PC',
     features: [
       'Licença vinculada ao seu Windows atual',
       'Faxina profunda no sistema',
