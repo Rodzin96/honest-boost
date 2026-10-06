@@ -39,8 +39,8 @@
     window.HB.api('/api/app-version').then(function (out) {
       var v = out && out.data && out.data.version;
       if (!v) return;
-      el.textContent = 'V' + v + ' Disponível — ver o que mudou';
-      if (bar) bar.setAttribute('aria-label', 'Versão ' + v + ' disponível — ver novidades');
+      el.textContent = 'V' + v + ' Disponível';
+      if (bar) bar.setAttribute('aria-label', 'Versão ' + v + ' disponível');
     }).catch(function () {});
   })();
 
